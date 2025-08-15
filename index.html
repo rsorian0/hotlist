@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport"/>
+<title>Hotlist — V7 (format igual V6)</title>
+<style>
+  :root{ --bg:#0d1117; --card:#161b22; --muted:#8b949e; --text:#e6edf3; --accent:#1f6feb; --ok:#2ea043; --warn:#d29922; --th:#c82d6b; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  header{position:sticky;top:0;z-index:20;background:linear-gradient(180deg, rgba(13,17,23,.98), rgba(13,17,23,.92));backdrop-filter:saturate(1.1) blur(8px);border-bottom:1px solid #21262d}
+  .wrap{max-width:900px;margin:0 auto;padding:14px}
+  .toolbar{display:flex;gap:8px;align-items:center;position:relative}
+  .search{flex:1;display:flex;align-items:center;background:#0f1520;border:1px solid #263142;border-radius:10px;padding:10px 12px}
+  .search input{flex:1;background:transparent;border:0;color:var(--text);outline:none;font-size:15px}
+  .btn{background:var(--accent);border:0;color:#fff;padding:10px 12px;border-radius:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:transparent;border:1px dashed #2b3137;color:#9da7b3}
+  .btn.icon{display:inline-flex;align-items:center;gap:6px}
+  section{margin:14px auto;max-width:900px;padding:0 14px}
+  details.series{background:var(--card);border:1px solid #21262d;border-radius:14px;margin-bottom:14px;overflow:hidden}
+  details[open] summary .chev{transform:rotate(90deg)}
+  summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:12px 14px}
+  summary::-webkit-details-marker{display:none}
+  .badge{font-size:12px;color:#9da7b3;border:1px solid #30363d;border-radius:999px;padding:2px 8px}
+  .chev{transition:.2s ease}
+  .items .row{--accent-col:transparent;position:relative;display:grid;grid-template-columns:72px 1fr 32px;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid #21262d}
+  .items .row:hover{background:#0f131a}
+  .items .row::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent-col)}
+  .thumb-wrap{position:relative}
+  img.thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;border:1px solid #2b3137;background:#0b0f14;cursor:pointer}
+  .label{position:absolute;top:4px;left:4px;background:rgba(200,45,107,.95);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px;font-weight:700;letter-spacing:.2px}
+  .label.super{background:linear-gradient(90deg,#ffb703,#fb5607 60%,#ff006e)}
+  .title{font-weight:600}
+  .muted{font-size:12px;color:var(--muted)}
+  .tick{width:22px;height:22px;border-radius:6px;border:2px solid #2f81f7;display:grid;place-items:center;cursor:pointer;background:#0b1320;transition:transform .08s ease}
+  .tick:active{transform:scale(.96)}
+  .tick.checked{background:#2f81f7}
+  .tick svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:.95}
+  .footer{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 14px;background:linear-gradient(180deg, rgba(22,27,34,.7), rgba(22,27,34,.98));backdrop-filter:saturate(1.1) blur(8px); border-top:1px solid #21262d}
+  .footer .wrap{display:flex;justify-content:space-between;align-items:center;padding:0;gap:10px}
+  .total-pill{display:inline-flex;align-items:center;gap:8px;background:#0f1520;border:1px solid #2b3137;color:#c9d1d9;padding:8px 12px;border-radius:12px;font-weight:600}
+  .share-pill{display:inline-flex;align-items:center;gap:8px;background:#111726;border:1px solid #2b3137;color:#c9d1d9;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer}
+  .share-pill svg{width:18px;height:18px}
+  .spacer{height:70px}
+
+  /* Modal/Galeria — setas fixas e sem X */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;place-items:center;z-index:50;padding:20px}
+  .overlay.open{display:grid}
+  .overlay .stage{position:relative;max-width:min(90vw, 1100px);max-height:90vh;display:grid;place-items:center;padding:0 56px}
+  .overlay img{max-width:100%;max-height:90vh;width:auto;height:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(6px);color:#fff;width:44px;height:44px;border-radius:999px;cursor:pointer;display:grid;place-items:center;z-index:2}
+  .nav-btn:hover{background:rgba(255,255,255,.14)}
+  .nav-left{left:clamp(8px, env(safe-area-inset-left, 0px) + 8px, 24px)}
+  .nav-right{right:clamp(8px, env(safe-area-inset-right, 0px) + 8px, 24px)}
+
+  @media (max-width: 480px){
+    .overlay .stage{padding:0 48px}
+    .nav-btn{width:40px;height:40px}
+  }
+
+  /* Painel */
+  .panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#0f1520;border-left:1px solid #263142;box-shadow:-10px 0 30px rgba(0,0,0,.35);z-index:60;transform:translateX(100%);transition:transform .2s ease}
+  .panel.open{transform:translateX(0)}
+  .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #263142}
+  .panel h3{margin:0;font-size:16px}
+  .panel .body{display:flex;flex-direction:column;height:calc(100vh - 49px)}
+  .panel label{font-size:12px;color:#9da7b3}
+  .panel input, .panel select{width:100%;background:#0b1018;border:1px solid #263142;border-radius:8px;color:#e6edf3;padding:8px}
+  .panel .list{display:grid;gap:8px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #263142}
+  .tab-btn{background:#111726;border:1px solid #263142;border-radius:10px;padding:8px 10px;color:#c9d1d9;font-weight:600;cursor:pointer}
+  .tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .panes{flex:1;min-height:0}
+  .pane{display:none;height:100%;overflow:auto;padding:12px 14px}
+  .pane.active{display:block}
+  .group{border:1px solid #263142;border-radius:12px;padding:10px;background:#0e141d;margin-bottom:12px}
+  .group h4{margin:0 0 6px 0;font-size:13px;color:#c9d1d9}
+  .stack{display:grid;gap:8px}
+  .mini{display:grid;grid-template-columns:56px 1fr auto;gap:8px;align-items:center;background:#0e141d;border:1px solid #1e2633;padding:6px;border-radius:10px}
+  .mini img{width:56px;height:42px;object-fit:cover;border-radius:6px;border:1px solid #263142}
+  .mini input{width:100%;background:#0b1018;border:1px solid #263142;border-radius:6px;color:#e6edf3;padding:6px;font-size:12px}
+  .mini .actions{display:flex;gap:6px}
+  .ghost{background:transparent;border:1px dashed #2b3137;color:#9da7b3}
+
+  /* File inputs & notes */
+  .file{position:relative;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .file input[type="file"]{display:none}
+  .file .fake{background:#0b1018;border:1px solid #263142;border-radius:8px;padding:8px 10px;cursor:pointer}
+  .opts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tiny{font-size:12px;color:#9da7b3}
+  .row.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#151b22;border:1px solid #2b3137;color:#e6edf3;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:600;opacity:0;transition:opacity .15s ease;z-index:80}
+  .toast.show{opacity:1}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="search">
+        <input autocomplete="off" id="q" placeholder="Buscar por modelo, série ou número…" type="search" aria-label="Buscar"/>
+      </div>
+      <button class="btn" id="addBtn" type="button" aria-expanded="false" aria-controls="editor">Adicionar</button>
+    </div>
+  </div>
+</header>
+
+<section id="list"></section>
+<div class="spacer"></div>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="total-pill" id="totais">Total: <span id="chk">0</span> de <span id="all">0</span></div>
+    <button class="share-pill" id="shareAll" type="button" aria-label="Compartilhar checklist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/>
+        <path d="M16 6l-4-4-4 4"/>
+        <path d="M12 2v14"/>
+      </svg>
+      Compartilhar
+    </button>
+  </div>
+</footer>
+
+<!-- Modal/Galeria (sem botão X) -->
+<div class="overlay" id="modal">
+  <div class="stage">
+    <button class="nav-btn nav-left" id="prevImg" type="button" title="Anterior">◀</button>
+    <img alt="Imagem grande" id="modalImg"/>
+    <button class="nav-btn nav-right" id="nextImg" type="button" title="Próxima">▶</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<aside class="panel" id="editor" aria-hidden="true">
+  <div class="hd">
+    <h3>Gerenciar</h3>
+    <button class="btn ghost" id="closePanel" type="button">Fechar</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab-colecoes" type="button">Coleções</button>
+    <button class="tab-btn" data-tab="tab-backup" type="button">Backup</button>
+  </div>
+
+  <div class="body">
+    <div class="panes">
+      <!-- Coleções -->
+      <div class="pane active" id="tab-colecoes">
+        <div class="group">
+          <h4>Criar/Excluir coleções</h4>
+          <div class="stack">
+            <label>Nova coleção</label>
+            <input id="serieNome" placeholder="ex.: HW Art Cars"/>
+            <button class="btn" id="addSerie" type="button">Adicionar coleção</button>
+          </div>
+          <div class="stack" style="margin-top:10px">
+            <label>Selecionar coleção para gerenciar</label>
+            <select id="serieSel"></select>
+            <div class="tiny">A lista principal exibe sempre todas as coleções. Este seletor define onde adicionar/excluir.</div>
+            <button class="btn ghost" id="delSerie" type="button">Excluir coleção</button>
+          </div>
+        </div>
+
+        <div class="group">
+          <h4>Itens da coleção</h4>
+          <div class="stack">
+            <label>Adicionar item à coleção selecionada</label>
+            <input id="itemNumero" placeholder="número (ex.: 01/10) ou 1/10, 1, etc."/>
+            <input id="itemNome" placeholder="modelo (ex.: DMC DeLorean)"/>
+            <input id="itemImg" placeholder="URL da imagem (https://...)"/>
+            <button class="btn" id="addItem" type="button">Adicionar item</button>
+          </div>
+
+          <div class="stack" style="margin-top:10px">
+            <label>Pré-visualização (clique em Editar para alterar rapidamente)</label>
+            <div class="list" id="itensPreview" style="max-height:40vh;overflow:auto"></div>
+            <div class="tiny">Ordena por número (1 → 999). Sem número: vão ao fim por ordem alfabética.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup -->
+      <div class="pane" id="tab-backup">
+        <div class="group">
+          <h4>Exportar</h4>
+          <div class="stack">
+            <button class="btn" id="panelExport" type="button">Exportar agora</button>
+            <div class="tiny">Baixa um <code>.json</code> com coleções, itens e marcados. Nome: <code>hotlist-backup-AAAAMMDD.json</code>.</div>
+          </div>
+        </div>
+
+        <div class="group">
+          <h4>Importar</h4>
+          <div class="stack">
+            <div class="file">
+              <label class="fake" for="importFile">Escolher arquivo (.json)</label>
+              <input id="importFile" type="file" accept="application/json"/>
+              <div class="opts">
+                <label class="tiny"><input type="radio" name="mergeMode" value="merge" checked/> Mesclar</label>
+                <label class="tiny"><input type="radio" name="mergeMode" value="replace"/> Substituir tudo</label>
+              </div>
+            </div>
+            <div class="tiny" id="importSummary"></div>
+            <div class="row actions">
+              <button class="btn" id="applyImport" type="button" disabled>Aplicar importação</button>
+              <button class="btn ghost" id="clearImport" type="button">Limpar seleção</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* ---------- Estado & storage ---------- */
+const DB_KEY="hw_checklist_v3";        // checks
+const DB_SERIES="hw_series_v1";        // coleções/itens
+const DB_TAB="hw_ui_tab_v7";           // aba ativa
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}};
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+let checks=load(DB_KEY,{});
+let SERIES=load(DB_SERIES,[]);
+let currentIndex = SERIES.length?0:-1;
+
+/* ---------- Util ---------- */
+const $=sel=>document.querySelector(sel);
+const listEl=$("#list"), q=$("#q"), toastEl=$("#toast");
+function toast(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); setTimeout(()=>toastEl.classList.remove("show"),1600); }
+function isUrl(u){ try{const x=new URL(u); return x.protocol==="http:"||x.protocol==="https:";}catch{return false;}}
+
+/* ---------- Raridade: cores/selo ---------- */
+const RARITY_COLORS = { base: "transparent", th: "#c82d6b", super: "linear-gradient(0deg,#ffb703,#fb5607 60%,#ff006e)", rare: "#8a9afc" };
+function rarityFromName(name=""){ const n=name.toLowerCase(); if(n.includes("super treasure")) return "super"; if(n.includes("(th)") || n.includes("treasure")) return "th"; return "base"; }
+function rarityColorFromName(name){ return RARITY_COLORS[rarityFromName(name)]||RARITY_COLORS.base; }
+
+/* ---------- Parser robusto de número ---------- */
+function parseN(n){
+  const s=String(n??"").trim();
+  // "X/Y", "X - Y", "X|Y", "X de Y", ou só "X"
+  let m = s.match(/^(\d+)\s*[\/\-\|]\s*(\d+)\b/);
+  if(m) return {has:true, num:parseInt(m[1],10), den:parseInt(m[2],10), raw:s};
+  m = s.match(/^(\d+)\s*(?:de\s*\d+)?\b/i);
+  if(m) return {has:true, num:parseInt(m[1],10), den:null, raw:s};
+  return {has:false, num:Number.POSITIVE_INFINITY, den:null, raw:s};
+}
+
+/* ---------- Ordenação ---------- */
+// Mantém a ORDEM DAS COLEÇÕES como veio do localStorage/JSON (não alfabética)
+function smartSortItems(arr){
+  // Ordena itens por número; sem número, vai por nome do modelo
+  return (arr||[]).slice().sort((ia, ib)=>{
+    const A=parseN(ia?.n), B=parseN(ib?.n);
+    if(A.has!==B.has) return A.has? -1: 1;
+    if(A.num!==B.num) return A.num - B.num;
+    if(A.den!=null && B.den!=null && A.den!==B.den) return A.den - B.den;
+    return (ia?.modelo||"").localeCompare(ib?.modelo||"", 'pt-BR', {sensitivity:'base'});
+  });
+}
+function sortAll(){
+  // NÃO reordena SERIES
+  SERIES.forEach(s=>{ s.items = smartSortItems(s.items||[]); });
+  save(DB_SERIES,SERIES);
+}
+
+/* ---------- Totais inline (sem re-render) ---------- */
+function updateTotalsInline(badgeEl, seriesWrapEl){
+  if(seriesWrapEl){
+    const t = seriesWrapEl.querySelectorAll('.row').length;
+    const c = seriesWrapEl.querySelectorAll('.row .tick.checked').length;
+    if(badgeEl) badgeEl.textContent = `${c}/${t}`;
+  }
+  const all = document.querySelectorAll('#list .row').length;
+  const chk = document.querySelectorAll('#list .row .tick.checked').length;
+  $("#all").textContent = all;
+  $("#chk").textContent = chk;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  sortAll();
+  listEl.innerHTML=""; let total=0, done=0;
+  const filter=(q.value||"").toLowerCase().trim();
+  const modalFeed=[];
+
+  (SERIES||[]).forEach(s=>{
+    const grp=document.createElement("details"); grp.className="series"; grp.open=true;
+    const sid=Math.random().toString(36).slice(2);
+    grp.innerHTML=`<summary>
+      <svg class='chev' width='16' height='16' viewBox='0 0 24 24'><path d='M9 6l6 6-6 6' stroke='currentColor' stroke-width='2' fill='none'/></svg>
+      <div class='title'>${s.nome}</div>
+      <span class='badge' id='b-${sid}'></span>
+    </summary>`;
+    const wrap=document.createElement("div"); wrap.className="items";
+    let c=0,t=0;
+
+    smartSortItems(s.items||[]).forEach(it=>{
+      if(!(`${it.modelo||""} ${it.n||""} ${s.nome}`.toLowerCase().includes(filter))) return;
+      const row=document.createElement("div"); row.className="row";
+      row.style.setProperty('--accent-col', rarityColorFromName(it.modelo||""));
+
+      const thumbWrap=document.createElement("div"); thumbWrap.className='thumb-wrap';
+      const img=document.createElement("img"); img.className="thumb"; img.alt=it.modelo||"";
+      img.setAttribute('data-src', it.img||""); img.loading='lazy';
+      thumbWrap.appendChild(img);
+
+      const nameLower=(it.modelo||"").toLowerCase();
+      if(nameLower.includes('(th)') || nameLower.includes('treasure')){
+        const lab=document.createElement('div');
+        const isSuper = nameLower.includes('super');
+        lab.className='label'+(isSuper?' super':''); lab.textContent=isSuper? 'SUPER TH':'TH';
+        thumbWrap.appendChild(lab);
+      }
+
+      const galleryIndex = modalFeed.push({img:it.img||"", alt:it.modelo||""}) - 1;
+      thumbWrap.addEventListener('click',()=> openModal(galleryIndex));
+      row.appendChild(thumbWrap);
+
+      const meta=document.createElement("div");
+      meta.innerHTML=`<div class='muted'>${it.n||""}</div><div class='title'>${it.modelo||""}</div>`;
+      row.appendChild(meta);
+
+      const key=s.nome+"__"+(it.n||"");
+      const tick=document.createElement("div");
+      tick.className="tick"+(checks[key]?" checked":"");
+      tick.innerHTML=`<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>`;
+      const badgeElRef = ()=> grp.querySelector("#b-"+sid);
+      tick.addEventListener("click",()=>{ 
+        checks[key]=!checks[key];
+        tick.classList.toggle("checked");
+        save(DB_KEY,checks);
+        updateTotalsInline(badgeElRef(), wrap);
+      });
+      row.appendChild(tick);
+
+      wrap.appendChild(row);
+      t++; total++; if(checks[key]){ c++; done++; }
+    });
+
+    grp.appendChild(wrap);
+    grp.querySelector("#b-"+sid).textContent=`${c}/${t}`;
+    listEl.appendChild(grp);
+
+    setTimeout(()=> enableLazy(wrap),0);
+  });
+
+  window.__modalFeed = modalFeed;
+  $("#all").textContent=total; $("#chk").textContent=done;
+}
+
+/* ---------- Lazy Load ---------- */
+function enableLazy(scope){
+  const imgs=[...scope.querySelectorAll('img.thumb[data-src]')];
+  if(!('IntersectionObserver' in window)){
+    imgs.forEach(img=>{ img.src = img.getAttribute('data-src')||''; img.removeAttribute('data-src'); });
+    return;
+  }
+  const io=new IntersectionObserver((entries,obs)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const el=e.target; el.src=el.getAttribute('data-src')||''; el.removeAttribute('data-src'); obs.unobserve(el);
+      }
+    })
+  },{rootMargin:'200px'});
+  imgs.forEach(img=> io.observe(img));
+}
+
+/* ---------- Galeria ---------- */
+let modalIndex=0;
+function openModal(i){
+  const feed=window.__modalFeed||[]; if(!feed.length) return; modalIndex = Math.max(0, Math.min(i, feed.length-1));
+  updateModal();
+  $("#modal").classList.add('open');
+}
+function updateModal(){
+  const feed=window.__modalFeed||[]; if(!feed.length) return; const cur=feed[modalIndex];
+  $("#modalImg").src=cur.img||''; $("#modalImg").alt=cur.alt||'';
+}
+function closeModal(){ $("#modal").classList.remove('open'); }
+function nextModal(){ const feed=window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex+1)%feed.length; updateModal(); }
+function prevModal(){ const feed=window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex-1+feed.length)%feed.length; updateModal(); }
+
+$("#modal").addEventListener("click",(ev)=>{ if(ev.target.id==='modal') closeModal(); });
+$("#nextImg").addEventListener("click", nextModal);
+$("#prevImg").addEventListener("click", prevModal);
+window.addEventListener('keydown', (e)=>{
+  if(!$("#modal").classList.contains('open')) return;
+  if(e.key==='Escape') closeModal();
+  if(e.key==='ArrowRight') nextModal();
+  if(e.key==='ArrowLeft') prevModal();
+});
+
+/* ---------- Compartilhar (formato idêntico ao V6: \n reais) ---------- */
+function getVisibleItems(){
+  const filter=(q.value||"").toLowerCase().trim();
+  const visible=[];
+  (SERIES||[]).forEach(s=>{
+    smartSortItems(s.items||[]).forEach(it=>{
+      if(!(`${it.modelo||""} ${it.n||""} ${s.nome}`.toLowerCase().includes(filter))) return;
+      const key=s.nome+"__"+(it.n||"");
+      visible.push({serie:s.nome, n:it.n, modelo:it.modelo, img:it.img, checked:!!checks[key]});
+    });
+  });
+  return visible;
+}
+function shareChecklist(){
+  const items=getVisibleItems();
+  if(items.length===0){ toast("Nada para compartilhar (lista vazia)."); return; }
+  const tem = items.filter(i=>i.checked);
+  const falta = items.filter(i=>!i.checked);
+  const filter=(q.value||"").trim();
+  const header = filter ? `Minha Hotlist (filtro: "${filter}")` : "Minha Hotlist";
+
+  const MAX_LINES = 80;
+  const linesTem   = tem.map(i=>`• ${i.serie} — ${i.n||""} ${i.modelo}`);
+  const linesFalta = falta.map(i=>`• ${i.serie} — ${i.n||""} ${i.modelo}`);
+
+  let trimmedTem   = linesTem.slice(0, Math.min(linesTem.length, Math.floor(MAX_LINES/2)));
+  let trimmedFalta = linesFalta.slice(0, MAX_LINES - trimmedTem.length - 6);
+
+  if(trimmedTem.length   < linesTem.length)   trimmedTem.push(`…(+${linesTem.length   - trimmedTem.length} itens)`);
+  if(trimmedFalta.length < linesFalta.length) trimmedFalta.push(`…(+${linesFalta.length - trimmedFalta.length} itens)`);
+
+  const texto = [
+    `📦 ${header}`,
+    `✅ Tenho: ${tem.length}`,
+    trimmedTem.join("\n"),
+    "",
+    `❌ Falta: ${falta.length}`,
+    trimmedFalta.join("\n"),
+  ].join("\n");
+
+  if(navigator.share){
+    navigator.share({ title: "Checklist Hot Wheels", text: texto })
+      .catch(err=> console.log("Compartilhamento cancelado/erro", err));
+  }else{
+    const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+    window.open(url, "_blank");
+  }
+}
+
+/* ---------- Busca ---------- */
+q.addEventListener("input", render);
+
+/* ---------- Painel & Abas ---------- */
+const editor=$("#editor");
+const addBtn=$("#addBtn");
+addBtn.addEventListener("click",()=> { editor.classList.add("open"); addBtn.setAttribute("aria-expanded","true"); editor.setAttribute("aria-hidden","false"); });
+$("#closePanel").addEventListener("click",()=> { editor.classList.remove("open"); addBtn.setAttribute("aria-expanded","false"); editor.setAttribute("aria-hidden","true"); });
+
+const tabs=[...document.querySelectorAll(".tab-btn")];
+const panes=[...document.querySelectorAll(".pane")];
+function activateTab(id){
+  tabs.forEach(b=> b.classList.toggle("active", b.dataset.tab===id));
+  panes.forEach(p=> p.classList.toggle("active", p.id===id));
+  save(DB_TAB, id);
+}
+tabs.forEach(b=> b.addEventListener("click", ()=> activateTab(b.dataset.tab)));
+const initialTab = load(DB_TAB, "tab-colecoes");
+activateTab(initialTab);
+
+/* ---------- Seletor da coleção ---------- */
+const serieSel=$("#serieSel");
+function syncSelect(){
+  sortAll();
+  serieSel.innerHTML="";
+  SERIES.forEach((s,i)=>{ const o=document.createElement("option"); o.value=i; o.textContent=s.nome; serieSel.appendChild(o); });
+  if(SERIES.length===0){ currentIndex=-1; }
+  if(currentIndex<0 && SERIES.length){ currentIndex=0; }
+  if(currentIndex>=0 && SERIES[currentIndex]){ serieSel.value=String(currentIndex); }
+  renderPreview(); render();
+}
+serieSel?.addEventListener("change",()=>{ currentIndex=parseInt(serieSel.value,10); renderPreview(); });
+
+/* ---------- Preview com Edição Rápida ---------- */
+const itensPreview=$("#itensPreview");
+function renderPreview(){
+  itensPreview.innerHTML="";
+  if(currentIndex<0 || !SERIES[currentIndex]) return;
+  const s = SERIES[currentIndex];
+  smartSortItems(s.items||[]).forEach((it,i)=>{
+    const row=document.createElement("div"); row.className="mini";
+    row.innerHTML=`<img src="${it.img||""}" alt=""/>
+      <div class="edit" style="width:100%">
+        <div style="display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:6px">
+          <input data-k="n" value="${(it.n||"").replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="nº (ex.: 01/10)" disabled/>
+          <input data-k="modelo" value="${(it.modelo||"").replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="modelo" disabled/>
+          <input data-k="img" value="${(it.img||"").replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" placeholder="URL da imagem" disabled/>
+        </div>
+        <div class="toolbar" style="display:none;gap:6px">
+          <button class="btn" data-act="save" type="button" style="flex:1">Salvar</button>
+          <button class="btn ghost" data-act="cancel" type="button">Cancelar</button>
+        </div>
+      </div>`;
+    const actions=document.createElement("div"); actions.className="actions";
+    const editBtn=document.createElement("button"); editBtn.className="btn ghost"; editBtn.title="Editar"; editBtn.textContent="✏️"; editBtn.type="button";
+    const rm=document.createElement("button"); rm.className="btn ghost"; rm.title="Remover"; rm.textContent="🗑️"; rm.type="button";
+
+    const inputs=()=>[...row.querySelectorAll('input[data-k]')];
+    const toolbar=()=>row.querySelector('.toolbar');
+    function setEditing(on){
+      inputs().forEach(inp=> inp.disabled=!on);
+      toolbar().style.display = on?'flex':'none';
+      editBtn.style.display=on?'none':'inline-flex';
+    }
+    editBtn.addEventListener('click',()=> setEditing(true));
+    row.querySelector('[data-act="cancel"]').addEventListener('click',()=>{ setEditing(false); renderPreview(); });
+    row.querySelector('[data-act="save"]').addEventListener('click',()=>{
+      const vals={}; inputs().forEach(inp=> vals[inp.dataset.k]=inp.value.trim());
+      if(!vals.n || !vals.modelo){ alert('Informe número e modelo.'); return; }
+      if(vals.img && !isUrl(vals.img)){ alert('URL inválida. Use http(s)://'); return; }
+      s.items[i] = { n: vals.n, modelo: vals.modelo, img: vals.img };
+      save(DB_SERIES,SERIES); renderPreview(); render(); toast('Item atualizado');
+    });
+
+    rm.addEventListener("click",()=>{ s.items.splice(i,1); save(DB_SERIES,SERIES); renderPreview(); render(); toast("Item removido"); });
+
+    actions.append(editBtn, rm); row.appendChild(actions); itensPreview.appendChild(row);
+  });
+}
+
+/* ---------- Ações: Coleção ---------- */
+$("#addSerie").addEventListener("click",()=>{
+  const name=($("#serieNome").value||"").trim(); if(!name) return alert("Dê um nome à coleção.");
+  SERIES.push({nome:name, items:[]}); save(DB_SERIES,SERIES);
+  $("#serieNome").value="";
+  currentIndex=SERIES.length-1; // último (preserva ordem de criação)
+  syncSelect(); render(); toast("Coleção criada");
+});
+$("#delSerie").addEventListener("click",()=>{
+  if(currentIndex<0 || !SERIES[currentIndex]) return alert("Escolha a coleção para excluir.");
+  const nome=SERIES[currentIndex].nome;
+  if(!confirm(`Excluir a coleção "${nome}"? Isso também removerá os checks desta coleção.`)) return;
+  let pruned={}; Object.keys(checks).forEach(k=>{ if(!k.startsWith(nome+"__")) pruned[k]=checks[k]; });
+  checks=pruned; save(DB_KEY,checks);
+  SERIES.splice(currentIndex,1); save(DB_SERIES,SERIES);
+  currentIndex = SERIES.length? Math.max(0,currentIndex-1) : -1;
+  syncSelect(); render(); toast("Coleção excluída");
+});
+
+/* ---------- Ações: Item ---------- */
+$("#addItem").addEventListener("click",()=>{
+  if(currentIndex<0 || !SERIES[currentIndex]) return alert("Crie e selecione uma coleção.");
+  const n=($("#itemNumero").value||"").trim();
+  const m=($("#itemNome").value||"").trim();
+  const u=($("#itemImg").value||"").trim();
+  if(!n||!m) return alert("Informe número e modelo.");
+  if(u && !isUrl(u)) return alert("URL inválida. Use http(s)://");
+  SERIES[currentIndex].items.push({n, modelo:m, img:u}); save(DB_SERIES,SERIES);
+  $("#itemNumero").value=""; $("#itemNome").value=""; $("#itemImg").value="";
+  renderPreview(); render(); toast("Item adicionado");
+});
+
+/* ---------- EXPORT / IMPORT e Inicial ---------- */
+function todayStr(){ const d=new Date(); const pad=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`; }
+function exportData(){
+  const payload={version:1,exportedAt:new Date().toISOString(),series: JSON.parse(JSON.stringify(SERIES)),checks: JSON.parse(JSON.stringify(checks))};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`hotlist-backup-${todayStr()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href); toast("Backup exportado (.json)");
+}
+$("#panelExport").addEventListener("click", exportData);
+
+const importFile=$("#importFile"), applyImport=$("#applyImport"), clearImport=$("#clearImport"), importSummary=$("#importSummary");
+let importBuffer=null;
+clearImport.addEventListener("click", ()=>{ importBuffer=null; importFile.value=""; applyImport.disabled=true; importSummary.textContent=""; toast("Seleção limpa"); });
+importFile.addEventListener("change", async (ev)=>{
+  importBuffer=null; applyImport.disabled=true; importSummary.textContent="";
+  const f=ev.target.files?.[0]; if(!f) return;
+  try{
+    const text=await f.text(); const data=JSON.parse(text); validateImport(data); importBuffer=data;
+    const sc=Array.isArray(data.series)?data.series.length:0;
+    const ic=(data.series||[]).reduce((acc,s)=>acc+(Array.isArray(s.items)?s.items.length:0),0);
+    importSummary.textContent=`Arquivo válido • Coleções: ${sc} • Itens: ${ic} • Exportado em: ${data.exportedAt||"?"}`;
+    applyImport.disabled=false;
+  }catch(e){ console.error(e); importSummary.textContent="Arquivo inválido. Use um .json exportado pelo próprio app."; applyImport.disabled=true; }
+});
+function validateImport(data){
+  if(typeof data!=="object" || data===null) throw new Error("no object");
+  if(!("series" in data) || !("checks" in data)) throw new Error("missing keys");
+  if(!Array.isArray(data.series)) throw new Error("series not array");
+  data.series.forEach(s=>{
+    if(typeof s.nome!=="string") throw new Error("series.nome not string");
+    if(!Array.isArray(s.items)) throw new Error("series.items not array");
+    s.items.forEach(it=>{
+      if(typeof it!=="object"||it===null) throw new Error("item not object");
+      if(typeof it.modelo!=="string") throw new Error("item.modelo not string");
+      if(typeof it.n!=="string" && typeof it.n!=="number") throw new Error("item.n not str/num");
+      if(it.img && typeof it.img!=="string") throw new Error("item.img not string");
+    });
+  });
+  if(typeof data.checks!=="object" || data.checks===null) throw new Error("checks not object");
+}
+applyImport.addEventListener("click", ()=>{
+  if(!importBuffer) return;
+  const mode=(document.querySelector('input[name="mergeMode"]:checked')?.value)||"merge";
+  if(mode==="replace"){
+    if(!confirm("Isso vai substituir TODAS as coleções, itens e marcados pelos do arquivo. Continuar?")) return;
+    SERIES=JSON.parse(JSON.stringify(importBuffer.series));
+    checks=JSON.parse(JSON.stringify(importBuffer.checks));
+    save(DB_SERIES,SERIES); save(DB_KEY,checks); syncSelect(); render(); toast("Importado (substituído)");
+  }else{
+    const byName=new Map(SERIES.map(s=>[s.nome,s]));
+    (importBuffer.series||[]).forEach(ns=>{
+      if(!byName.has(ns.nome)){
+        byName.set(ns.nome,{nome:ns.nome, items:JSON.parse(JSON.stringify(ns.items||[]))});
+      }else{
+        const tgt=byName.get(ns.nome);
+        const existingNums=new Set((tgt.items||[]).map(it=>String(parseN(it.n).num)+"|"+(parseN(it.n).has?1:0)));
+        (ns.items||[]).forEach(it=>{
+          const key=String(parseN(it.n).num)+"|"+(parseN(it.n).has?1:0);
+          if(!existingNums.has(key)){ tgt.items.push(JSON.parse(JSON.stringify(it))); existingNums.add(key); }
+        });
+      }
+    });
+    SERIES=Array.from(byName.values());
+    checks={...checks, ...importBuffer.checks};
+    save(DB_SERIES,SERIES); save(DB_KEY,checks); syncSelect(); render(); toast("Importado (mesclado)");
+  }
+  importBuffer=null; importFile.value=""; applyImport.disabled=true; importSummary.textContent="";
+});
+
+/* ---------- Inicial ---------- */
+(function init(){
+  sortAll();
+  const serieSelEl=document.getElementById("serieSel");
+  if(serieSelEl){ syncSelect(); } else { render(); }
+  document.getElementById("shareAll").addEventListener("click", shareChecklist);
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  });
+}
+</script>
+
+</body>
+</html>
