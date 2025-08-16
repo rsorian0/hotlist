@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Hotlist",
+  "name": "Hotlist — V7",
   "short_name": "Hotlist",
-  "description": "Sua checklist de coleções Hot Wheels",
+  "description": "Checklist de coleções Hot Wheels.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
@@ -31,14 +31,12 @@
     {
       "src": "screenshots/screen1.png",
       "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "type": "image/png"
     },
     {
       "src": "screenshots/screen2.png",
       "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
+      "type": "image/png"
     }
   ],
   "launch_handler": {
