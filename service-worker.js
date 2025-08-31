@@ -1,11 +1,13 @@
-/* Service worker simples para Hotlist V7 PWA */
-const CACHE = 'hotlist-v7-cache-v1';
+/* Service worker para Hotlist (PWA + Sync) */
+const CACHE = 'hotlist-v8-cache-v1';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
   './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icons/icon-512.png',
+  './icons/icon-192-maskable.png',
+  './icons/icon-512-maskable.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -21,9 +23,10 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  // Network-first para imagens (evita thumbs desatualizadas)
-  if (event.request.destination === 'image') {
+  const dest = event.request.destination;
+
+  // Network-first para imagens (pegar thumbs atualizadas)
+  if (dest === 'image') {
     event.respondWith(
       fetch(event.request).then(res => {
         const copy = res.clone();
@@ -33,7 +36,8 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
-  // Cache-first para o restante (shell)
+
+  // Cache-first para shell e estáticos
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );

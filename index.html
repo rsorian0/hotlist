@@ -32,7 +32,7 @@
   .label{position:absolute;top:4px;left:4px;background:rgba(200,45,107,.95);color:#fff;font-size:10px;padding:2px 6px;border-radius:999px;font-weight:700;letter-spacing:.2px}
   .label.super{background:linear-gradient(90deg,#ffb703,#fb5607 60%,#ff006e)}
   .title{font-weight:600}
-  .muted{font-size:12px;color:var(--muted)}
+  .muted{font-size:12px;color:#8b949e}
   .tick{width:22px;height:22px;border-radius:6px;border:2px solid #2f81f7;display:grid;place-items:center;cursor:pointer;background:#0b1320;transition:transform .08s ease}
   .tick:active{transform:scale(.96)}
   .tick.checked{background:#2f81f7}
@@ -43,8 +43,6 @@
   .share-pill{display:inline-flex;align-items:center;gap:8px;background:#111726;border:1px solid #2b3137;color:#c9d1d9;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer}
   .share-pill svg{width:18px;height:18px}
   .spacer{height:70px}
-
-  /* Modal/Galeria — setas fixas e sem X */
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;place-items:center;z-index:50;padding:20px}
   .overlay.open{display:grid}
   .overlay .stage{position:relative;max-width:min(90vw, 1100px);max-height:90vh;display:grid;place-items:center;padding:0 56px}
@@ -53,13 +51,10 @@
   .nav-btn:hover{background:rgba(255,255,255,.14)}
   .nav-left{left:clamp(8px, env(safe-area-inset-left, 0px) + 8px, 24px)}
   .nav-right{right:clamp(8px, env(safe-area-inset-right, 0px) + 8px, 24px)}
-
   @media (max-width: 480px){
     .overlay .stage{padding:0 48px}
     .nav-btn{width:40px;height:40px}
   }
-
-  /* Painel */
   .panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#0f1520;border-left:1px solid #263142;box-shadow:-10px 0 30px rgba(0,0,0,.35);z-index:60;transform:translateX(100%);transition:transform .2s ease}
   .panel.open{transform:translateX(0)}
   .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #263142}
@@ -68,8 +63,6 @@
   .panel label{font-size:12px;color:#9da7b3}
   .panel input, .panel select{width:100%;background:#0b1018;border:1px solid #263142;border-radius:8px;color:#e6edf3;padding:8px}
   .panel .list{display:grid;gap:8px}
-
-  /* Tabs */
   .tabs{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #263142}
   .tab-btn{background:#111726;border:1px solid #263142;border-radius:10px;padding:8px 10px;color:#c9d1d9;font-weight:600;cursor:pointer}
   .tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -84,16 +77,12 @@
   .mini input{width:100%;background:#0b1018;border:1px solid #263142;border-radius:6px;color:#e6edf3;padding:6px;font-size:12px}
   .mini .actions{display:flex;gap:6px}
   .ghost{background:transparent;border:1px dashed #2b3137;color:#9da7b3}
-
-  /* File inputs & notes */
   .file{position:relative;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .file input[type="file"]{display:none}
   .file .fake{background:#0b1018;border:1px solid #263142;border-radius:8px;padding:8px 10px;cursor:pointer}
   .opts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .tiny{font-size:12px;color:#9da7b3}
   .row.actions{display:flex;gap:8px;flex-wrap:wrap}
-
-  /* Toast */
   .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#151b22;border:1px solid #2b3137;color:#e6edf3;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:600;opacity:0;transition:opacity .15s ease;z-index:80}
   .toast.show{opacity:1}
 </style>
@@ -104,8 +93,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" type="image/png" href="icons/icon-192.png">
-
 </head>
+
 <body>
 <header>
   <div class="wrap">
@@ -114,6 +103,16 @@
         <input autocomplete="off" id="q" placeholder="Buscar por modelo, série ou número…" type="search" aria-label="Buscar"/>
       </div>
       <button class="btn" id="addBtn" type="button" aria-expanded="false" aria-controls="editor">Adicionar</button>
+
+      <!-- 🔐 Auth bar -->
+      <div id="authBar" style="display:flex;gap:8px;align-items:center;margin-left:auto">
+        <button id="btnSignIn" class="btn ghost" style="display:none">Entrar com Google</button>
+        <div id="userInfo" style="display:none;align-items:center;gap:6px">
+          <img id="userPhoto" style="width:28px;height:28px;border-radius:50%" referrerpolicy="no-referrer">
+          <span id="userName" style="font-size:14px;opacity:.8"></span>
+          <button id="btnSignOut" class="btn ghost">Sair</button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -135,7 +134,7 @@
   </div>
 </footer>
 
-<!-- Modal/Galeria (sem botão X) -->
+<!-- Modal/Galeria -->
 <div class="overlay" id="modal">
   <div class="stage">
     <button class="nav-btn nav-left" id="prevImg" type="button" title="Anterior">◀</button>
@@ -158,7 +157,6 @@
 
   <div class="body">
     <div class="panes">
-      <!-- Coleções -->
       <div class="pane active" id="tab-colecoes">
         <div class="group">
           <h4>Criar/Excluir coleções</h4>
@@ -193,7 +191,6 @@
         </div>
       </div>
 
-      <!-- Backup -->
       <div class="pane" id="tab-backup">
         <div class="group">
           <h4>Exportar</h4>
@@ -226,11 +223,118 @@
   </div>
 </aside>
 
+<!-- 🔌 Firebase (SDK 12.2.1 via ESM) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBSLTU-VKtrVNeBoQC2ogVyLZU0g5N-YEU",
+    authDomain: "hotlist-c0607.firebaseapp.com",
+    projectId: "hotlist-c0607",
+    storageBucket: "hotlist-c0607.firebasestorage.app",
+    messagingSenderId: "490544213818",
+    appId: "1:490544213818:web:032d50b02fe2be1e8eaa03",
+    measurementId: "G-E4LKY410Q5"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  enableIndexedDbPersistence(db).catch(()=>{});
+
+  // === Helpers de storage local ===
+  const LS_SERIES="hw_series_v1";
+  const LS_CHECKS="hw_checklist_v3";
+  const load=(k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch{return d} };
+  const save=(k,v)=> localStorage.setItem(k, JSON.stringify(v));
+
+  // Merge local + remoto (checks TRUE prevalecem; itens/coleções somam sem duplicar)
+  function mergeStates(local, remote){
+    if(!remote) return local;
+    const out = { series:[], checks:{} };
+    out.checks = { ...remote.checks, ...local.checks };
+    const byName = new Map((remote.series||[]).map(s=>[s.nome, {...s, items:[...(s.items||[])]}]));
+    (local.series||[]).forEach(s=>{
+      if(!byName.has(s.nome)){
+        byName.set(s.nome, { nome:s.nome, items:[...(s.items||[])] });
+      }else{
+        const tgt=byName.get(s.nome);
+        const seen=new Set((tgt.items||[]).map(it=>String(it.n)+"|"+(it.modelo||"")));
+        (s.items||[]).forEach(it=>{
+          const key=String(it.n)+"|"+(it.modelo||"");
+          if(!seen.has(key)){ tgt.items.push({...it}); seen.add(key); }
+        });
+      }
+    });
+    out.series = [...byName.values()];
+    return out;
+  }
+
+  // UI Auth
+  const btnIn  = document.getElementById("btnSignIn");
+  const btnOut = document.getElementById("btnSignOut");
+  const userInfo=document.getElementById("userInfo");
+  const userName=document.getElementById("userName");
+  const userPhoto=document.getElementById("userPhoto");
+  const provider = new GoogleAuthProvider();
+
+  btnIn?.addEventListener("click", ()=> signInWithPopup(auth, provider));
+  btnOut?.addEventListener("click", ()=> signOut(auth));
+
+  let unsub=null;
+  onAuthStateChanged(auth, async (user)=>{
+    if(user){
+      btnIn.style.display="none"; userInfo.style.display="flex";
+      userName.textContent=user.displayName||user.email||"Usuário";
+      userPhoto.src=user.photoURL||"";
+
+      const ref=doc(db,"users",user.uid,"app","hotlist");
+      const local={series:load(LS_SERIES,[]), checks:load(LS_CHECKS,{})};
+      const snap=await getDoc(ref);
+
+      if(snap.exists()){
+        const remote=snap.data().state || {series:[], checks:{}};
+        const merged=mergeStates(local, remote);
+        save(LS_SERIES, merged.series);
+        save(LS_CHECKS, merged.checks);
+      }else{
+        await setDoc(ref,{ state: local, updatedAt: serverTimestamp() },{merge:true});
+      }
+
+      unsub = onSnapshot(ref, (docSnap)=>{
+        if(!docSnap.exists()) return;
+        const remote = docSnap.data().state || {series:[], checks:{}};
+        const current = { series: load(LS_SERIES,[]), checks: load(LS_CHECKS,{}) };
+        const merged = mergeStates(current, remote);
+        save(LS_SERIES, merged.series);
+        save(LS_CHECKS, merged.checks);
+        window.dispatchEvent(new CustomEvent("hotlist:remote-updated"));
+      });
+    }else{
+      btnIn.style.display="inline-block"; userInfo.style.display="none";
+      if(unsub){ unsub(); unsub=null; }
+    }
+  });
+
+  // Sobe estado local para a nuvem
+  window.syncCloud = async function(){
+    const u=auth.currentUser; if(!u) return;
+    const ref=doc(db,"users",u.uid,"app","hotlist");
+    const payload = { state:{ series: load(LS_SERIES,[]), checks: load(LS_CHECKS,{}) }, updatedAt: serverTimestamp() };
+    await setDoc(ref, payload, { merge:true });
+  };
+</script>
+
+<!-- App principal (lista + editor + SW) -->
 <script>
 /* ---------- Estado & storage ---------- */
-const DB_KEY="hw_checklist_v3";        // checks
-const DB_SERIES="hw_series_v1";        // coleções/itens
-const DB_TAB="hw_ui_tab_v7";           // aba ativa
+const DB_KEY="hw_checklist_v3";
+const DB_SERIES="hw_series_v1";
+const DB_TAB="hw_ui_tab_v7";
 const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(_){return d}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
@@ -244,15 +348,14 @@ const listEl=$("#list"), q=$("#q"), toastEl=$("#toast");
 function toast(msg){ toastEl.textContent=msg; toastEl.classList.add("show"); setTimeout(()=>toastEl.classList.remove("show"),1600); }
 function isUrl(u){ try{const x=new URL(u); return x.protocol==="http:"||x.protocol==="https:";}catch{return false;}}
 
-/* ---------- Raridade: cores/selo ---------- */
+/* ---------- Raridade ---------- */
 const RARITY_COLORS = { base: "transparent", th: "#c82d6b", super: "linear-gradient(0deg,#ffb703,#fb5607 60%,#ff006e)", rare: "#8a9afc" };
 function rarityFromName(name=""){ const n=name.toLowerCase(); if(n.includes("super treasure")) return "super"; if(n.includes("(th)") || n.includes("treasure")) return "th"; return "base"; }
 function rarityColorFromName(name){ return RARITY_COLORS[rarityFromName(name)]||RARITY_COLORS.base; }
 
-/* ---------- Parser robusto de número ---------- */
+/* ---------- Parser nº ---------- */
 function parseN(n){
   const s=String(n??"").trim();
-  // "X/Y", "X - Y", "X|Y", "X de Y", ou só "X"
   let m = s.match(/^(\d+)\s*[\/\-\|]\s*(\d+)\b/);
   if(m) return {has:true, num:parseInt(m[1],10), den:parseInt(m[2],10), raw:s};
   m = s.match(/^(\d+)\s*(?:de\s*\d+)?\b/i);
@@ -261,9 +364,7 @@ function parseN(n){
 }
 
 /* ---------- Ordenação ---------- */
-// Mantém a ORDEM DAS COLEÇÕES como veio do localStorage/JSON (não alfabética)
 function smartSortItems(arr){
-  // Ordena itens por número; sem número, vai por nome do modelo
   return (arr||[]).slice().sort((ia, ib)=>{
     const A=parseN(ia?.n), B=parseN(ib?.n);
     if(A.has!==B.has) return A.has? -1: 1;
@@ -273,12 +374,11 @@ function smartSortItems(arr){
   });
 }
 function sortAll(){
-  // NÃO reordena SERIES
   SERIES.forEach(s=>{ s.items = smartSortItems(s.items||[]); });
   save(DB_SERIES,SERIES);
 }
 
-/* ---------- Totais inline (sem re-render) ---------- */
+/* ---------- Totais ---------- */
 function updateTotalsInline(badgeEl, seriesWrapEl){
   if(seriesWrapEl){
     const t = seriesWrapEl.querySelectorAll('.row').length;
@@ -323,7 +423,8 @@ function render(){
       if(nameLower.includes('(th)') || nameLower.includes('treasure')){
         const lab=document.createElement('div');
         const isSuper = nameLower.includes('super');
-        lab.className='label'+(isSuper?' super':''); lab.textContent=isSuper? 'SUPER TH':'TH';
+        lab.className='label'+(isSuper?' super':'');
+        lab.textContent=isSuper? 'SUPER TH':'TH';
         thumbWrap.appendChild(lab);
       }
 
@@ -345,6 +446,7 @@ function render(){
         tick.classList.toggle("checked");
         save(DB_KEY,checks);
         updateTotalsInline(badgeElRef(), wrap);
+        if(window.syncCloud) window.syncCloud();
       });
       row.appendChild(tick);
 
@@ -363,7 +465,7 @@ function render(){
   $("#all").textContent=total; $("#chk").textContent=done;
 }
 
-/* ---------- Lazy Load ---------- */
+/* ---------- Lazy ---------- */
 function enableLazy(scope){
   const imgs=[...scope.querySelectorAll('img.thumb[data-src]')];
   if(!('IntersectionObserver' in window)){
@@ -405,7 +507,7 @@ window.addEventListener('keydown', (e)=>{
   if(e.key==='ArrowLeft') prevModal();
 });
 
-/* ---------- Compartilhar (formato idêntico ao V6: \n reais) ---------- */
+/* ---------- Compartilhar ---------- */
 function getVisibleItems(){
   const filter=(q.value||"").toLowerCase().trim();
   const visible=[];
@@ -526,9 +628,10 @@ function renderPreview(){
       if(vals.img && !isUrl(vals.img)){ alert('URL inválida. Use http(s)://'); return; }
       s.items[i] = { n: vals.n, modelo: vals.modelo, img: vals.img };
       save(DB_SERIES,SERIES); renderPreview(); render(); toast('Item atualizado');
+      if(window.syncCloud) window.syncCloud();
     });
 
-    rm.addEventListener("click",()=>{ s.items.splice(i,1); save(DB_SERIES,SERIES); renderPreview(); render(); toast("Item removido"); });
+    rm.addEventListener("click",()=>{ s.items.splice(i,1); save(DB_SERIES,SERIES); renderPreview(); render(); toast("Item removido"); if(window.syncCloud) window.syncCloud(); });
 
     actions.append(editBtn, rm); row.appendChild(actions); itensPreview.appendChild(row);
   });
@@ -539,8 +642,9 @@ $("#addSerie").addEventListener("click",()=>{
   const name=($("#serieNome").value||"").trim(); if(!name) return alert("Dê um nome à coleção.");
   SERIES.push({nome:name, items:[]}); save(DB_SERIES,SERIES);
   $("#serieNome").value="";
-  currentIndex=SERIES.length-1; // último (preserva ordem de criação)
+  currentIndex=SERIES.length-1;
   syncSelect(); render(); toast("Coleção criada");
+  if(window.syncCloud) window.syncCloud();
 });
 $("#delSerie").addEventListener("click",()=>{
   if(currentIndex<0 || !SERIES[currentIndex]) return alert("Escolha a coleção para excluir.");
@@ -551,6 +655,7 @@ $("#delSerie").addEventListener("click",()=>{
   SERIES.splice(currentIndex,1); save(DB_SERIES,SERIES);
   currentIndex = SERIES.length? Math.max(0,currentIndex-1) : -1;
   syncSelect(); render(); toast("Coleção excluída");
+  if(window.syncCloud) window.syncCloud();
 });
 
 /* ---------- Ações: Item ---------- */
@@ -564,6 +669,7 @@ $("#addItem").addEventListener("click",()=>{
   SERIES[currentIndex].items.push({n, modelo:m, img:u}); save(DB_SERIES,SERIES);
   $("#itemNumero").value=""; $("#itemNome").value=""; $("#itemImg").value="";
   renderPreview(); render(); toast("Item adicionado");
+  if(window.syncCloud) window.syncCloud();
 });
 
 /* ---------- EXPORT / IMPORT e Inicial ---------- */
@@ -614,6 +720,7 @@ applyImport.addEventListener("click", ()=>{
     SERIES=JSON.parse(JSON.stringify(importBuffer.series));
     checks=JSON.parse(JSON.stringify(importBuffer.checks));
     save(DB_SERIES,SERIES); save(DB_KEY,checks); syncSelect(); render(); toast("Importado (substituído)");
+    if(window.syncCloud) window.syncCloud();
   }else{
     const byName=new Map(SERIES.map(s=>[s.nome,s]));
     (importBuffer.series||[]).forEach(ns=>{
@@ -631,6 +738,7 @@ applyImport.addEventListener("click", ()=>{
     SERIES=Array.from(byName.values());
     checks={...checks, ...importBuffer.checks};
     save(DB_SERIES,SERIES); save(DB_KEY,checks); syncSelect(); render(); toast("Importado (mesclado)");
+    if(window.syncCloud) window.syncCloud();
   }
   importBuffer=null; importFile.value=""; applyImport.disabled=true; importSummary.textContent="";
 });
@@ -642,6 +750,14 @@ applyImport.addEventListener("click", ()=>{
   if(serieSelEl){ syncSelect(); } else { render(); }
   document.getElementById("shareAll").addEventListener("click", shareChecklist);
 })();
+
+// Re-render quando vier update remoto
+window.addEventListener("hotlist:remote-updated", ()=>{
+  checks = load(DB_KEY, {});
+  SERIES = load(DB_SERIES, []);
+  syncSelect();
+  toast("Sincronizado da nuvem");
+});
 </script>
 
 <script>
@@ -651,6 +767,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
 </body>
 </html>
