@@ -37,12 +37,13 @@
   .tick:active{transform:scale(.96)}
   .tick.checked{background:#2f81f7}
   .tick svg{width:14px;height:14px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:.95}
-  .footer{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 14px;background:linear-gradient(180deg, rgba(22,27,34,.7), rgba(22,27,34,.98));backdrop-filter:saturate(1.1) blur(8px); border-top:1px solid #21262d}
+  .footer{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:10px 14px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg, rgba(22,27,34,.7), rgba(22,27,34,.98));backdrop-filter:saturate(1.1) blur(8px); border-top:1px solid #21262d}
   .footer .wrap{display:flex;justify-content:space-between;align-items:center;padding:0;gap:10px}
   .total-pill{display:inline-flex;align-items:center;gap:8px;background:#0f1520;border:1px solid #2b3137;color:#c9d1d9;padding:8px 12px;border-radius:12px;font-weight:600}
   .share-pill{display:inline-flex;align-items:center;gap:8px;background:#111726;border:1px solid #2b3137;color:#c9d1d9;padding:8px 12px;border-radius:12px;font-weight:600;cursor:pointer}
   .share-pill svg{width:18px;height:18px}
   .spacer{height:70px}
+
   .overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;place-items:center;z-index:50;padding:20px}
   .overlay.open{display:grid}
   .overlay .stage{position:relative;max-width:min(90vw, 1100px);max-height:90vh;display:grid;place-items:center;padding:0 56px}
@@ -51,10 +52,7 @@
   .nav-btn:hover{background:rgba(255,255,255,.14)}
   .nav-left{left:clamp(8px, env(safe-area-inset-left, 0px) + 8px, 24px)}
   .nav-right{right:clamp(8px, env(safe-area-inset-right, 0px) + 8px, 24px)}
-  @media (max-width: 480px){
-    .overlay .stage{padding:0 48px}
-    .nav-btn{width:40px;height:40px}
-  }
+
   .panel{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:90vw;background:#0f1520;border-left:1px solid #263142;box-shadow:-10px 0 30px rgba(0,0,0,.35);z-index:60;transform:translateX(100%);transition:transform .2s ease}
   .panel.open{transform:translateX(0)}
   .panel .hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #263142}
@@ -63,6 +61,7 @@
   .panel label{font-size:12px;color:#9da7b3}
   .panel input, .panel select{width:100%;background:#0b1018;border:1px solid #263142;border-radius:8px;color:#e6edf3;padding:8px}
   .panel .list{display:grid;gap:8px}
+
   .tabs{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid #263142}
   .tab-btn{background:#111726;border:1px solid #263142;border-radius:10px;padding:8px 10px;color:#c9d1d9;font-weight:600;cursor:pointer}
   .tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -77,14 +76,27 @@
   .mini input{width:100%;background:#0b1018;border:1px solid #263142;border-radius:6px;color:#e6edf3;padding:6px;font-size:12px}
   .mini .actions{display:flex;gap:6px}
   .ghost{background:transparent;border:1px dashed #2b3137;color:#9da7b3}
+
   .file{position:relative;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .file input[type="file"]{display:none}
   .file .fake{background:#0b1018;border:1px solid #263142;border-radius:8px;padding:8px 10px;cursor:pointer}
   .opts{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
   .tiny{font-size:12px;color:#9da7b3}
   .row.actions{display:flex;gap:8px;flex-wrap:wrap}
+
   .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:#151b22;border:1px solid #2b3137;color:#e6edf3;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.4);font-weight:600;opacity:0;transition:opacity .15s ease;z-index:80}
   .toast.show{opacity:1}
+
+  /* ====== Ajustes de layout para mobile ====== */
+  @media (max-width: 480px) {
+    .wrap{padding:12px}
+    .toolbar{flex-wrap:wrap;gap:6px}
+    .search{flex:1 1 100%}
+    #addBtn{flex:1 1 auto}
+    #authBar{flex:1 1 auto;justify-content:flex-end}
+    #authBar button,#authBar div{padding:8px 10px;font-size:14px}
+    .spacer{height:84px}
+  }
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -226,7 +238,7 @@
 <!-- 🔌 Firebase (SDK 12.2.1 via ESM) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
-  import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, onSnapshot, enableIndexedDbPersistence, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-analytics.js";
 
@@ -252,7 +264,7 @@
   const load=(k,d)=>{ try{return JSON.parse(localStorage.getItem(k))??d}catch{return d} };
   const save=(k,v)=> localStorage.setItem(k, JSON.stringify(v));
 
-  // Merge local + remoto (checks TRUE prevalecem; itens/coleções somam sem duplicar)
+  // Merge local + remoto
   function mergeStates(local, remote){
     if(!remote) return local;
     const out = { series:[], checks:{} };
@@ -274,7 +286,7 @@
     return out;
   }
 
-  // UI Auth
+  // Auth UI
   const btnIn  = document.getElementById("btnSignIn");
   const btnOut = document.getElementById("btnSignOut");
   const userInfo=document.getElementById("userInfo");
@@ -282,7 +294,30 @@
   const userPhoto=document.getElementById("userPhoto");
   const provider = new GoogleAuthProvider();
 
-  btnIn?.addEventListener("click", ()=> signInWithPopup(auth, provider));
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)")?.matches ||
+    window.navigator.standalone === true;
+
+  // Conclui login via redirect (se houver)
+  getRedirectResult(auth).catch(()=>{});
+
+  btnIn?.addEventListener("click", async ()=>{
+    try{
+      if(isStandalone){
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+      await signInWithPopup(auth, provider);
+    }catch(e){
+      if(e?.code==="auth/popup-blocked" || e?.code==="auth/operation-not-supported-in-this-environment"){
+        await signInWithRedirect(auth, provider);
+      }else if(e?.code==="auth/unauthorized-domain"){
+        alert("Domínio não autorizado no Firebase Authentication. Adicione seu domínio em Authentication → Settings → Authorized domains.");
+      }else{
+        console.error(e); alert("Falha ao entrar: " + (e?.message||e));
+      }
+    }
+  });
   btnOut?.addEventListener("click", ()=> signOut(auth));
 
   let unsub=null;
