@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useEffect } from 'react'
 import { initLegacyRuntime } from './legacy/legacy-runtime'
 
@@ -18,7 +19,7 @@ export default function App(){
             <button className="btn" id="addBtn" type="button" aria-expanded="false" aria-controls="editor">Adicionar</button>
 
             <div id="authBar" style={{display:'flex',gap:'8px',alignItems:'center',marginLeft:'auto'}}>
-              <button id="btnSignIn" className="btn ghost" style={{display:'inline-block'}}>Entrar com Google</button>
+              <button id="btnSignIn" className="btn ghost" style={{display:'none'}}>Entrar com Google</button>
               <div id="userInfo" style={{display:'none',alignItems:'center',gap:'6px'}}>
                 <img id="userPhoto" style={{width:28,height:28,borderRadius:'50%'}} referrerPolicy="no-referrer"/>
                 <span id="userName" style={{fontSize:14,opacity:.8 as any}}></span>

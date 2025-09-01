@@ -4,13 +4,12 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 
-// importa o estilo legado (fundamental p/ visual ficar igual)
+// carrega o visual original do projeto
 import './styles/legacy.css'
 
-// Em React 18, StrictMode executa useEffect duas vezes no dev,
-// o que pode duplicar listeners da runtime. Mantemos sem StrictMode.
+// basename usa a mesma base do Vite (ok p/ localhost e GitHub Pages)
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
+  <BrowserRouter basename={import.meta.env.BASE_URL}>
     <App />
   </BrowserRouter>
 )
