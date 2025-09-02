@@ -235,6 +235,29 @@ export function initLegacyRuntime() {
   function nextModal(){ const feed = window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex+1) % feed.length; updateModal() }
   function prevModal(){ const feed = window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex-1+feed.length) % feed.length; updateModal() }
 
+  // === Wiring do Modal: navegação, clique fora e teclado ===
+  const onPrev = (e: MouseEvent) => { e.stopPropagation(); prevModal() }
+  const onNext = (e: MouseEvent) => { e.stopPropagation(); nextModal() }
+
+  // fecha ao clicar fora da imagem (no overlay). Considera o overlay como o próprio #modal.
+  const onOverlayClick = (e: MouseEvent) => {
+    if (e.target === modal) closeModal()
+  }
+
+  // navegação por teclado e ESC para fechar
+  const onKey = (e: KeyboardEvent) => {
+    if (!modal.classList.contains('open')) return
+    if (e.key === 'Escape') { e.preventDefault(); closeModal(); return }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevModal(); return }
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextModal(); return }
+  }
+
+  // ligar listeners (se os elementos existirem)
+  prevImg?.addEventListener('click', onPrev)
+  nextImg?.addEventListener('click', onNext)
+  modal?.addEventListener('click', onOverlayClick)
+  document.addEventListener('keydown', onKey)
+
   // ===== Compartilhar =====
   function getVisibleItems(){
     const filter = (q?.value || '').toLowerCase().trim()
@@ -513,5 +536,11 @@ export function initLegacyRuntime() {
   }
 
   // Teardown
-  return () => { if (unsubSnap) unsubSnap() }
+  return () => {
+    if (unsubSnap) unsubSnap()
+    prevImg?.removeEventListener('click', onPrev)
+    nextImg?.removeEventListener('click', onNext)
+    modal?.removeEventListener('click', onOverlayClick)
+    document.removeEventListener('keydown', onKey)
+  }
 }
