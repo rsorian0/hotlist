@@ -1,15 +1,49 @@
 // src/App.tsx
-import { useEffect } from 'react'
-import { initLegacyRuntime } from './legacy/legacy-runtime'
+import { useEffect, useState } from 'react'
 
-export default function App(){
-  useEffect(()=> {
-    const teardown = initLegacyRuntime()
-    return () => teardown?.()
+export default function App() {
+  const [status, setStatus] = useState<'boot'|'ok'|'fail'>('boot')
+  const [errMsg, setErrMsg] = useState<string>('')
+
+  useEffect(() => {
+    let teardown: (() => void) | undefined
+
+    ;(async () => {
+      try {
+        // carrega de forma dinâmica pra evitar quebrar o render se o módulo falhar
+        const mod = await import('./legacy/legacy-runtime')
+        if (typeof mod.initLegacyRuntime !== 'function') {
+          throw new Error('initLegacyRuntime não encontrado em ./legacy/legacy-runtime')
+        }
+        teardown = mod.initLegacyRuntime()
+        setStatus('ok')
+      } catch (err: any) {
+        console.error('[legacy-runtime] falhou:', err)
+        setErrMsg(err?.message ?? String(err))
+        setStatus('fail')
+      }
+    })()
+
+    return () => {
+      try { teardown?.() } catch {}
+    }
   }, [])
 
   return (
     <>
+      {/* Overlay de depuração visível enquanto dá ruim */}
+      {status !== 'ok' && (
+        <div style={{
+          position:'fixed', inset:10, background:'rgba(0,0,0,0.75)',
+          color:'#fff', padding:10, zIndex:99999, fontFamily:'ui-monospace, SFMono-Regular, Menlo, monospace',
+          border:'1px solid rgba(255,255,255,0.2)', borderRadius:8
+        }}>
+          <div><strong>Boot:</strong> {status}</div>
+          {errMsg && <div style={{marginTop:6, whiteSpace:'pre-wrap'}}>Erro: {errMsg}</div>}
+          <div style={{marginTop:6, opacity:.8}}>Veja também o Console (⌥⌘I → Console).</div>
+        </div>
+      )}
+
       <header>
         <div className="wrap">
           <div className="toolbar">

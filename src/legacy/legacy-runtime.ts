@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps, getApp } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
@@ -15,9 +15,15 @@ import {
   getDoc,
   setDoc,
   onSnapshot,
-  enableIndexedDbPersistence,
   serverTimestamp,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentSingleTabManager,
 } from 'firebase/firestore'
+
+// ── Evita executar 2x no React StrictMode (dev)
+let BOOTED = false
+let TEARDOWN: (() => void) | undefined
 
 declare global {
   interface Window {
@@ -30,6 +36,9 @@ type SerieItem = { n?: string | number; modelo?: string; img?: string }
 type Serie = { nome: string; items: SerieItem[] }
 
 export function initLegacyRuntime() {
+  if (BOOTED) return TEARDOWN
+  BOOTED = true
+
   // ===== Firebase (via .env local + Vite) =====
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -39,10 +48,20 @@ export function initLegacyRuntime() {
     messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
   }
-  const app = initializeApp(firebaseConfig)
+
+  // App único
+  const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
   const auth = getAuth(app)
+
+  // ✅ Persistência ANTES de usar o Firestore
+  try {
+    initializeFirestore(app, {
+      localCache: persistentLocalCache({
+        tabManager: persistentSingleTabManager(),
+      }),
+    })
+  } catch {}
   const db = getFirestore(app)
-  enableIndexedDbPersistence(db).catch(() => {})
 
   // ===== DOM =====
   const $ = <T extends Element = Element>(sel: string) => document.querySelector<T>(sel)!
@@ -89,30 +108,79 @@ export function initLegacyRuntime() {
   const toast = (msg: string) => { if (!toastEl) return; toastEl.textContent = msg; toastEl.classList.add('show'); setTimeout(() => toastEl.classList.remove('show'), 1600) }
   const isUrl = (u: string) => { try { const x = new URL(u); return x.protocol === 'http:' || x.protocol === 'https:' } catch { return false } }
 
+  // ===== Estado em memória (fonte da verdade na UI) =====
   let checks: Record<string, boolean> = load(LS_CHECKS, {})
   let SERIES: Serie[] = load(LS_SERIES, [])
   let currentIndex = SERIES.length ? 0 : -1
+
+  // Subscriptions / sync
   let unsubSnap: null | (() => void) = null
+  let syncTimer: number | null = null
+  let lastPushedState = '' // JSON ESTÁVEL do último state que enviamos ao servidor
 
-  const RARITY_COLORS: Record<string, string> = {
-    base: 'transparent',
-    th: '#c82d6b',
-    super: 'linear-gradient(0deg,#ffb703,#fb5607 60%,#ff006e)',
+  // ===== Normalização determinística do estado (ordem + campos definidos) =====
+  function defined<T extends object>(obj: T): T {
+    const out: any = Array.isArray(obj) ? [] : {}
+    for (const [k, v] of Object.entries(obj as any)) {
+      if (v === undefined) continue
+      if (v && typeof v === 'object' && !Array.isArray(v)) out[k] = defined(v)
+      else out[k] = v
+    }
+    return out
   }
-  const rarityFromName = (name = '') => {
-    const n = name.toLowerCase()
-    if (n.includes('super treasure')) return 'super'
-    if (n.includes('(th)') || n.includes('treasure')) return 'th'
-    return 'base'
+  function parseN(n: unknown){
+    const s = String(n ?? '').trim()
+    let m = s.match(/^(\d+)\s*[\/\-\|]\s*(\d+)\b/); if (m) return { has:true, num:+m[1], den:+m[2] }
+    m = s.match(/^(\d+)\b/); if (m) return { has:true, num:+m[1], den:null }
+    return { has:false, num:Number.POSITIVE_INFINITY, den:null }
   }
-  const rarityColorFromName = (name: string) => RARITY_COLORS[rarityFromName(name)] || RARITY_COLORS.base
+  function smartSortItems(arr: SerieItem[]){
+    return (arr||[]).slice().sort((a,b)=>{
+      const A=parseN(a?.n), B=parseN(b?.n)
+      if(A.has!==B.has) return A.has?-1:1
+      if(A.num!==B.num) return A.num-B.num
+      if(A.den!=null&&B.den!=null&&A.den!==B.den) return A.den-B.den
+      return (a?.modelo||'').localeCompare(b?.modelo||'','pt-BR',{sensitivity:'base'})
+    })
+  }
+  function normalizeState(raw: { series: Serie[]; checks: Record<string, boolean> }) {
+    const series = (raw.series||[])
+      .map(s => ({
+        nome: s.nome,
+        items: smartSortItems((s.items||[]).map(it => defined({
+          n: it.n ?? undefined,
+          modelo: it.modelo ?? undefined,
+          img: it.img ?? undefined,
+        }))),
+      }))
+      .sort((a,b)=> a.nome.localeCompare(b.nome,'pt-BR',{sensitivity:'base'}))
 
-  function parseN(n: unknown){ const s = String(n ?? '').trim(); let m = s.match(/^(\d+)\s*[\/\-\|]\s*(\d+)\b/); if (m) return { has:true, num:+m[1], den:+m[2] }; m = s.match(/^(\d+)\b/); if (m) return { has:true, num:+m[1], den:null }; return { has:false, num:Number.POSITIVE_INFINITY, den:null } }
-  function smartSortItems(arr: SerieItem[]){ return (arr||[]).slice().sort((a,b)=>{ const A=parseN(a?.n), B=parseN(b?.n); if(A.has!==B.has) return A.has?-1:1; if(A.num!==B.num) return A.num-B.num; if(A.den!=null&&B.den!=null&&A.den!==B.den) return A.den-B.den; return (a?.modelo||'').localeCompare(b?.modelo||'','pt-BR',{sensitivity:'base'}) }) }
+    // checks ordenados por chave para JSON estável
+    const checksEntries = Object.entries(raw.checks||{}).sort((a,b)=> a[0].localeCompare(b[0]))
+    const checksObj: Record<string, boolean> = {}
+    for (const [k,v] of checksEntries) checksObj[k] = !!v
+
+    return { series, checks: checksObj }
+  }
+  function stableJSON(v: any){ return JSON.stringify(v) }
+
+  function rarityColorFromName(name: string) {
+    const n = (name||'').toLowerCase()
+    const isSuper = n.includes('super treasure')
+    const isTH = isSuper || n.includes('(th)') || n.includes('treasure')
+    if (isSuper) return 'linear-gradient(0deg,#ffb703,#fb5607 60%,#ff006e)'
+    if (isTH) return '#c82d6b'
+    return 'transparent'
+  }
+
   function sortAll(){ SERIES.forEach(s => s.items = smartSortItems(s.items||[])); save(LS_SERIES, SERIES) }
 
   function updateTotalsInline(badgeEl: HTMLElement | null, seriesWrapEl: HTMLElement | null){
-    if (seriesWrapEl){ const t = seriesWrapEl.querySelectorAll('.row').length; const c = seriesWrapEl.querySelectorAll('.row .tick.checked').length; if (badgeEl) badgeEl.textContent = `${c}/${t}` }
+    if (seriesWrapEl){
+      const t = seriesWrapEl.querySelectorAll('.row').length
+      const c = seriesWrapEl.querySelectorAll('.row .tick.checked').length
+      if (badgeEl) badgeEl.textContent = `${c}/${t}`
+    }
     const all = document.querySelectorAll('#list .row').length
     const chk = document.querySelectorAll('#list .row .tick.checked').length
     const allEl = $('#all'); const chkEl = $('#chk')
@@ -186,7 +254,7 @@ export function initLegacyRuntime() {
           tick.classList.toggle('checked')
           save(LS_CHECKS, checks)
           updateTotalsInline(badgeElRef(), wrap)
-          if (window.syncCloud) window.syncCloud()
+          if (window.syncCloud) window.syncCloud() // debounced
         })
         row.appendChild(tick)
 
@@ -235,16 +303,9 @@ export function initLegacyRuntime() {
   function nextModal(){ const feed = window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex+1) % feed.length; updateModal() }
   function prevModal(){ const feed = window.__modalFeed||[]; if(!feed.length) return; modalIndex = (modalIndex-1+feed.length) % feed.length; updateModal() }
 
-  // === Wiring do Modal: navegação, clique fora e teclado ===
   const onPrev = (e: MouseEvent) => { e.stopPropagation(); prevModal() }
   const onNext = (e: MouseEvent) => { e.stopPropagation(); nextModal() }
-
-  // fecha ao clicar fora da imagem (no overlay). Considera o overlay como o próprio #modal.
-  const onOverlayClick = (e: MouseEvent) => {
-    if (e.target === modal) closeModal()
-  }
-
-  // navegação por teclado e ESC para fechar
+  const onOverlayClick = (e: MouseEvent) => { if (e.target === modal) closeModal() }
   const onKey = (e: KeyboardEvent) => {
     if (!modal.classList.contains('open')) return
     if (e.key === 'Escape') { e.preventDefault(); closeModal(); return }
@@ -252,7 +313,6 @@ export function initLegacyRuntime() {
     if (e.key === 'ArrowRight') { e.preventDefault(); nextModal(); return }
   }
 
-  // ligar listeners (se os elementos existirem)
   prevImg?.addEventListener('click', onPrev)
   nextImg?.addEventListener('click', onNext)
   modal?.addEventListener('click', onOverlayClick)
@@ -459,7 +519,7 @@ export function initLegacyRuntime() {
     importBuffer = null; if(importFile) importFile.value=''; if(applyImport) applyImport.disabled=true; if(importSummary) importSummary.textContent=''
   })
 
-  // ===== Auth + Sync =====
+  // ===== Auth + Sync (com debounce e normalização) =====
   const provider = new GoogleAuthProvider()
   const isStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches || (window as any).navigator.standalone === true
   getRedirectResult(auth).catch(()=>{})
@@ -480,13 +540,28 @@ export function initLegacyRuntime() {
   })
   btnOut?.addEventListener('click', ()=> signOut(auth))
 
-  async function syncCloud(){
-    const u = auth.currentUser; if (!u) return
+  function currentStateInMemory() {
+    return { series: SERIES, checks }
+  }
+
+  function scheduleSyncCloud(delay = 600) {
+    if (syncTimer) window.clearTimeout(syncTimer)
+    syncTimer = window.setTimeout(pushSyncCloud, delay)
+  }
+
+  async function pushSyncCloud() {
+    const u = auth.currentUser
+    if (!u) return
     const ref = doc(db, 'users', u.uid, 'app', 'hotlist')
-    const payload = { state: { series: load<Serie[]>(LS_SERIES, []), checks: load<Record<string, boolean>>(LS_CHECKS, {}) }, updatedAt: serverTimestamp() }
+
+    const normalized = normalizeState(currentStateInMemory())
+    lastPushedState = stableJSON(normalized)
+
+    const payload = { state: normalized, updatedAt: serverTimestamp() }
     await setDoc(ref, payload, { merge: true })
   }
-  window.syncCloud = syncCloud
+
+  window.syncCloud = () => Promise.resolve(scheduleSyncCloud())
 
   onAuthStateChanged(auth, async (user)=>{
     if (user){
@@ -495,23 +570,43 @@ export function initLegacyRuntime() {
       if (userName) userName.textContent = user.displayName || user.email || 'Usuário'
       if (userPhoto) userPhoto.src = user.photoURL || ''
       const ref = doc(db, 'users', user.uid, 'app', 'hotlist')
+
+      // bootstrap inicial
       const snap = await getDoc(ref)
       if (snap.exists()){
         const remote = (snap.data() as any).state || { series: [], checks: {} }
-        const byName = new Map<string, Serie>((remote.series||[]).map((s:Serie)=>[s.nome, {...s, items:[...(s.items||[])]}]))
-        ;(SERIES||[]).forEach(s=>{ if(!byName.has(s.nome)) byName.set(s.nome, {...s, items:[...(s.items||[])]}) })
-        SERIES = [...byName.values()]
-        checks = { ...(remote.checks||{}), ...(checks||{}) }
-        save(LS_SERIES, SERIES); save(LS_CHECKS, checks); syncSelect(); render()
+        const normalized = normalizeState(remote)
+        SERIES = normalized.series
+        checks = normalized.checks
+        save(LS_SERIES, SERIES); save(LS_CHECKS, checks)
+        syncSelect(); render()
       } else {
-        await setDoc(ref, { state: { series: SERIES, checks }, updatedAt: serverTimestamp() }, { merge:true })
+        const normalized = normalizeState(currentStateInMemory())
+        await setDoc(ref, { state: normalized, updatedAt: serverTimestamp() }, { merge:true })
       }
-      unsubSnap = onSnapshot(ref, (docSnap)=>{
+
+      // snapshot com guards pra evitar flicker
+      unsubSnap = onSnapshot(ref, (docSnap) => {
         if (!docSnap.exists()) return
+        if (docSnap.metadata.hasPendingWrites) return
+
         const remote = (docSnap.data() as any).state || { series: [], checks: {} }
-        SERIES = remote.series || []
-        checks = remote.checks || {}
-        save(LS_SERIES, SERIES); save(LS_CHECKS, checks); syncSelect(); render()
+        const remoteNorm = normalizeState(remote)
+        const remoteStr = stableJSON(remoteNorm)
+
+        // 1) se o servidor devolveu exatamente o que acabamos de enviar, ignore
+        if (remoteStr === lastPushedState) return
+
+        // 2) se já estamos iguais localmente, ignore
+        const localStr = stableJSON(normalizeState(currentStateInMemory()))
+        if (remoteStr === localStr) return
+
+        // 3) aplicar remoto
+        SERIES = remoteNorm.series
+        checks = remoteNorm.checks
+        save(LS_SERIES, SERIES); save(LS_CHECKS, checks)
+        // debounce leve do render para evitar "piscada visual" mesmo com diferenças mínimas
+        setTimeout(() => { syncSelect(); render() }, 0)
       })
     } else {
       if (btnIn) btnIn.style.display = 'inline-block'
@@ -536,11 +631,12 @@ export function initLegacyRuntime() {
   }
 
   // Teardown
-  return () => {
+  TEARDOWN = () => {
     if (unsubSnap) unsubSnap()
     prevImg?.removeEventListener('click', onPrev)
     nextImg?.removeEventListener('click', onNext)
     modal?.removeEventListener('click', onOverlayClick)
     document.removeEventListener('keydown', onKey)
   }
+  return TEARDOWN
 }
