@@ -1,18 +1,21 @@
-import type { SerieItem, ModalFeedItem } from '../types'
+import type { SerieItem, ModalFeedItem, Ownership } from '../types'
 import { rarityColorFromName, isTH, isSuperTH } from '../utils/rarity'
 import { useEffect, useRef } from 'react'
 
 type Props = {
   item: SerieItem
   serieNome: string
-  checked: boolean
+  ownership?: Ownership
   galleryIndex: number
   onToggle: () => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
+  onItemClick: () => void
   feed: ModalFeedItem[]
 }
 
-export default function ItemRow({ item, serieNome, checked, galleryIndex, onToggle, onOpenModal, feed }: Props) {
+export default function ItemRow({
+  item, serieNome, ownership, galleryIndex, onToggle, onOpenModal, onItemClick, feed,
+}: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
 
   useEffect(() => {
@@ -40,6 +43,9 @@ export default function ItemRow({ item, serieNome, checked, galleryIndex, onTogg
 
   const nm = (item.modelo || '').toLowerCase()
   const checkKey = `${serieNome}__${item.n || ''}`
+  const checked = !!ownership?.owned
+  const wishlist = !!ownership?.wishlist
+  const qty = ownership?.qty && ownership.qty > 1 ? ownership.qty : null
 
   return (
     <div
@@ -61,14 +67,18 @@ export default function ItemRow({ item, serieNome, checked, galleryIndex, onTogg
         )}
       </div>
 
-      <div>
+      <div className="row-body" onClick={onItemClick} style={{ cursor: 'pointer' }}>
         <div className="muted">{item.n || ''}</div>
-        <div className="title">{item.modelo || ''}</div>
+        <div className="title">
+          {item.modelo || ''}
+          {qty && <span className="qty-pill">x{qty}</span>}
+          {wishlist && !checked && <span className="wish-pill">Quero</span>}
+        </div>
       </div>
 
       <div
         className={`tick${checked ? ' checked' : ''}`}
-        onClick={onToggle}
+        onClick={(e) => { e.stopPropagation(); onToggle() }}
         data-key={checkKey}
       >
         <svg viewBox="0 0 24 24">

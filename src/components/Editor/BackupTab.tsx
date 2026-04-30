@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
-import type { Serie, ImportData } from '../../types'
+import type { Serie, ImportData, OwnershipMap } from '../../types'
 import { exportJSON, validateImport } from '../../utils/io'
 
 type Props = {
   series: Serie[]
-  checks: Record<string, boolean>
+  checks: OwnershipMap
   onImport: (data: ImportData, mode: 'merge' | 'replace') => void
   toast: (msg: string) => void
 }

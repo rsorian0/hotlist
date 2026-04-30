@@ -1,4 +1,4 @@
-import type { Serie, ImportData } from '../types'
+import type { Serie, ImportData, OwnershipMap } from '../types'
 
 function todayStr(): string {
   const d = new Date()
@@ -6,9 +6,9 @@ function todayStr(): string {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`
 }
 
-export function exportJSON(series: Serie[], checks: Record<string, boolean>): void {
+export function exportJSON(series: Serie[], checks: OwnershipMap): void {
   const payload = {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     series: JSON.parse(JSON.stringify(series)),
     checks: JSON.parse(JSON.stringify(checks)),

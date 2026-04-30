@@ -1,5 +1,6 @@
-import type { Serie } from '../types'
+import type { Serie, OwnershipMap } from '../types'
 import { smartSortItems } from './sort'
+import { pruneEmpty } from './ownership'
 
 function defined<T extends object>(obj: T): T {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -12,7 +13,7 @@ function defined<T extends object>(obj: T): T {
   return out as T
 }
 
-export function normalizeState(raw: { series: Serie[]; checks: Record<string, boolean> }) {
+export function normalizeState(raw: { series: Serie[]; checks: OwnershipMap }) {
   const series = (raw.series || [])
     .map((s) => ({
       nome: s.nome,
@@ -28,9 +29,10 @@ export function normalizeState(raw: { series: Serie[]; checks: Record<string, bo
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }))
 
-  const checksEntries = Object.entries(raw.checks || {}).sort((a, b) => a[0].localeCompare(b[0]))
-  const checks: Record<string, boolean> = {}
-  for (const [k, v] of checksEntries) checks[k] = !!v
+  const pruned = pruneEmpty(raw.checks || {})
+  const checksEntries = Object.entries(pruned).sort((a, b) => a[0].localeCompare(b[0]))
+  const checks: OwnershipMap = {}
+  for (const [k, v] of checksEntries) checks[k] = defined(v)
 
   return { series, checks }
 }

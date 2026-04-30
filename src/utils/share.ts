@@ -1,9 +1,9 @@
-import type { Serie } from '../types'
+import type { Serie, OwnershipMap } from '../types'
 import { smartSortItems } from './sort'
 
 export function buildShareText(
   series: Serie[],
-  checks: Record<string, boolean>,
+  checks: OwnershipMap,
   filter: string,
 ): string {
   const f = filter.toLowerCase().trim()
@@ -18,7 +18,7 @@ export function buildShareText(
   for (const s of series) {
     for (const it of smartSortItems(s.items || [])) {
       if (!`${it.modelo || ''} ${it.n || ''} ${s.nome}`.toLowerCase().includes(f)) continue
-      visible.push({ serie: s.nome, n: it.n, modelo: it.modelo, checked: !!checks[`${s.nome}__${it.n || ''}`] })
+      visible.push({ serie: s.nome, n: it.n, modelo: it.modelo, checked: !!checks[`${s.nome}__${it.n || ''}`]?.owned })
     }
   }
 
@@ -30,8 +30,8 @@ export function buildShareText(
   const linesTem = tem.map((i) => `• ${i.serie} — ${i.n || ''} ${i.modelo}`)
   const linesFalta = falta.map((i) => `• ${i.serie} — ${i.n || ''} ${i.modelo}`)
 
-  let trimTem = linesTem.slice(0, Math.min(linesTem.length, Math.floor(MAX_LINES / 2)))
-  let trimFalta = linesFalta.slice(0, MAX_LINES - trimTem.length - 6)
+  const trimTem = linesTem.slice(0, Math.min(linesTem.length, Math.floor(MAX_LINES / 2)))
+  const trimFalta = linesFalta.slice(0, MAX_LINES - trimTem.length - 6)
 
   if (trimTem.length < linesTem.length) trimTem.push(`…(+${linesTem.length - trimTem.length} itens)`)
   if (trimFalta.length < linesFalta.length) trimFalta.push(`…(+${linesFalta.length - trimFalta.length} itens)`)
@@ -39,7 +39,7 @@ export function buildShareText(
   return ['📦 ' + header, `✅ Tenho: ${tem.length}`, trimTem.join('\n'), '', `❌ Falta: ${falta.length}`, trimFalta.join('\n')].join('\n')
 }
 
-export function shareChecklist(series: Serie[], checks: Record<string, boolean>, filter: string): boolean {
+export function shareChecklist(series: Serie[], checks: OwnershipMap, filter: string): boolean {
   if (series.every((s) => s.items.length === 0)) return false
   const texto = buildShareText(series, checks, filter)
   if (navigator.share) {

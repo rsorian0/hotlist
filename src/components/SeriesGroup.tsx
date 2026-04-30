@@ -1,25 +1,35 @@
-import type { Serie, ModalFeedItem } from '../types'
+import type { Serie, ModalFeedItem, OwnershipMap, ViewFilter } from '../types'
 import { smartSortItems } from '../utils/sort'
 import ItemRow from './ItemRow'
 
 type Props = {
   serie: Serie
-  checks: Record<string, boolean>
+  checks: OwnershipMap
   filter: string
+  view: ViewFilter
   feedOffset: number
   fullFeed: ModalFeedItem[]
   onToggle: (key: string) => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
+  onItemClick: (key: string) => void
 }
 
-export default function SeriesGroup({ serie, checks, filter, feedOffset, fullFeed, onToggle, onOpenModal }: Props) {
+export default function SeriesGroup({
+  serie, checks, filter, view, feedOffset, fullFeed, onToggle, onOpenModal, onItemClick,
+}: Props) {
   const f = filter.toLowerCase().trim()
   const sorted = smartSortItems(serie.items || [])
-  const visible = sorted.filter((it) =>
-    `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(f),
-  )
+  const visible = sorted.filter((it) => {
+    const key = `${serie.nome}__${it.n || ''}`
+    const o = checks[key]
+    if (view === 'owned' && !o?.owned) return false
+    if (view === 'wishlist' && !o?.wishlist) return false
+    return `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(f)
+  })
 
-  const checked = visible.filter((it) => checks[`${serie.nome}__${it.n || ''}`]).length
+  if (visible.length === 0) return null
+
+  const checked = visible.filter((it) => checks[`${serie.nome}__${it.n || ''}`]?.owned).length
 
   return (
     <details className="series" open>
@@ -31,18 +41,20 @@ export default function SeriesGroup({ serie, checks, filter, feedOffset, fullFee
         <span className="badge">{checked}/{visible.length}</span>
       </summary>
       <div className="items">
-        {visible.map((it, localIdx) => {
+        {visible.map((it) => {
           const globalIdx = feedOffset + sorted.indexOf(it)
           const key = `${serie.nome}__${it.n || ''}`
+          const own = checks[key]
           return (
             <ItemRow
               key={`${it.n}-${it.modelo}`}
               item={it}
               serieNome={serie.nome}
-              checked={!!checks[key]}
+              ownership={own}
               galleryIndex={globalIdx}
               onToggle={() => onToggle(key)}
               onOpenModal={onOpenModal}
+              onItemClick={() => onItemClick(key)}
               feed={fullFeed}
             />
           )

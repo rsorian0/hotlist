@@ -1,4 +1,4 @@
-import type { Serie, ModalFeedItem } from '../types'
+import type { Serie, ModalFeedItem, OwnershipMap, ViewFilter } from '../types'
 import { smartSortItems } from '../utils/sort'
 import SeriesGroup from './SeriesGroup'
 import EmptyState from './EmptyState'
@@ -6,22 +6,24 @@ import { useMemo } from 'react'
 
 type Props = {
   series: Serie[]
-  checks: Record<string, boolean>
+  checks: OwnershipMap
   filter: string
+  view: ViewFilter
   onToggle: (key: string) => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
   onAddClick: () => void
+  onItemClick: (key: string) => void
 }
 
-export default function SeriesList({ series, checks, filter, onToggle, onOpenModal, onAddClick }: Props) {
-  // Build the full gallery feed once, in same order as rendered
+export default function SeriesList({
+  series, checks, filter, view, onToggle, onOpenModal, onAddClick, onItemClick,
+}: Props) {
   const fullFeed = useMemo<ModalFeedItem[]>(() => {
     return series.flatMap((s) =>
       smartSortItems(s.items || []).map((it) => ({ img: it.img || '', alt: it.modelo || '' })),
     )
   }, [series])
 
-  // Offset for each serie in the global feed
   let offset = 0
   const seriesWithOffsets = series.map((s) => {
     const o = offset
@@ -29,32 +31,25 @@ export default function SeriesList({ series, checks, filter, onToggle, onOpenMod
     return { serie: s, offset: o }
   })
 
-  const f = filter.trim()
-
   if (series.length === 0) return <EmptyState filtered={false} onAddClick={onAddClick} />
 
-  const allHidden = seriesWithOffsets.every(({ serie }) => {
-    const fl = f.toLowerCase()
-    return !smartSortItems(serie.items || []).some((it) =>
-      `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(fl),
-    )
-  })
-  if (f && allHidden) return <EmptyState filtered onAddClick={onAddClick} />
+  const groups = seriesWithOffsets.map(({ serie, offset: feedOffset }) => (
+    <SeriesGroup
+      key={serie.nome}
+      serie={serie}
+      checks={checks}
+      filter={filter}
+      view={view}
+      feedOffset={feedOffset}
+      fullFeed={fullFeed}
+      onToggle={onToggle}
+      onOpenModal={onOpenModal}
+      onItemClick={onItemClick}
+    />
+  ))
 
-  return (
-    <section id="list">
-      {seriesWithOffsets.map(({ serie, offset: feedOffset }) => (
-        <SeriesGroup
-          key={serie.nome}
-          serie={serie}
-          checks={checks}
-          filter={filter}
-          feedOffset={feedOffset}
-          fullFeed={fullFeed}
-          onToggle={onToggle}
-          onOpenModal={onOpenModal}
-        />
-      ))}
-    </section>
-  )
+  const allHidden = groups.every((g) => g === null)
+  if (allHidden) return <EmptyState filtered onAddClick={onAddClick} />
+
+  return <section id="list">{groups}</section>
 }

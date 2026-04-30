@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Serie, SerieItem, ImportData } from '../../types'
+import type { Serie, SerieItem, ImportData, OwnershipMap } from '../../types'
 import { load, save, LS_TAB } from '../../lib/storage'
 import CollectionsTab from './CollectionsTab'
 import BackupTab from './BackupTab'
@@ -7,7 +7,7 @@ import BackupTab from './BackupTab'
 type Props = {
   open: boolean
   series: Serie[]
-  checks: Record<string, boolean>
+  checks: OwnershipMap
   currentIndex: number
   onIndexChange: (i: number) => void
   onClose: () => void

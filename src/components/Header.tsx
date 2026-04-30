@@ -1,8 +1,11 @@
 import type { User } from 'firebase/auth'
+import type { ViewFilter } from '../types'
 
 type Props = {
   filter: string
   onFilterChange: (v: string) => void
+  view: ViewFilter
+  onViewChange: (v: ViewFilter) => void
   onAddClick: () => void
   user: User | null
   onSignIn: () => void
@@ -11,7 +14,15 @@ type Props = {
   onInstall?: () => void
 }
 
-export default function Header({ filter, onFilterChange, onAddClick, user, onSignIn, onSignOut, canInstall, onInstall }: Props) {
+const VIEWS: { value: ViewFilter; label: string }[] = [
+  { value: 'all', label: 'Tudo' },
+  { value: 'owned', label: 'Tenho' },
+  { value: 'wishlist', label: 'Quero' },
+]
+
+export default function Header({
+  filter, onFilterChange, view, onViewChange, onAddClick, user, onSignIn, onSignOut, canInstall, onInstall,
+}: Props) {
   return (
     <header>
       <div className="wrap">
@@ -62,6 +73,19 @@ export default function Header({ filter, onFilterChange, onAddClick, user, onSig
               </div>
             )}
           </div>
+        </div>
+
+        <div className="view-chips">
+          {VIEWS.map((v) => (
+            <button
+              key={v.value}
+              type="button"
+              className={`chip${view === v.value ? ' active' : ''}`}
+              onClick={() => onViewChange(v.value)}
+            >
+              {v.label}
+            </button>
+          ))}
         </div>
       </div>
     </header>

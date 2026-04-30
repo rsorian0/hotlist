@@ -1,16 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { User } from 'firebase/auth'
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from 'firebase/firestore'
-import type { Serie, SerieItem } from '../types'
+import type { Serie, SerieItem, Ownership, OwnershipMap } from '../types'
 import { load, save, LS_SERIES, LS_CHECKS } from '../lib/storage'
 import { db } from '../lib/firebase'
 import { normalizeState, stableJSON } from '../utils/normalize'
 import { smartSortItems } from '../utils/sort'
 import { mergeSeries } from '../utils/io'
+import { migrateOwnershipMap, toOwnership, isMeaningful } from '../utils/ownership'
 
 export function useHotlist(user: User | null) {
   const [series, setSeries] = useState<Serie[]>(() => load<Serie[]>(LS_SERIES, []))
-  const [checks, setChecks] = useState<Record<string, boolean>>(() => load<Record<string, boolean>>(LS_CHECKS, {}))
+  const [checks, setChecks] = useState<OwnershipMap>(() =>
+    migrateOwnershipMap(load<Record<string, boolean | Ownership>>(LS_CHECKS, {})),
+  )
 
   const syncTimer = useRef<number | null>(null)
   const lastPushed = useRef('')
@@ -26,7 +29,7 @@ export function useHotlist(user: User | null) {
     seriesRef.current = next
   }, [])
 
-  const persistChecks = useCallback((next: Record<string, boolean>) => {
+  const persistChecks = useCallback((next: OwnershipMap) => {
     save(LS_CHECKS, next)
     setChecks(next)
     checksRef.current = next
@@ -54,10 +57,10 @@ export function useHotlist(user: User | null) {
 
     getDoc(ref).then((snap) => {
       if (snap.exists()) {
-        const remote = (snap.data() as { state?: { series?: Serie[]; checks?: Record<string, boolean> } }).state || { series: [], checks: {} }
+        const remote = (snap.data() as { state?: { series?: Serie[]; checks?: Record<string, boolean | Ownership> } }).state || { series: [], checks: {} }
         const merged = {
           series: mergeSeries(seriesRef.current, remote.series || []),
-          checks: { ...(remote.checks || {}), ...checksRef.current },
+          checks: { ...migrateOwnershipMap(remote.checks), ...checksRef.current } as OwnershipMap,
         }
         persistSeries(merged.series)
         persistChecks(merged.checks)
@@ -68,8 +71,8 @@ export function useHotlist(user: User | null) {
 
       unsub = onSnapshot(ref, (docSnap) => {
         if (!docSnap.exists() || docSnap.metadata.hasPendingWrites) return
-        const remote = (docSnap.data() as { state?: { series?: Serie[]; checks?: Record<string, boolean> } }).state || { series: [], checks: {} }
-        const remoteNorm = normalizeState({ series: remote.series || [], checks: remote.checks || {} })
+        const remote = (docSnap.data() as { state?: { series?: Serie[]; checks?: Record<string, boolean | Ownership> } }).state || { series: [], checks: {} }
+        const remoteNorm = normalizeState({ series: remote.series || [], checks: migrateOwnershipMap(remote.checks) })
         const remoteStr = stableJSON(remoteNorm)
 
         if (remoteStr === lastPushed.current) return
@@ -97,7 +100,7 @@ export function useHotlist(user: User | null) {
   const deleteSerie = useCallback((index: number) => {
     const nome = seriesRef.current[index]?.nome
     if (!nome) return
-    const pruned: Record<string, boolean> = {}
+    const pruned: OwnershipMap = {}
     for (const [k, v] of Object.entries(checksRef.current)) {
       if (!k.startsWith(`${nome}__`)) pruned[k] = v
     }
@@ -138,25 +141,67 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistSeries, scheduleSync])
 
+  const setOwnership = useCallback((key: string, partial: Partial<Ownership>) => {
+    const current = checksRef.current[key] || { owned: false }
+    const merged: Ownership = { ...current, ...partial }
+    const next = { ...checksRef.current }
+    if (isMeaningful(merged)) next[key] = merged
+    else delete next[key]
+    persistChecks(next)
+    scheduleSync()
+  }, [persistChecks, scheduleSync])
+
   const toggleCheck = useCallback((key: string) => {
-    const next = { ...checksRef.current, [key]: !checksRef.current[key] }
+    const current = checksRef.current[key] || { owned: false }
+    const merged: Ownership = { ...current, owned: !current.owned }
+    if (merged.owned && current.wishlist) merged.wishlist = false
+    const next = { ...checksRef.current }
+    if (isMeaningful(merged)) next[key] = merged
+    else delete next[key]
+    persistChecks(next)
+    scheduleSync()
+  }, [persistChecks, scheduleSync])
+
+  const toggleWishlist = useCallback((key: string) => {
+    const current = checksRef.current[key] || { owned: false }
+    const merged: Ownership = { ...current, wishlist: !current.wishlist }
+    const next = { ...checksRef.current }
+    if (isMeaningful(merged)) next[key] = merged
+    else delete next[key]
     persistChecks(next)
     scheduleSync()
   }, [persistChecks, scheduleSync])
 
   const importData = useCallback(
-    (data: { series: Serie[]; checks: Record<string, boolean> }, mode: 'merge' | 'replace') => {
+    (data: { series: Serie[]; checks: Record<string, boolean | Ownership> }, mode: 'merge' | 'replace') => {
+      const incoming = migrateOwnershipMap(data.checks)
       if (mode === 'replace') {
         persistSeries(JSON.parse(JSON.stringify(data.series)))
-        persistChecks(JSON.parse(JSON.stringify(data.checks)))
+        persistChecks(JSON.parse(JSON.stringify(incoming)))
       } else {
         persistSeries(mergeSeries(seriesRef.current, data.series))
-        persistChecks({ ...checksRef.current, ...(data.checks || {}) })
+        const merged: OwnershipMap = { ...checksRef.current }
+        for (const [k, v] of Object.entries(incoming)) {
+          merged[k] = { ...merged[k], ...toOwnership(v) }
+        }
+        persistChecks(merged)
       }
       scheduleSync()
     },
     [persistSeries, persistChecks, scheduleSync],
   )
 
-  return { series, checks, addSerie, deleteSerie, addItem, updateItem, removeItem, toggleCheck, importData }
+  return {
+    series,
+    checks,
+    addSerie,
+    deleteSerie,
+    addItem,
+    updateItem,
+    removeItem,
+    toggleCheck,
+    toggleWishlist,
+    setOwnership,
+    importData,
+  }
 }
