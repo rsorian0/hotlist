@@ -62,6 +62,7 @@ export default function App() {
         filter={filter}
         onToggle={toggleCheck}
         onOpenModal={handleOpenModal}
+        onAddClick={() => setEditorOpen(true)}
       />
 
       <div className="spacer" />

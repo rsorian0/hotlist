@@ -1,6 +1,7 @@
 import type { Serie, ModalFeedItem } from '../types'
 import { smartSortItems } from '../utils/sort'
 import SeriesGroup from './SeriesGroup'
+import EmptyState from './EmptyState'
 import { useMemo } from 'react'
 
 type Props = {
@@ -9,9 +10,10 @@ type Props = {
   filter: string
   onToggle: (key: string) => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
+  onAddClick: () => void
 }
 
-export default function SeriesList({ series, checks, filter, onToggle, onOpenModal }: Props) {
+export default function SeriesList({ series, checks, filter, onToggle, onOpenModal, onAddClick }: Props) {
   // Build the full gallery feed once, in same order as rendered
   const fullFeed = useMemo<ModalFeedItem[]>(() => {
     return series.flatMap((s) =>
@@ -26,6 +28,18 @@ export default function SeriesList({ series, checks, filter, onToggle, onOpenMod
     offset += smartSortItems(s.items || []).length
     return { serie: s, offset: o }
   })
+
+  const f = filter.trim()
+
+  if (series.length === 0) return <EmptyState filtered={false} onAddClick={onAddClick} />
+
+  const allHidden = seriesWithOffsets.every(({ serie }) => {
+    const fl = f.toLowerCase()
+    return !smartSortItems(serie.items || []).some((it) =>
+      `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(fl),
+    )
+  })
+  if (f && allHidden) return <EmptyState filtered onAddClick={onAddClick} />
 
   return (
     <section id="list">

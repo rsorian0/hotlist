@@ -48,5 +48,15 @@ export default defineConfig(({ mode }) => ({
     }),
   ],
   base: mode === 'development' ? '/' : '/hotlist/',
-  build: { outDir: 'docs' },
+  build: {
+    outDir: 'docs',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          react: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
 }))
