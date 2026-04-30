@@ -7,9 +7,11 @@ type Props = {
   user: User | null
   onSignIn: () => void
   onSignOut: () => void
+  canInstall?: boolean
+  onInstall?: () => void
 }
 
-export default function Header({ filter, onFilterChange, onAddClick, user, onSignIn, onSignOut }: Props) {
+export default function Header({ filter, onFilterChange, onAddClick, user, onSignIn, onSignOut, canInstall, onInstall }: Props) {
   return (
     <header>
       <div className="wrap">
@@ -29,6 +31,16 @@ export default function Header({ filter, onFilterChange, onAddClick, user, onSig
           <button className="btn" type="button" onClick={onAddClick}>
             Adicionar
           </button>
+
+          {canInstall && (
+            <button className="btn ghost icon" type="button" onClick={onInstall} title="Instalar app">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2v13M7 11l5 5 5-5" />
+                <path d="M3 19h18" />
+              </svg>
+              Instalar
+            </button>
+          )}
 
           <div id="authBar" style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: 'auto' }}>
             {!user ? (

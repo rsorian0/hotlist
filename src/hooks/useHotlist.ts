@@ -84,13 +84,6 @@ export function useHotlist(user: User | null) {
     return () => { unsub?.() }
   }, [user, persistSeries, persistChecks])
 
-  // Service Worker
-  useEffect(() => {
-    if (!('serviceWorker' in navigator)) return
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js`).catch(() => {})
-    })
-  }, [])
 
   // ── CRUD ──
 

@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
+import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { shareChecklist } from './utils/share'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -18,6 +19,7 @@ export default function App() {
     useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
   const { message: toastMsg, toast } = useToast()
+  const { canInstall, install } = useInstallPrompt()
 
   const [filter, setFilter] = useState('')
   const [editorOpen, setEditorOpen] = useState(false)
@@ -50,6 +52,8 @@ export default function App() {
         user={user}
         onSignIn={signIn}
         onSignOut={signOut}
+        canInstall={canInstall}
+        onInstall={install}
       />
 
       <SeriesList
