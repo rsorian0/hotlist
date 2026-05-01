@@ -12,12 +12,13 @@ import Modal from './components/Modal'
 import Toast from './components/Toast'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
+import Stats from './components/Stats'
 import type { ModalFeedItem, ViewFilter } from './types'
 
 export default function App() {
   const { user, signIn, signOut } = useAuth()
   const {
-    series, checks, addSerie, deleteSerie, addItem, updateItem, removeItem,
+    series, checks, addSerie, deleteSerie, addItem, updateItem, updateItemMetaByKey, removeItem,
     toggleCheck, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
@@ -27,6 +28,7 @@ export default function App() {
   const [filter, setFilter] = useState('')
   const [view, setView] = useState<ViewFilter>('all')
   const [editorOpen, setEditorOpen] = useState(false)
+  const [statsOpen, setStatsOpen] = useState(false)
   const [currentSerieIndex, setCurrentSerieIndex] = useState<number>(() => (series.length > 0 ? 0 : -1))
   const [detailKey, setDetailKey] = useState<string | null>(null)
 
@@ -86,7 +88,13 @@ export default function App() {
 
       <div className="spacer" />
 
-      <Footer series={series} checks={checks} filter={filter} onShare={handleShare} />
+      <Footer
+        series={series}
+        checks={checks}
+        filter={filter}
+        onShare={handleShare}
+        onStats={() => setStatsOpen(true)}
+      />
 
       <Modal
         open={modalOpen}
@@ -123,6 +131,14 @@ export default function App() {
         ownership={detailKey ? checks[detailKey] : undefined}
         onClose={() => setDetailKey(null)}
         onChange={setOwnership}
+        onItemMetaChange={updateItemMetaByKey}
+      />
+
+      <Stats
+        open={statsOpen}
+        series={series}
+        checks={checks}
+        onClose={() => setStatsOpen(false)}
       />
     </>
   )

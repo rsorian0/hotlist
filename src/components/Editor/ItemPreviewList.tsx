@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import type { Serie, SerieItem } from '../../types'
+import type { Serie, SerieItem, Line } from '../../types'
 import { smartSortItems } from '../../utils/sort'
 import { isUrl } from '../../utils/url'
+import { LINES } from '../../utils/line'
 
 type Props = {
   serie: Serie
@@ -11,14 +12,14 @@ type Props = {
   toast: (msg: string) => void
 }
 
-type EditState = { index: number; n: string; modelo: string; img: string } | null
+type EditState = { index: number; n: string; modelo: string; img: string; line: Line | '' } | null
 
 export default function ItemPreviewList({ serie, serieIndex, onUpdate, onRemove, toast }: Props) {
   const [editing, setEditing] = useState<EditState>(null)
   const sorted = smartSortItems(serie.items || [])
 
   const startEdit = (idx: number, it: SerieItem) =>
-    setEditing({ index: idx, n: String(it.n ?? ''), modelo: it.modelo ?? '', img: it.img ?? '' })
+    setEditing({ index: idx, n: String(it.n ?? ''), modelo: it.modelo ?? '', img: it.img ?? '', line: it.line ?? '' })
 
   const cancelEdit = () => setEditing(null)
 
@@ -26,7 +27,7 @@ export default function ItemPreviewList({ serie, serieIndex, onUpdate, onRemove,
     if (!editing) return
     if (!editing.n || !editing.modelo) { alert('Informe número e modelo.'); return }
     if (editing.img && !isUrl(editing.img)) { alert('URL inválida. Use http(s)://'); return }
-    onUpdate(serieIndex, editing.index, { n: editing.n, modelo: editing.modelo, img: editing.img })
+    onUpdate(serieIndex, editing.index, { n: editing.n, modelo: editing.modelo, img: editing.img, line: editing.line || undefined })
     toast('Item atualizado')
     setEditing(null)
   }
@@ -57,6 +58,15 @@ export default function ItemPreviewList({ serie, serieIndex, onUpdate, onRemove,
                       value={editing.img}
                       onChange={(e) => setEditing((s) => s && { ...s, img: e.target.value })}
                     />
+                    <select
+                      value={editing.line}
+                      onChange={(e) => setEditing((s) => s && { ...s, line: e.target.value as Line | '' })}
+                    >
+                      <option value="">Linha (detectar automaticamente)</option>
+                      {LINES.map((l) => (
+                        <option key={l.value} value={l.value}>{l.label}</option>
+                      ))}
+                    </select>
                   </>
                 ) : (
                   <>

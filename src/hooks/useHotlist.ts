@@ -130,6 +130,21 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistSeries, scheduleSync])
 
+  const updateItemMetaByKey = useCallback((key: string, partial: Partial<SerieItem>) => {
+    const next = seriesRef.current.map((s) => {
+      if (!key.startsWith(`${s.nome}__`)) return s
+      return {
+        ...s,
+        items: s.items.map((it) => {
+          if (`${s.nome}__${it.n || ''}` !== key) return it
+          return { ...it, ...partial }
+        }),
+      }
+    })
+    persistSeries(next)
+    scheduleSync()
+  }, [persistSeries, scheduleSync])
+
   const removeItem = useCallback((serieIndex: number, sortedItemIndex: number) => {
     const next = seriesRef.current.map((s, si) => {
       if (si !== serieIndex) return s
@@ -198,6 +213,7 @@ export function useHotlist(user: User | null) {
     deleteSerie,
     addItem,
     updateItem,
+    updateItemMetaByKey,
     removeItem,
     toggleCheck,
     toggleWishlist,

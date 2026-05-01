@@ -6,11 +6,12 @@ type Props = {
   checks: OwnershipMap
   filter: string
   onShare: () => void
+  onStats: () => void
 }
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
 
-export default function Footer({ series, checks, filter, onShare }: Props) {
+export default function Footer({ series, checks, filter, onShare, onStats }: Props) {
   const f = filter.toLowerCase().trim()
   let total = 0
   let done = 0
@@ -55,13 +56,23 @@ export default function Footer({ series, checks, filter, onShare }: Props) {
             </div>
           )}
         </div>
-        <button className="share-pill" type="button" aria-label="Compartilhar checklist" onClick={onShare}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
-            <path d="M16 6l-4-4-4 4" />
-            <path d="M12 2v14" />
-          </svg>
-        </button>
+        <div className="footer-actions">
+          <button className="icon-btn" type="button" aria-label="Estatísticas" onClick={onStats}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" />
+              <rect x="7" y="12" width="3" height="6" />
+              <rect x="12" y="8" width="3" height="10" />
+              <rect x="17" y="4" width="3" height="14" />
+            </svg>
+          </button>
+          <button className="icon-btn" type="button" aria-label="Compartilhar checklist" onClick={onShare}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+              <path d="M16 6l-4-4-4 4" />
+              <path d="M12 2v14" />
+            </svg>
+          </button>
+        </div>
       </div>
     </footer>
   )

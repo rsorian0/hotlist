@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Ownership, Condition, Packaging, SerieItem } from '../types'
+import type { Ownership, Condition, Packaging, SerieItem, Line } from '../types'
+import { LINES, effectiveLine, lineMeta } from '../utils/line'
 
 type Props = {
   open: boolean
@@ -9,6 +10,7 @@ type Props = {
   ownership: Ownership | undefined
   onClose: () => void
   onChange: (key: string, partial: Partial<Ownership>) => void
+  onItemMetaChange: (key: string, partial: Partial<SerieItem>) => void
 }
 
 const CONDITIONS: { value: Condition; label: string }[] = [
@@ -20,7 +22,7 @@ const CONDITIONS: { value: Condition; label: string }[] = [
 ]
 
 export default function ItemDetail({
-  open, itemKey, item, serieNome, ownership, onClose, onChange,
+  open, itemKey, item, serieNome, ownership, onClose, onChange, onItemMetaChange,
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
 
@@ -56,8 +58,27 @@ export default function ItemDetail({
             <div>
               <div className="muted">{serieNome} · {item.n || ''}</div>
               <div className="title">{item.modelo || ''}</div>
+              {(() => {
+                const meta = lineMeta(effectiveLine(item))
+                return meta ? (
+                  <span className="line-tag" style={{ background: meta.badgeBg || meta.color }}>{meta.short}</span>
+                ) : null
+              })()}
             </div>
           </div>
+
+          <label className="field full" style={{ marginBottom: 14 }}>
+            <span>Linha</span>
+            <select
+              value={item.line || ''}
+              onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
+            >
+              <option value="">Detectar automaticamente</option>
+              {LINES.map((l) => (
+                <option key={l.value} value={l.value}>{l.label}</option>
+              ))}
+            </select>
+          </label>
 
           <div className="detail-toggles">
             <label className="toggle">

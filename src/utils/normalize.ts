@@ -23,6 +23,7 @@ export function normalizeState(raw: { series: Serie[]; checks: OwnershipMap }) {
             n: it.n ?? undefined,
             modelo: it.modelo ?? undefined,
             img: it.img ?? undefined,
+            line: it.line ?? undefined,
           }),
         ),
       ),

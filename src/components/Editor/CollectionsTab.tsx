@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { Serie, SerieItem } from '../../types'
+import type { Serie, SerieItem, Line } from '../../types'
 import { isUrl } from '../../utils/url'
+import { LINES } from '../../utils/line'
 import ItemPreviewList from './ItemPreviewList'
 
 type Props = {
@@ -23,6 +24,7 @@ export default function CollectionsTab({
   const [itemN, setItemN] = useState('')
   const [itemModelo, setItemModelo] = useState('')
   const [itemImg, setItemImg] = useState('')
+  const [itemLine, setItemLine] = useState<Line | ''>('')
 
   const handleAddSerie = () => {
     const nome = newNome.trim()
@@ -50,8 +52,8 @@ export default function CollectionsTab({
     const img = itemImg.trim()
     if (!n || !modelo) { alert('Informe número e modelo.'); return }
     if (img && !isUrl(img)) { alert('URL inválida. Use http(s)://'); return }
-    onAddItem(currentIndex, { n, modelo, img })
-    setItemN(''); setItemModelo(''); setItemImg('')
+    onAddItem(currentIndex, { n, modelo, img, line: itemLine || undefined })
+    setItemN(''); setItemModelo(''); setItemImg(''); setItemLine('')
     toast('Item adicionado')
   }
 
@@ -93,6 +95,12 @@ export default function CollectionsTab({
           <input id="itemNumero" placeholder="número (ex.: 01/10) ou 1/10, 1, etc." value={itemN} onChange={(e) => setItemN(e.target.value)} />
           <input id="itemNome" placeholder="modelo (ex.: DMC DeLorean)" value={itemModelo} onChange={(e) => setItemModelo(e.target.value)} />
           <input id="itemImg" placeholder="URL da imagem (https://...)" value={itemImg} onChange={(e) => setItemImg(e.target.value)} />
+          <select id="itemLine" value={itemLine} onChange={(e) => setItemLine(e.target.value as Line | '')}>
+            <option value="">Linha (detectar automaticamente)</option>
+            {LINES.map((l) => (
+              <option key={l.value} value={l.value}>{l.label}</option>
+            ))}
+          </select>
           <button className="btn" type="button" onClick={handleAddItem}>Adicionar item</button>
         </div>
 

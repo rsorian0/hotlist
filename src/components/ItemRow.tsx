@@ -1,5 +1,5 @@
 import type { SerieItem, ModalFeedItem, Ownership } from '../types'
-import { rarityColorFromName, isTH, isSuperTH } from '../utils/rarity'
+import { effectiveLine, lineMeta } from '../utils/line'
 import { useEffect, useRef } from 'react'
 
 type Props = {
@@ -41,16 +41,19 @@ export default function ItemRow({
     }
   }, [item.img])
 
-  const nm = (item.modelo || '').toLowerCase()
   const checkKey = `${serieNome}__${item.n || ''}`
   const checked = !!ownership?.owned
   const wishlist = !!ownership?.wishlist
   const qty = ownership?.qty && ownership.qty > 1 ? ownership.qty : null
+  const line = effectiveLine(item)
+  const meta = lineMeta(line)
+  const accent = meta?.color || 'transparent'
+  const showBadge = !!meta && line !== 'mainline'
 
   return (
     <div
       className="row"
-      style={{ '--accent-col': rarityColorFromName(item.modelo || '') } as React.CSSProperties}
+      style={{ '--accent-col': accent } as React.CSSProperties}
     >
       <div className="thumb-wrap" onClick={() => onOpenModal(galleryIndex, feed)} style={{ cursor: 'pointer' }}>
         <img
@@ -60,9 +63,9 @@ export default function ItemRow({
           data-src={item.img || ''}
           loading="lazy"
         />
-        {isTH(nm) && (
-          <div className={`label${isSuperTH(nm) ? ' super' : ''}`}>
-            {isSuperTH(nm) ? 'SUPER TH' : 'TH'}
+        {showBadge && (
+          <div className="line-badge" style={{ background: meta!.badgeBg || meta!.color }}>
+            {meta!.short}
           </div>
         )}
       </div>

@@ -1,7 +1,23 @@
+export type Line =
+  | 'mainline'
+  | 'th'
+  | 'sth'
+  | 'premium-car-culture'
+  | 'premium-boulevard'
+  | 'premium-pop-culture'
+  | 'premium-fast-furious'
+  | 'premium-entertainment'
+  | 'premium-team-transport'
+  | 'rlc'
+  | 'convention'
+  | 'mystery'
+  | 'other'
+
 export type SerieItem = {
   n?: string | number
   modelo?: string
   img?: string
+  line?: Line
 }
 
 export type Serie = {
