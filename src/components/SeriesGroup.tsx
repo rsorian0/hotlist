@@ -1,5 +1,6 @@
-import type { Serie, ModalFeedItem, OwnershipMap, ViewFilter } from '../types'
+import type { Serie, ModalFeedItem, OwnershipMap, ViewFilter, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
+import { effectiveLine } from '../utils/line'
 import ItemRow from './ItemRow'
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
   checks: OwnershipMap
   filter: string
   view: ViewFilter
+  lineFilter: Line | null
   feedOffset: number
   fullFeed: ModalFeedItem[]
   onToggle: (key: string) => void
@@ -15,7 +17,7 @@ type Props = {
 }
 
 export default function SeriesGroup({
-  serie, checks, filter, view, feedOffset, fullFeed, onToggle, onOpenModal, onItemClick,
+  serie, checks, filter, view, lineFilter, feedOffset, fullFeed, onToggle, onOpenModal, onItemClick,
 }: Props) {
   const f = filter.toLowerCase().trim()
   const sorted = smartSortItems(serie.items || [])
@@ -24,6 +26,7 @@ export default function SeriesGroup({
     const o = checks[key]
     if (view === 'owned' && !o?.owned) return false
     if (view === 'wishlist' && !o?.wishlist) return false
+    if (lineFilter && effectiveLine(it) !== lineFilter) return false
     return `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(f)
   })
 

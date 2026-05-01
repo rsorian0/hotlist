@@ -206,10 +206,32 @@ export function useHotlist(user: User | null) {
     [persistSeries, persistChecks, scheduleSync],
   )
 
+  const addItemQuick = useCallback(
+    (serieNome: string, item: SerieItem, ownership?: Partial<Ownership>) => {
+      let next = seriesRef.current
+      if (!next.find((s) => s.nome === serieNome)) {
+        next = [...next, { nome: serieNome, items: [] }]
+      }
+      next = next.map((s) =>
+        s.nome === serieNome ? { ...s, items: [...s.items, item] } : s,
+      )
+      persistSeries(next)
+      if (ownership && isMeaningful({ owned: false, ...ownership })) {
+        const key = `${serieNome}__${item.n || ''}`
+        const merged: Ownership = { owned: false, ...ownership }
+        const nextChecks = { ...checksRef.current, [key]: merged }
+        persistChecks(nextChecks)
+      }
+      scheduleSync()
+    },
+    [persistSeries, persistChecks, scheduleSync],
+  )
+
   return {
     series,
     checks,
     addSerie,
+    addItemQuick,
     deleteSerie,
     addItem,
     updateItem,
