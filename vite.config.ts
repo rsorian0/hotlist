@@ -55,6 +55,7 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           react: ['react', 'react-dom'],
+          // zxing carregado dinamicamente via React.lazy — Vite split automático
         },
       },
     },

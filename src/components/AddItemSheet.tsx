@@ -2,6 +2,8 @@ import { useState, useRef } from 'react'
 import type { SerieItem, Line, Ownership, Serie } from '../types'
 import { LINES } from '../utils/line'
 import { isUrl } from '../utils/url'
+import { lazy, Suspense } from 'react'
+const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 type Props = {
   open: boolean
@@ -22,6 +24,7 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
   const [paidPrice, setPaidPrice] = useState('')
   const [owned, setOwned] = useState(true)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const serieRef = useRef<HTMLInputElement>(null)
 
   const serieSuggestions = series
@@ -64,6 +67,13 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <BarcodeScannerModal
+          open={scannerOpen}
+          onResult={(code) => { setN(code); setScannerOpen(false) }}
+          onClose={() => setScannerOpen(false)}
+        />
+      </Suspense>
       <div className="sheet-backdrop" onClick={handleClose} />
       <div className="sheet">
         <div className="sheet-handle" />
@@ -115,12 +125,29 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
               />
             </label>
             <label className="sheet-field">
-              <span className="sheet-label">Número</span>
-              <input
-                placeholder="01/10"
-                value={n}
-                onChange={(e) => setN(e.target.value)}
-              />
+              <span className="sheet-label">Número / Cód. barras</span>
+              <div className="n-input-wrap">
+                <input
+                  placeholder="01/10"
+                  value={n}
+                  onChange={(e) => setN(e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="scan-btn"
+                  title="Escanear código de barras"
+                  onClick={() => setScannerOpen(true)}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+                    <line x1="7" y1="12" x2="7" y2="12.01"/>
+                    <line x1="10" y1="9" x2="10" y2="15"/>
+                    <line x1="13" y1="7" x2="13" y2="17"/>
+                    <line x1="16" y1="9" x2="16" y2="15"/>
+                    <line x1="19" y1="12" x2="19" y2="12.01"/>
+                  </svg>
+                </button>
+              </div>
             </label>
           </div>
 
