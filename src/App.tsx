@@ -4,19 +4,20 @@ import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
-import { shareChecklist } from './utils/share'
 import { effectiveLine } from './utils/line'
 import Header from './components/Header'
-import Footer from './components/Footer'
+import BottomNav from './components/BottomNav'
 import SeriesList from './components/SeriesList'
 import GridView from './components/GridView'
+import Stats from './components/Stats'
 import Modal from './components/Modal'
 import Toast from './components/Toast'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
-import Stats from './components/Stats'
 import AddItemSheet from './components/AddItemSheet'
-import type { ModalFeedItem, ViewFilter, Line } from './types'
+import type { ViewFilter, Line } from './types'
+
+type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 
 export default function App() {
   const { user, signIn, signOut } = useAuth()
@@ -31,14 +32,11 @@ export default function App() {
   const [filter, setFilter] = useState('')
   const [view, setView] = useState<ViewFilter>('all')
   const [lineFilter, setLineFilter] = useState<Line | null>(null)
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
-  const [editorOpen, setEditorOpen] = useState(false)
-  const [statsOpen, setStatsOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<ActiveTab>('list')
   const [addSheetOpen, setAddSheetOpen] = useState(false)
   const [currentSerieIndex, setCurrentSerieIndex] = useState<number>(() => (series.length > 0 ? 0 : -1))
   const [detailKey, setDetailKey] = useState<string | null>(null)
 
-  // Lines that actually appear in the collection
   const activeLines = useMemo<Line[]>(() => {
     const set = new Set<Line>()
     for (const s of series) {
@@ -60,13 +58,6 @@ export default function App() {
     return { item: null, serieNome: null }
   }, [detailKey, series])
 
-  const handleOpenModal = (index: number, feed: ModalFeedItem[]) => openModal(index, feed)
-
-  const handleShare = () => {
-    const ok = shareChecklist(series, checks, filter)
-    if (!ok) toast('Nada para compartilhar (lista vazia).')
-  }
-
   const handleAddSerie = (nome: string): number => {
     const idx = addSerie(nome)
     setCurrentSerieIndex(idx)
@@ -78,6 +69,8 @@ export default function App() {
     setCurrentSerieIndex((prev) => (series.length > 1 ? Math.max(0, prev - 1) : -1))
   }
 
+  const showChips = activeTab === 'list' || activeTab === 'grid'
+
   return (
     <>
       <Header
@@ -87,10 +80,7 @@ export default function App() {
         onViewChange={setView}
         lineFilter={lineFilter}
         onLineFilterChange={setLineFilter}
-        activeLines={activeLines}
-        viewMode={viewMode}
-        onViewModeToggle={() => setViewMode((m) => m === 'list' ? 'grid' : 'list')}
-        onAddClick={() => setAddSheetOpen(true)}
+        activeLines={showChips ? activeLines : []}
         user={user}
         onSignIn={signIn}
         onSignOut={signOut}
@@ -98,59 +88,62 @@ export default function App() {
         onInstall={install}
       />
 
-      {viewMode === 'list' ? (
-        <SeriesList
-          series={series}
-          checks={checks}
-          filter={filter}
-          view={view}
-          lineFilter={lineFilter}
-          onToggle={toggleCheck}
-          onOpenModal={handleOpenModal}
-          onAddClick={() => setAddSheetOpen(true)}
-          onItemClick={setDetailKey}
-        />
-      ) : (
-        <GridView
-          series={series}
-          checks={checks}
-          filter={filter}
-          view={view}
-          lineFilter={lineFilter}
-          onToggle={toggleCheck}
-          onItemClick={setDetailKey}
-          onAddClick={() => setAddSheetOpen(true)}
-        />
+      <main>
+        {activeTab === 'list' && (
+          <SeriesList
+            series={series}
+            checks={checks}
+            filter={filter}
+            view={view}
+            lineFilter={lineFilter}
+            onToggle={toggleCheck}
+            onOpenModal={openModal}
+            onAddClick={() => setAddSheetOpen(true)}
+            onItemClick={setDetailKey}
+          />
+        )}
+
+        {activeTab === 'grid' && (
+          <GridView
+            series={series}
+            checks={checks}
+            filter={filter}
+            view={view}
+            lineFilter={lineFilter}
+            onToggle={toggleCheck}
+            onItemClick={setDetailKey}
+            onAddClick={() => setAddSheetOpen(true)}
+          />
+        )}
+
+        {activeTab === 'stats' && (
+          <Stats series={series} checks={checks} />
+        )}
+      </main>
+
+      <BottomNav active={activeTab} onChange={setActiveTab} />
+
+      {(activeTab === 'list' || activeTab === 'grid') && (
+        <button
+          className="fab"
+          type="button"
+          aria-label="Adicionar peça"
+          onClick={() => setAddSheetOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
       )}
 
-      <div className="spacer" />
-
-      <Footer
-        series={series}
-        checks={checks}
-        filter={filter}
-        onShare={handleShare}
-        onStats={() => setStatsOpen(true)}
-      />
-
-      <Modal
-        open={modalOpen}
-        feed={modalFeed}
-        index={modalIndex}
-        onClose={closeModal}
-        onNext={next}
-        onPrev={prev}
-      />
-
-      <Toast message={toastMsg} />
-
       <Editor
-        open={editorOpen}
+        open={activeTab === 'manage'}
         series={series}
         checks={checks}
         currentIndex={currentSerieIndex}
         onIndexChange={setCurrentSerieIndex}
-        onClose={() => setEditorOpen(false)}
+        onClose={() => setActiveTab('list')}
         onAddSerie={handleAddSerie}
         onDeleteSerie={handleDeleteSerie}
         onAddItem={addItem}
@@ -171,12 +164,16 @@ export default function App() {
         onItemMetaChange={updateItemMetaByKey}
       />
 
-      <Stats
-        open={statsOpen}
-        series={series}
-        checks={checks}
-        onClose={() => setStatsOpen(false)}
+      <Modal
+        open={modalOpen}
+        feed={modalFeed}
+        index={modalIndex}
+        onClose={closeModal}
+        onNext={next}
+        onPrev={prev}
       />
+
+      <Toast message={toastMsg} />
 
       <AddItemSheet
         open={addSheetOpen}

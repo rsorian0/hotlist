@@ -10,9 +10,6 @@ type Props = {
   lineFilter: Line | null
   onLineFilterChange: (l: Line | null) => void
   activeLines: Line[]
-  viewMode: 'list' | 'grid'
-  onViewModeToggle: () => void
-  onAddClick: () => void
   user: User | null
   onSignIn: () => void
   onSignOut: () => void
@@ -27,13 +24,13 @@ const VIEW_OPTS: { value: ViewFilter; label: string }[] = [
 ]
 
 export default function Header({
-  filter, onFilterChange, view, onViewChange, lineFilter, onLineFilterChange,
-  activeLines, viewMode, onViewModeToggle, onAddClick,
+  filter, onFilterChange, view, onViewChange,
+  lineFilter, onLineFilterChange, activeLines,
   user, onSignIn, onSignOut, canInstall, onInstall,
 }: Props) {
   return (
     <header>
-      <div className="wrap">
+      <div className="header-inner">
         <div className="toolbar">
           <div className="search">
             <input
@@ -47,24 +44,6 @@ export default function Header({
             />
           </div>
 
-          <button
-            className="icon-btn"
-            type="button"
-            onClick={onViewModeToggle}
-            title={viewMode === 'list' ? 'Modo grade' : 'Modo lista'}
-          >
-            {viewMode === 'list' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-              </svg>
-            )}
-          </button>
-
           {canInstall && (
             <button className="icon-btn" type="button" onClick={onInstall} title="Instalar app">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -77,19 +56,20 @@ export default function Header({
             {!user ? (
               <button className="btn ghost" onClick={onSignIn}>Entrar</button>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {user.photoURL && (
-                  <img src={user.photoURL} alt="" referrerPolicy="no-referrer"
-                    style={{ width: 28, height: 28, borderRadius: '50%', cursor: 'pointer' }}
-                    onClick={onSignOut} title="Sair"
-                  />
-                )}
-              </div>
+              user.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  style={{ width: 28, height: 28, borderRadius: '50%', cursor: 'pointer' }}
+                  onClick={onSignOut}
+                  title="Sair"
+                />
+              )
             )}
           </div>
         </div>
 
-        {/* View + Line chips */}
         <div className="chips-bar">
           {VIEW_OPTS.map((v) => (
             <button

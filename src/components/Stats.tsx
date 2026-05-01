@@ -3,10 +3,8 @@ import type { Serie, OwnershipMap, Line } from '../types'
 import { effectiveLine, lineMeta } from '../utils/line'
 
 type Props = {
-  open: boolean
   series: Serie[]
   checks: OwnershipMap
-  onClose: () => void
 }
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
@@ -25,7 +23,7 @@ type OwnedItem = {
   acquiredAt?: string
 }
 
-export default function Stats({ open, series, checks, onClose }: Props) {
+export default function Stats({ series, checks }: Props) {
   const data = useMemo(() => {
     const owned: OwnedItem[] = []
     for (const s of series) {
@@ -78,119 +76,108 @@ export default function Stats({ open, series, checks, onClose }: Props) {
     return { totalCount, totalInvested, totalEstimated, top5, lineDist, oldest, newest, ownedCount: owned.length }
   }, [series, checks])
 
-  if (!open) return null
-
   return (
-    <>
-      <div className="detail-backdrop" onClick={onClose} />
-      <aside className="detail-panel" aria-label="Estatísticas da coleção">
-        <div className="hd">
-          <h3>Minha coleção</h3>
-          <button className="btn ghost" type="button" onClick={onClose}>Fechar</button>
+    <div className="stats-wrap">
+      <div className="stats-summary">
+        <div className="stat-card">
+          <div className="stat-num">{data.totalCount}</div>
+          <div className="stat-lbl">peças</div>
         </div>
-        <div className="detail-body">
-          <div className="stats-summary">
-            <div className="stat-card">
-              <div className="stat-num">{data.totalCount}</div>
-              <div className="stat-lbl">peças</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-num">{data.ownedCount}</div>
-              <div className="stat-lbl">modelos únicos</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-num">{BRL.format(data.totalEstimated)}</div>
-              <div className="stat-lbl">valor estimado</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-num">{BRL.format(data.totalInvested)}</div>
-              <div className="stat-lbl">investido</div>
-            </div>
-          </div>
+        <div className="stat-card">
+          <div className="stat-num">{data.ownedCount}</div>
+          <div className="stat-lbl">modelos únicos</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-num">{BRL.format(data.totalEstimated)}</div>
+          <div className="stat-lbl">valor estimado</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-num">{BRL.format(data.totalInvested)}</div>
+          <div className="stat-lbl">investido</div>
+        </div>
+      </div>
 
-          {data.top5.length > 0 && (
-            <div className="stats-section">
-              <h4>Top 5 mais valiosos</h4>
-              <ol className="top-list">
-                {data.top5.map((it) => {
-                  const meta = lineMeta(it.line)
-                  return (
-                    <li key={it.key}>
-                      {it.img && <img src={it.img} alt="" />}
-                      <div className="top-info">
-                        <div className="top-modelo">{it.modelo}</div>
-                        <div className="top-meta">
-                          {it.serie} · {it.n || ''}
-                          {meta && (
-                            <span className="line-tag" style={{ background: meta.badgeBg || meta.color, marginLeft: 6 }}>
-                              {meta.short}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="top-price">{BRL.format(it.estimated)}</div>
-                    </li>
-                  )
-                })}
-              </ol>
-            </div>
-          )}
-
-          {data.lineDist.length > 0 && (
-            <div className="stats-section">
-              <h4>Distribuição por linha</h4>
-              <div className="line-bars">
-                {data.lineDist.map((d) => {
-                  const meta = lineMeta(d.line)
-                  const pct = data.totalCount > 0 ? (d.count / data.totalCount) * 100 : 0
-                  return (
-                    <div key={d.key} className="line-bar-row">
-                      <div className="line-bar-head">
-                        <span className="line-bar-name">{meta?.label || 'Sem linha definida'}</span>
-                        <span className="line-bar-vals">
-                          {d.count} · {BRL.format(d.estimated)}
+      {data.top5.length > 0 && (
+        <div className="stats-section">
+          <h4>Top 5 mais valiosos</h4>
+          <ol className="top-list">
+            {data.top5.map((it) => {
+              const meta = lineMeta(it.line)
+              return (
+                <li key={it.key}>
+                  {it.img && <img src={it.img} alt="" />}
+                  <div className="top-info">
+                    <div className="top-modelo">{it.modelo}</div>
+                    <div className="top-meta">
+                      {it.serie} · {it.n || ''}
+                      {meta && (
+                        <span className="line-tag" style={{ background: meta.badgeBg || meta.color, marginLeft: 6 }}>
+                          {meta.short}
                         </span>
-                      </div>
-                      <div className="line-bar-track">
-                        <div
-                          className="line-bar-fill"
-                          style={{ width: `${pct}%`, background: meta?.badgeBg || meta?.color || '#475569' }}
-                        />
-                      </div>
+                      )}
                     </div>
-                  )
-                })}
-              </div>
+                  </div>
+                  <div className="top-price">{BRL.format(it.estimated)}</div>
+                </li>
+              )
+            })}
+          </ol>
+        </div>
+      )}
+
+      {data.lineDist.length > 0 && (
+        <div className="stats-section">
+          <h4>Distribuição por linha</h4>
+          <div className="line-bars">
+            {data.lineDist.map((d) => {
+              const meta = lineMeta(d.line)
+              const pct = data.totalCount > 0 ? (d.count / data.totalCount) * 100 : 0
+              return (
+                <div key={d.key} className="line-bar-row">
+                  <div className="line-bar-head">
+                    <span className="line-bar-name">{meta?.label || 'Sem linha definida'}</span>
+                    <span className="line-bar-vals">
+                      {d.count} · {BRL.format(d.estimated)}
+                    </span>
+                  </div>
+                  <div className="line-bar-track">
+                    <div
+                      className="line-bar-fill"
+                      style={{ width: `${pct}%`, background: meta?.badgeBg || meta?.color || '#475569' }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {(data.oldest || data.newest) && (
+        <div className="stats-section">
+          <h4>Histórico</h4>
+          {data.oldest && (
+            <div className="hist-row">
+              <span className="muted">Mais antiga</span>
+              <span>{data.oldest.modelo} · {new Date(data.oldest.acquiredAt!).toLocaleDateString('pt-BR')}</span>
             </div>
           )}
-
-          {(data.oldest || data.newest) && (
-            <div className="stats-section">
-              <h4>Histórico</h4>
-              {data.oldest && (
-                <div className="hist-row">
-                  <span className="muted">Mais antiga</span>
-                  <span>{data.oldest.modelo} · {new Date(data.oldest.acquiredAt!).toLocaleDateString('pt-BR')}</span>
-                </div>
-              )}
-              {data.newest && data.newest.key !== data.oldest?.key && (
-                <div className="hist-row">
-                  <span className="muted">Mais recente</span>
-                  <span>{data.newest.modelo} · {new Date(data.newest.acquiredAt!).toLocaleDateString('pt-BR')}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {data.ownedCount === 0 && (
-            <div className="empty-state" style={{ padding: '32px 16px' }}>
-              <div className="empty-icon">📊</div>
-              <p className="empty-title">Nenhuma peça marcada</p>
-              <p className="empty-sub">Marque algumas peças como "tenho" para ver estatísticas.</p>
+          {data.newest && data.newest.key !== data.oldest?.key && (
+            <div className="hist-row">
+              <span className="muted">Mais recente</span>
+              <span>{data.newest.modelo} · {new Date(data.newest.acquiredAt!).toLocaleDateString('pt-BR')}</span>
             </div>
           )}
         </div>
-      </aside>
-    </>
+      )}
+
+      {data.ownedCount === 0 && (
+        <div className="empty-state" style={{ padding: '32px 16px' }}>
+          <div className="empty-icon">📊</div>
+          <p className="empty-title">Nenhuma peça marcada</p>
+          <p className="empty-sub">Marque algumas peças como "tenho" para ver estatísticas.</p>
+        </div>
+      )}
+    </div>
   )
 }
