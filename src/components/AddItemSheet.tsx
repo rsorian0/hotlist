@@ -120,21 +120,17 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             </label>
           </div>
 
-          {/* Cód. referência */}
-          <div className="sheet-section">
-            <label className="sheet-field">
+          {/* Cód. referência + Cód. de barras */}
+          <div className="sheet-row">
+            <label className="sheet-field flex1">
               <span className="sheet-label">Cód. referência</span>
               <input
-                placeholder="ex.: FYF84 (código impresso na cartela)"
+                placeholder="ex.: FYF84"
                 value={ref}
                 onChange={(e) => setRef(e.target.value)}
               />
             </label>
-          </div>
-
-          {/* Cód. de barras + scanner */}
-          <div className="sheet-section">
-            <label className="sheet-field">
+            <label className="sheet-field flex1">
               <span className="sheet-label">Cód. de barras</span>
               <div className="n-input-wrap">
                 <input
