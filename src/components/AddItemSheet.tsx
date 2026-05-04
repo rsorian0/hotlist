@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, lazy, Suspense } from 'react'
 import type { SerieItem, Line, Ownership, Serie } from '../types'
 import { LINES } from '../utils/line'
 import { isUrl } from '../utils/url'
-import { lazy, Suspense } from 'react'
+
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 type Props = {
@@ -13,26 +13,27 @@ type Props = {
 }
 
 const QUICK_LINES: Line[] = ['mainline', 'th', 'sth', 'premium-car-culture', 'premium-boulevard', 'premium-pop-culture', 'rlc']
+const DEFAULT_SERIE = 'Geral'
 
 export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
   const [line, setLine] = useState<Line | ''>('')
   const [modelo, setModelo] = useState('')
-  const [n, setN] = useState('')
+  const [ref, setRef] = useState('')
   const [serieNome, setSerieNome] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [imgUrl, setImgUrl] = useState('')
   const [paidPrice, setPaidPrice] = useState('')
   const [owned, setOwned] = useState(true)
-  const [showSuggestions, setShowSuggestions] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
-  const serieRef = useRef<HTMLInputElement>(null)
+  const modeloRef = useRef<HTMLInputElement>(null)
 
   const serieSuggestions = series
     .map((s) => s.nome)
     .filter((nome) => nome.toLowerCase().includes(serieNome.toLowerCase()) && serieNome.trim() !== '')
 
   const reset = () => {
-    setLine(''); setModelo(''); setN(''); setSerieNome('')
+    setLine(''); setModelo(''); setRef(''); setSerieNome('')
     setExpanded(false); setImgUrl(''); setPaidPrice(''); setOwned(true)
     setShowSuggestions(false)
   }
@@ -41,12 +42,11 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
 
   const handleAdd = () => {
     if (!modelo.trim()) { alert('Informe o nome do modelo.'); return }
-    if (!serieNome.trim()) { alert('Informe a série (pode ser um nome novo).'); return }
     if (imgUrl && !isUrl(imgUrl)) { alert('URL da imagem inválida.'); return }
 
     const item: SerieItem = {
       modelo: modelo.trim(),
-      n: n.trim() || undefined,
+      n: ref.trim() || undefined,
       img: imgUrl.trim() || undefined,
       line: line || undefined,
     }
@@ -56,7 +56,7 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
       ? { owned: true, paidPrice: Number.isFinite(num) ? num : undefined }
       : undefined
 
-    onAdd(serieNome.trim(), item, ownership)
+    onAdd(serieNome.trim() || DEFAULT_SERIE, item, ownership)
     reset()
     onClose()
   }
@@ -70,7 +70,7 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
       <Suspense fallback={null}>
         <BarcodeScannerModal
           open={scannerOpen}
-          onResult={(code) => { setN(code); setScannerOpen(false) }}
+          onResult={(code) => { setRef(code); setScannerOpen(false) }}
           onClose={() => setScannerOpen(false)}
         />
       </Suspense>
@@ -85,9 +85,9 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
         </div>
 
         <div className="sheet-body">
-          {/* Linha */}
+          {/* Categoria */}
           <div className="sheet-section">
-            <label className="sheet-label">Linha</label>
+            <label className="sheet-label">Categoria</label>
             <div className="line-chips-wrap">
               {quickLines.map((l) => (
                 <button
@@ -113,24 +113,28 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
             </div>
           </div>
 
-          {/* Modelo + Número */}
-          <div className="sheet-row">
-            <label className="sheet-field flex2">
+          {/* Modelo */}
+          <div className="sheet-section">
+            <label className="sheet-field">
               <span className="sheet-label">Modelo *</span>
               <input
+                ref={modeloRef}
                 placeholder="ex.: DMC DeLorean"
                 value={modelo}
                 onChange={(e) => setModelo(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && serieRef.current?.focus()}
               />
             </label>
+          </div>
+
+          {/* Cód. referência + scanner */}
+          <div className="sheet-section">
             <label className="sheet-field">
-              <span className="sheet-label">Número / Cód. barras</span>
+              <span className="sheet-label">Cód. referência</span>
               <div className="n-input-wrap">
                 <input
-                  placeholder="01/10"
-                  value={n}
-                  onChange={(e) => setN(e.target.value)}
+                  placeholder="ex.: FYF84 (código da cartela)"
+                  value={ref}
+                  onChange={(e) => setRef(e.target.value)}
                 />
                 <button
                   type="button"
@@ -151,26 +155,6 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
             </label>
           </div>
 
-          {/* Série */}
-          <div className="sheet-section" style={{ position: 'relative' }}>
-            <label className="sheet-label">Série *</label>
-            <input
-              ref={serieRef}
-              placeholder="ex.: Car Culture 2024 (crie nova ou escolha existente)"
-              value={serieNome}
-              onChange={(e) => { setSerieNome(e.target.value); setShowSuggestions(true) }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            />
-            {showSuggestions && serieSuggestions.length > 0 && (
-              <ul className="serie-suggestions">
-                {serieSuggestions.map((s) => (
-                  <li key={s} onMouseDown={() => { setSerieNome(s); setShowSuggestions(false) }}>{s}</li>
-                ))}
-              </ul>
-            )}
-          </div>
-
           {/* Owned toggle */}
           <label className="sheet-toggle">
             <input type="checkbox" checked={owned} onChange={(e) => setOwned(e.target.checked)} />
@@ -186,21 +170,42 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: '.2s' }}>
               <path d="M6 9l6 6 6-6" />
             </svg>
-            {expanded ? 'Menos opções' : 'Mais opções (imagem, preço…)'}
+            {expanded ? 'Menos opções' : 'Série, preço e imagem…'}
           </button>
 
           {expanded && (
             <div className="sheet-extras">
-              <label className="sheet-field">
-                <span className="sheet-label">URL da imagem</span>
-                <input placeholder="https://..." value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
-              </label>
+              <div style={{ position: 'relative' }}>
+                <label className="sheet-field">
+                  <span className="sheet-label">Série / Coleção</span>
+                  <input
+                    placeholder={`ex.: Car Culture 2024 (padrão: ${DEFAULT_SERIE})`}
+                    value={serieNome}
+                    onChange={(e) => { setSerieNome(e.target.value); setShowSuggestions(true) }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                  />
+                </label>
+                {showSuggestions && serieSuggestions.length > 0 && (
+                  <ul className="serie-suggestions">
+                    {serieSuggestions.map((s) => (
+                      <li key={s} onMouseDown={() => { setSerieNome(s); setShowSuggestions(false) }}>{s}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               {owned && (
                 <label className="sheet-field">
                   <span className="sheet-label">Preço pago (R$)</span>
                   <input type="number" min={0} step="0.01" placeholder="12,90" value={paidPrice} onChange={(e) => setPaidPrice(e.target.value)} />
                 </label>
               )}
+
+              <label className="sheet-field">
+                <span className="sheet-label">URL da imagem</span>
+                <input placeholder="https://..." value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
+              </label>
             </div>
           )}
         </div>

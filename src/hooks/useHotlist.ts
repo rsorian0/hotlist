@@ -156,6 +156,18 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistSeries, scheduleSync])
 
+  const removeItemByKey = useCallback((key: string) => {
+    const next = seriesRef.current.map((s) => {
+      if (!key.startsWith(`${s.nome}__`)) return s
+      return { ...s, items: s.items.filter((it) => `${s.nome}__${it.n || ''}` !== key) }
+    })
+    persistSeries(next)
+    const nextChecks = { ...checksRef.current }
+    delete nextChecks[key]
+    persistChecks(nextChecks)
+    scheduleSync()
+  }, [persistSeries, persistChecks, scheduleSync])
+
   const setOwnership = useCallback((key: string, partial: Partial<Ownership>) => {
     const current = checksRef.current[key] || { owned: false }
     const merged: Ownership = { ...current, ...partial }
@@ -237,6 +249,7 @@ export function useHotlist(user: User | null) {
     updateItem,
     updateItemMetaByKey,
     removeItem,
+    removeItemByKey,
     toggleCheck,
     toggleWishlist,
     setOwnership,

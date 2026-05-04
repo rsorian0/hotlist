@@ -138,6 +138,7 @@ header {
   color: var(--muted);
 }
 .btn.danger { background: #da3633; }
+.btn.ghost.danger { background: transparent; border-color: #da3633; color: #f85149; }
 .icon-btn {
   display: grid;
   place-items: center;

@@ -11,6 +11,7 @@ type Props = {
   onClose: () => void
   onChange: (key: string, partial: Partial<Ownership>) => void
   onItemMetaChange: (key: string, partial: Partial<SerieItem>) => void
+  onDelete: (key: string) => void
 }
 
 const CONDITIONS: { value: Condition; label: string }[] = [
@@ -22,7 +23,7 @@ const CONDITIONS: { value: Condition; label: string }[] = [
 ]
 
 export default function ItemDetail({
-  open, itemKey, item, serieNome, ownership, onClose, onChange, onItemMetaChange,
+  open, itemKey, item, serieNome, ownership, onClose, onChange, onItemMetaChange, onDelete,
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
 
@@ -44,15 +45,31 @@ export default function ItemDetail({
     return Number.isFinite(n) ? n : undefined
   }
 
+  const handleDelete = () => {
+    if (!confirm(`Remover "${item.modelo || itemKey}" da coleção?`)) return
+    onDelete(itemKey)
+    onClose()
+  }
+
   return (
     <>
-      <div className="detail-backdrop" onClick={onClose} />
-      <aside className="detail-panel" aria-label="Detalhes do item">
+      <div className="panel-backdrop" onClick={onClose} />
+      <aside className="panel open" aria-label="Detalhes do item">
         <div className="hd">
           <h3>Detalhes</h3>
-          <button className="btn ghost" type="button" onClick={onClose}>Fechar</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="btn ghost danger"
+              type="button"
+              onClick={handleDelete}
+              title="Remover item"
+            >
+              Excluir
+            </button>
+            <button className="btn ghost" type="button" onClick={onClose}>Fechar</button>
+          </div>
         </div>
-        <div className="detail-body">
+        <div className="body detail-body">
           <div className="detail-head">
             {item.img && <img src={item.img} alt="" className="detail-thumb" />}
             <div>
@@ -68,7 +85,7 @@ export default function ItemDetail({
           </div>
 
           <label className="field full" style={{ marginBottom: 14 }}>
-            <span>Linha</span>
+            <span>Categoria / Linha</span>
             <select
               value={item.line || ''}
               onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
