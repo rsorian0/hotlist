@@ -1,5 +1,6 @@
 import type { SerieItem, ModalFeedItem, Ownership } from '../types'
 import { effectiveLine, lineMeta } from '../utils/line'
+import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import { useEffect, useRef } from 'react'
 
 type Props = {
@@ -19,7 +20,8 @@ export default function ItemRow({
 
   useEffect(() => {
     const img = imgRef.current
-    if (!img || !item.img) return
+    if (!img) return
+    if (!item.img) { img.src = CAR_PLACEHOLDER; return }
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(
         (entries, obs) => {
@@ -57,7 +59,7 @@ export default function ItemRow({
           ref={imgRef}
           className="thumb"
           alt={item.modelo || ''}
-          data-src={item.img || ''}
+          data-src={item.img || CAR_PLACEHOLDER}
           loading="lazy"
         />
         {showBadge && (

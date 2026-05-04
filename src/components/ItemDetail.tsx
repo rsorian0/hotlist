@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Ownership, Condition, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
+import { CAR_PLACEHOLDER } from '../utils/placeholder'
 
 type Props = {
   open: boolean
@@ -73,7 +74,7 @@ export default function ItemDetail({
         </div>
         <div className="body detail-body">
           <div className="detail-head">
-            {item.img && <img src={item.img} alt="" className="detail-thumb" />}
+            <img src={item.img || CAR_PLACEHOLDER} alt="" className="detail-thumb" />
             <div>
               <div className="muted">{serieNome} · {item.n || ''}</div>
               <div className="title">{item.modelo || ''}</div>

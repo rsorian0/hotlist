@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { Serie, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
 import { effectiveLine, lineMeta } from '../utils/line'
+import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import EmptyState from './EmptyState'
 
 type Props = {
@@ -47,10 +48,7 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
         return (
           <div key={it.key} className="grid-card" onClick={() => onItemClick(it.key)}>
             <div className="grid-img-wrap">
-              {it.img
-                ? <img src={it.img} alt={it.modelo} loading="lazy" />
-                : <div className="grid-no-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 15l5-5 4 4 3-3 6 6"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></div>
-              }
+              <img src={it.img || CAR_PLACEHOLDER} alt={it.modelo} loading="lazy" />
               {meta && it.line !== 'mainline' && (
                 <div className="grid-badge" style={{ background: meta.badgeBg || meta.color }}>{meta.short}</div>
               )}
