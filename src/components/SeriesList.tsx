@@ -1,4 +1,4 @@
-import type { Serie, ModalFeedItem, OwnershipMap, ViewFilter, Line } from '../types'
+import type { Serie, ModalFeedItem, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
 import SeriesGroup from './SeriesGroup'
 import EmptyState from './EmptyState'
@@ -8,16 +8,14 @@ type Props = {
   series: Serie[]
   checks: OwnershipMap
   filter: string
-  view: ViewFilter
   lineFilter: Line | null
-  onToggle: (key: string) => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
   onAddClick: () => void
   onItemClick: (key: string) => void
 }
 
 export default function SeriesList({
-  series, checks, filter, view, lineFilter, onToggle, onOpenModal, onAddClick, onItemClick,
+  series, checks, filter, lineFilter, onOpenModal, onAddClick, onItemClick,
 }: Props) {
   const fullFeed = useMemo<ModalFeedItem[]>(() => {
     return series.flatMap((s) =>
@@ -40,11 +38,9 @@ export default function SeriesList({
       serie={serie}
       checks={checks}
       filter={filter}
-      view={view}
       lineFilter={lineFilter}
       feedOffset={feedOffset}
       fullFeed={fullFeed}
-      onToggle={onToggle}
       onOpenModal={onOpenModal}
       onItemClick={onItemClick}
     />

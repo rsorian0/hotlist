@@ -1,12 +1,10 @@
 import type { User } from 'firebase/auth'
-import type { ViewFilter, Line } from '../types'
+import type { Line } from '../types'
 import { lineMeta } from '../utils/line'
 
 type Props = {
   filter: string
   onFilterChange: (v: string) => void
-  view: ViewFilter
-  onViewChange: (v: ViewFilter) => void
   lineFilter: Line | null
   onLineFilterChange: (l: Line | null) => void
   activeLines: Line[]
@@ -17,15 +15,8 @@ type Props = {
   onInstall?: () => void
 }
 
-const VIEW_OPTS: { value: ViewFilter; label: string }[] = [
-  { value: 'all', label: 'Tudo' },
-  { value: 'owned', label: 'Tenho' },
-  { value: 'wishlist', label: 'Quero' },
-]
-
 export default function Header({
-  filter, onFilterChange, view, onViewChange,
-  lineFilter, onLineFilterChange, activeLines,
+  filter, onFilterChange, lineFilter, onLineFilterChange, activeLines,
   user, onSignIn, onSignOut, canInstall, onInstall,
 }: Props) {
   return (
@@ -36,7 +27,7 @@ export default function Header({
             <input
               autoComplete="off"
               id="q"
-              placeholder="Buscar modelo, série…"
+              placeholder="Buscar modelo…"
               type="search"
               aria-label="Buscar"
               value={filter}
@@ -70,37 +61,26 @@ export default function Header({
           </div>
         </div>
 
-        <div className="chips-bar">
-          {VIEW_OPTS.map((v) => (
-            <button
-              key={v.value}
-              type="button"
-              className={`chip${view === v.value ? ' active' : ''}`}
-              onClick={() => onViewChange(v.value)}
-            >
-              {v.label}
-            </button>
-          ))}
-
-          {activeLines.length > 0 && <div className="chips-divider" />}
-
-          {activeLines.map((l) => {
-            const meta = lineMeta(l)
-            if (!meta) return null
-            const isActive = lineFilter === l
-            return (
-              <button
-                key={l}
-                type="button"
-                className={`chip${isActive ? ' active' : ''}`}
-                style={isActive ? { background: meta.badgeBg || meta.color, borderColor: meta.color } : {}}
-                onClick={() => onLineFilterChange(isActive ? null : l)}
-              >
-                {meta.short}
-              </button>
-            )
-          })}
-        </div>
+        {activeLines.length > 0 && (
+          <div className="chips-bar">
+            {activeLines.map((l) => {
+              const meta = lineMeta(l)
+              if (!meta) return null
+              const isActive = lineFilter === l
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  className={`chip${isActive ? ' active' : ''}`}
+                  style={isActive ? { background: meta.badgeBg || meta.color, borderColor: meta.color } : {}}
+                  onClick={() => onLineFilterChange(isActive ? null : l)}
+                >
+                  {meta.short}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
     </header>
   )

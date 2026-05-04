@@ -15,7 +15,7 @@ import Toast from './components/Toast'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
 import AddItemSheet from './components/AddItemSheet'
-import type { ViewFilter, Line } from './types'
+import type { Line } from './types'
 
 type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 
@@ -23,14 +23,13 @@ export default function App() {
   const { user, signIn, signOut } = useAuth()
   const {
     series, checks, addSerie, addItemQuick, deleteSerie, addItem, updateItem,
-    updateItemMetaByKey, removeItem, removeItemByKey, moveItemToSerie, toggleCheck, setOwnership, importData,
+    updateItemMetaByKey, removeItem, removeItemByKey, moveItemToSerie, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
   const { message: toastMsg, toast } = useToast()
   const { canInstall, install } = useInstallPrompt()
 
   const [filter, setFilter] = useState('')
-  const [view, setView] = useState<ViewFilter>('all')
   const [lineFilter, setLineFilter] = useState<Line | null>(null)
   const [activeTab, setActiveTab] = useState<ActiveTab>('list')
   const [addSheetOpen, setAddSheetOpen] = useState(false)
@@ -76,8 +75,6 @@ export default function App() {
       <Header
         filter={filter}
         onFilterChange={setFilter}
-        view={view}
-        onViewChange={setView}
         lineFilter={lineFilter}
         onLineFilterChange={setLineFilter}
         activeLines={showChips ? activeLines : []}
@@ -94,9 +91,7 @@ export default function App() {
             series={series}
             checks={checks}
             filter={filter}
-            view={view}
             lineFilter={lineFilter}
-            onToggle={toggleCheck}
             onOpenModal={openModal}
             onAddClick={() => setAddSheetOpen(true)}
             onItemClick={setDetailKey}
@@ -108,9 +103,7 @@ export default function App() {
             series={series}
             checks={checks}
             filter={filter}
-            view={view}
             lineFilter={lineFilter}
-            onToggle={toggleCheck}
             onItemClick={setDetailKey}
             onAddClick={() => setAddSheetOpen(true)}
           />

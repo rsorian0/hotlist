@@ -22,13 +22,12 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [imgUrl, setImgUrl] = useState('')
   const [paidPrice, setPaidPrice] = useState('')
-  const [owned, setOwned] = useState(true)
   const [scannerOpen, setScannerOpen] = useState(false)
   const modeloRef = useRef<HTMLInputElement>(null)
 
   const reset = () => {
     setLine(''); setModelo(''); setRef(''); setBarcode('')
-    setExpanded(false); setImgUrl(''); setPaidPrice(''); setOwned(true)
+    setExpanded(false); setImgUrl(''); setPaidPrice('')
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -46,9 +45,10 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
     }
 
     const num = parseFloat(paidPrice.replace(',', '.'))
-    const ownership: Partial<Ownership> | undefined = owned
-      ? { owned: true, paidPrice: Number.isFinite(num) ? num : undefined }
-      : undefined
+    const ownership: Partial<Ownership> = {
+      owned: true,
+      paidPrice: Number.isFinite(num) ? num : undefined,
+    }
 
     onAdd(DEFAULT_SERIE, item, ownership)
     reset()
@@ -147,12 +147,6 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             </label>
           </div>
 
-          {/* Owned toggle */}
-          <label className="sheet-toggle">
-            <input type="checkbox" checked={owned} onChange={(e) => setOwned(e.target.checked)} />
-            <span>Marcar como "tenho"</span>
-          </label>
-
           {/* Expandable extras */}
           <button
             type="button"
@@ -167,12 +161,10 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
 
           {expanded && (
             <div className="sheet-extras">
-              {owned && (
-                <label className="sheet-field">
-                  <span className="sheet-label">Preço pago (R$)</span>
-                  <input type="number" min={0} step="0.01" placeholder="12,90" value={paidPrice} onChange={(e) => setPaidPrice(e.target.value)} />
-                </label>
-              )}
+              <label className="sheet-field">
+                <span className="sheet-label">Preço pago (R$)</span>
+                <input type="number" min={0} step="0.01" placeholder="12,90" value={paidPrice} onChange={(e) => setPaidPrice(e.target.value)} />
+              </label>
 
               <label className="sheet-field">
                 <span className="sheet-label">URL da imagem</span>

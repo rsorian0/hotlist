@@ -7,14 +7,13 @@ type Props = {
   serieNome: string
   ownership?: Ownership
   galleryIndex: number
-  onToggle: () => void
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
   onItemClick: () => void
   feed: ModalFeedItem[]
 }
 
 export default function ItemRow({
-  item, serieNome, ownership, galleryIndex, onToggle, onOpenModal, onItemClick, feed,
+  item, ownership, galleryIndex, onOpenModal, onItemClick, feed,
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
 
@@ -41,9 +40,6 @@ export default function ItemRow({
     }
   }, [item.img])
 
-  const checkKey = `${serieNome}__${item.n || ''}`
-  const checked = !!ownership?.owned
-  const wishlist = !!ownership?.wishlist
   const qty = ownership?.qty && ownership.qty > 1 ? ownership.qty : null
   const line = effectiveLine(item)
   const meta = lineMeta(line)
@@ -54,8 +50,9 @@ export default function ItemRow({
     <div
       className="row"
       style={{ '--accent-col': accent } as React.CSSProperties}
+      onClick={onItemClick}
     >
-      <div className="thumb-wrap" onClick={() => onOpenModal(galleryIndex, feed)} style={{ cursor: 'pointer' }}>
+      <div className="thumb-wrap" onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}>
         <img
           ref={imgRef}
           className="thumb"
@@ -70,23 +67,12 @@ export default function ItemRow({
         )}
       </div>
 
-      <div className="row-body" onClick={onItemClick} style={{ cursor: 'pointer' }}>
+      <div className="row-body">
         <div className="muted">{item.n || ''}</div>
         <div className="title">
           {item.modelo || ''}
           {qty && <span className="qty-pill">x{qty}</span>}
-          {wishlist && !checked && <span className="wish-pill">Quero</span>}
         </div>
-      </div>
-
-      <div
-        className={`tick${checked ? ' checked' : ''}`}
-        onClick={(e) => { e.stopPropagation(); onToggle() }}
-        data-key={checkKey}
-      >
-        <svg viewBox="0 0 24 24">
-          <path d="M5 13l4 4L19 7" />
-        </svg>
       </div>
     </div>
   )
