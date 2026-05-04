@@ -22,8 +22,8 @@ type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 export default function App() {
   const { user, signIn, signOut } = useAuth()
   const {
-    series, checks, addSerie, addItemQuick, deleteSerie, addItem, updateItem,
-    updateItemMetaByKey, removeItem, removeItemByKey, moveItemToSerie, setOwnership, importData,
+    series, checks, addSerie, addItemQuick, deleteSerie,
+    updateItemMetaByKey, removeItemByKey, moveItemToSerie, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
   const { message: toastMsg, toast } = useToast()
@@ -139,9 +139,6 @@ export default function App() {
         onClose={() => setActiveTab('list')}
         onAddSerie={handleAddSerie}
         onDeleteSerie={handleDeleteSerie}
-        onAddItem={addItem}
-        onUpdateItem={updateItem}
-        onRemoveItem={removeItem}
         onImport={importData}
         toast={toast}
       />

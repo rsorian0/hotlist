@@ -5,7 +5,6 @@ import type { Serie, SerieItem, Ownership, OwnershipMap } from '../types'
 import { load, save, LS_SERIES, LS_CHECKS } from '../lib/storage'
 import { db } from '../lib/firebase'
 import { normalizeState, stableJSON } from '../utils/normalize'
-import { smartSortItems } from '../utils/sort'
 import { mergeSeries } from '../utils/io'
 import { migrateOwnershipMap, toOwnership, isMeaningful } from '../utils/ownership'
 
@@ -110,26 +109,6 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistSeries, persistChecks, scheduleSync])
 
-  const addItem = useCallback((serieIndex: number, item: SerieItem) => {
-    const next = seriesRef.current.map((s, i) =>
-      i === serieIndex ? { ...s, items: [...s.items, item] } : s,
-    )
-    persistSeries(next)
-    scheduleSync()
-  }, [persistSeries, scheduleSync])
-
-  const updateItem = useCallback((serieIndex: number, sortedItemIndex: number, item: SerieItem) => {
-    const next = seriesRef.current.map((s, si) => {
-      if (si !== serieIndex) return s
-      const sorted = smartSortItems(s.items)
-      const target = sorted[sortedItemIndex]
-      const newItems = s.items.map((it) => (it === target ? item : it))
-      return { ...s, items: newItems }
-    })
-    persistSeries(next)
-    scheduleSync()
-  }, [persistSeries, scheduleSync])
-
   const updateItemMetaByKey = useCallback((key: string, partial: Partial<SerieItem>) => {
     const next = seriesRef.current.map((s) => {
       if (!key.startsWith(`${s.nome}__`)) return s
@@ -140,17 +119,6 @@ export function useHotlist(user: User | null) {
           return { ...it, ...partial }
         }),
       }
-    })
-    persistSeries(next)
-    scheduleSync()
-  }, [persistSeries, scheduleSync])
-
-  const removeItem = useCallback((serieIndex: number, sortedItemIndex: number) => {
-    const next = seriesRef.current.map((s, si) => {
-      if (si !== serieIndex) return s
-      const sorted = smartSortItems(s.items)
-      const target = sorted[sortedItemIndex]
-      return { ...s, items: s.items.filter((it) => it !== target) }
     })
     persistSeries(next)
     scheduleSync()
@@ -213,27 +181,6 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistChecks, scheduleSync])
 
-  const toggleCheck = useCallback((key: string) => {
-    const current = checksRef.current[key] || { owned: false }
-    const merged: Ownership = { ...current, owned: !current.owned }
-    if (merged.owned && current.wishlist) merged.wishlist = false
-    const next = { ...checksRef.current }
-    if (isMeaningful(merged)) next[key] = merged
-    else delete next[key]
-    persistChecks(next)
-    scheduleSync()
-  }, [persistChecks, scheduleSync])
-
-  const toggleWishlist = useCallback((key: string) => {
-    const current = checksRef.current[key] || { owned: false }
-    const merged: Ownership = { ...current, wishlist: !current.wishlist }
-    const next = { ...checksRef.current }
-    if (isMeaningful(merged)) next[key] = merged
-    else delete next[key]
-    persistChecks(next)
-    scheduleSync()
-  }, [persistChecks, scheduleSync])
-
   const importData = useCallback(
     (data: { series: Serie[]; checks: Record<string, boolean | Ownership> }, mode: 'merge' | 'replace') => {
       const incoming = migrateOwnershipMap(data.checks)
@@ -280,14 +227,9 @@ export function useHotlist(user: User | null) {
     addSerie,
     addItemQuick,
     deleteSerie,
-    addItem,
-    updateItem,
     updateItemMetaByKey,
-    removeItem,
     removeItemByKey,
     moveItemToSerie,
-    toggleCheck,
-    toggleWishlist,
     setOwnership,
     importData,
   }

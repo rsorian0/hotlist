@@ -6,15 +6,6 @@ export type Line =
   | 'premium'
   | 'rlc'
   | 'other'
-  // legacy — mantidos para compatibilidade com dados existentes
-  | 'premium-car-culture'
-  | 'premium-boulevard'
-  | 'premium-pop-culture'
-  | 'premium-fast-furious'
-  | 'premium-entertainment'
-  | 'premium-team-transport'
-  | 'convention'
-  | 'mystery'
 
 export type SerieItem = {
   n?: string | number
@@ -59,4 +50,3 @@ export type ImportData = {
   checks: Record<string, boolean | Ownership>
 }
 
-export type ViewFilter = 'all' | 'owned' | 'wishlist'

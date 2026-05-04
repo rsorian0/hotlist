@@ -19,7 +19,8 @@ export const LINES: LineMeta[] = [
 ]
 
 // Legado: sub-tipos de Premium e outros mapeiam para 'premium' nos badges
-const LEGACY: LineMeta[] = [
+type LegacyLineMeta = Omit<LineMeta, 'value'> & { value: string }
+const LEGACY: LegacyLineMeta[] = [
   { value: 'premium-car-culture',    label: 'Premium · Car Culture',    short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
   { value: 'premium-boulevard',      label: 'Premium · Boulevard',      short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
   { value: 'premium-pop-culture',    label: 'Premium · Pop Culture',    short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
@@ -30,9 +31,9 @@ const LEGACY: LineMeta[] = [
   { value: 'mystery',    label: 'Mystery Models', short: 'Outra', color: '#6b7280', badgeBg: 'rgba(107,114,128,.9)' },
 ]
 
-const BY_VALUE: Record<string, LineMeta> = Object.fromEntries([...LINES, ...LEGACY].map((l) => [l.value, l]))
+const BY_VALUE: Record<string, LegacyLineMeta> = Object.fromEntries([...LINES, ...LEGACY].map((l) => [l.value, l]))
 
-export function lineMeta(line: Line | undefined): LineMeta | undefined {
+export function lineMeta(line: Line | string | undefined): LegacyLineMeta | undefined {
   if (!line) return undefined
   return BY_VALUE[line]
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Serie, SerieItem, ImportData, OwnershipMap } from '../../types'
+import type { Serie, ImportData, OwnershipMap } from '../../types'
 import { load, save, LS_TAB } from '../../lib/storage'
 import CollectionsTab from './CollectionsTab'
 import BackupTab from './BackupTab'
@@ -13,9 +13,6 @@ type Props = {
   onClose: () => void
   onAddSerie: (nome: string) => number
   onDeleteSerie: (i: number) => void
-  onAddItem: (si: number, item: SerieItem) => void
-  onUpdateItem: (si: number, ii: number, item: SerieItem) => void
-  onRemoveItem: (si: number, ii: number) => void
   onImport: (data: ImportData, mode: 'merge' | 'replace') => void
   toast: (msg: string) => void
 }
@@ -24,7 +21,7 @@ type Tab = 'tab-colecoes' | 'tab-backup'
 
 export default function Editor({
   open, series, checks, currentIndex, onIndexChange, onClose,
-  onAddSerie, onDeleteSerie, onAddItem, onUpdateItem, onRemoveItem, onImport, toast,
+  onAddSerie, onDeleteSerie, onImport, toast,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(() => load<Tab>(LS_TAB, 'tab-colecoes'))
 
