@@ -11,7 +11,7 @@ type Props = {
   onAdd: (serieNome: string, item: SerieItem, ownership?: Partial<Ownership>) => void
 }
 
-const QUICK_LINES: Line[] = ['mainline', 'th', 'sth', 'silver-series', 'premium-car-culture', 'premium-boulevard', 'premium-pop-culture', 'rlc']
+const ALL_LINES: Line[] = ['mainline', 'th', 'sth', 'silver-series', 'premium', 'rlc', 'other']
 const DEFAULT_SERIE = 'Geral'
 
 export default function AddItemSheet({ open, onClose, onAdd }: Props) {
@@ -57,7 +57,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
 
   if (!open) return null
 
-  const quickLines = LINES.filter((l) => QUICK_LINES.includes(l.value))
+  const displayLines = LINES.filter((l) => ALL_LINES.includes(l.value as Line))
 
   return (
     <>
@@ -83,7 +83,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
           <div className="sheet-section">
             <label className="sheet-label">Categoria</label>
             <div className="line-chips-wrap">
-              {quickLines.map((l) => (
+              {displayLines.map((l) => (
                 <button
                   key={l.value}
                   type="button"
@@ -94,16 +94,6 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                   {l.short}
                 </button>
               ))}
-              <select
-                className="line-chip-more"
-                value={QUICK_LINES.includes(line as Line) || line === '' ? '' : line}
-                onChange={(e) => setLine(e.target.value as Line | '')}
-              >
-                <option value="">Mais…</option>
-                {LINES.filter((l) => !QUICK_LINES.includes(l.value)).map((l) => (
-                  <option key={l.value} value={l.value}>{l.label}</option>
-                ))}
-              </select>
             </div>
           </div>
 

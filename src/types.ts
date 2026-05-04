@@ -2,17 +2,19 @@ export type Line =
   | 'mainline'
   | 'th'
   | 'sth'
+  | 'silver-series'
+  | 'premium'
+  | 'rlc'
+  | 'other'
+  // legacy — mantidos para compatibilidade com dados existentes
   | 'premium-car-culture'
   | 'premium-boulevard'
   | 'premium-pop-culture'
   | 'premium-fast-furious'
   | 'premium-entertainment'
   | 'premium-team-transport'
-  | 'silver-series'
-  | 'rlc'
   | 'convention'
   | 'mystery'
-  | 'other'
 
 export type SerieItem = {
   n?: string | number

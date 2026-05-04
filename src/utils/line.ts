@@ -9,23 +9,28 @@ export type LineMeta = {
 }
 
 export const LINES: LineMeta[] = [
-  { value: 'mainline', label: 'Mainline', short: 'Mainline', color: '#8b949e' },
-  { value: 'th', label: 'Treasure Hunt', short: 'TH', color: '#c82d6b', badgeBg: 'rgba(200,45,107,.95)' },
-  { value: 'sth', label: 'Super Treasure Hunt', short: 'STH', color: '#fb5607', badgeBg: 'linear-gradient(90deg,#ffb703,#fb5607 60%,#ff006e)' },
-  { value: 'premium-car-culture', label: 'Premium · Car Culture', short: 'Car Culture', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
-  { value: 'premium-boulevard', label: 'Premium · Boulevard', short: 'Boulevard', color: '#475569', badgeBg: 'rgba(71,85,105,.95)' },
-  { value: 'premium-pop-culture', label: 'Premium · Pop Culture', short: 'Pop Culture', color: '#a855f7', badgeBg: 'rgba(168,85,247,.9)' },
-  { value: 'premium-fast-furious', label: 'Premium · Fast & Furious', short: 'F&F', color: '#f97316', badgeBg: 'rgba(249,115,22,.9)' },
-  { value: 'premium-entertainment', label: 'Premium · Entertainment', short: 'Entertainment', color: '#10b981', badgeBg: 'rgba(16,185,129,.9)' },
-  { value: 'premium-team-transport', label: 'Premium · Team Transport', short: 'Team Transport', color: '#0ea5e9', badgeBg: 'rgba(14,165,233,.9)' },
-  { value: 'silver-series', label: 'Silver Series', short: 'Silver', color: '#94a3b8', badgeBg: 'linear-gradient(90deg,#94a3b8,#cbd5e1 60%,#94a3b8)' },
-  { value: 'rlc', label: 'Red Line Club', short: 'RLC', color: '#dc2626', badgeBg: 'rgba(220,38,38,.95)' },
-  { value: 'convention', label: 'Convention', short: 'Convention', color: '#eab308', badgeBg: 'rgba(234,179,8,.9)' },
-  { value: 'mystery', label: 'Mystery Models', short: 'Mystery', color: '#7c3aed', badgeBg: 'rgba(124,58,237,.9)' },
-  { value: 'other', label: 'Outra linha', short: 'Outra', color: '#6b7280', badgeBg: 'rgba(107,114,128,.9)' },
+  { value: 'mainline',     label: 'Mainline',          short: 'Mainline', color: '#8b949e' },
+  { value: 'th',           label: 'Treasure Hunt',     short: 'TH',       color: '#c82d6b', badgeBg: 'rgba(200,45,107,.95)' },
+  { value: 'sth',          label: 'Super Treasure Hunt', short: 'STH',    color: '#fb5607', badgeBg: 'linear-gradient(90deg,#ffb703,#fb5607 60%,#ff006e)' },
+  { value: 'silver-series', label: 'Silver Series',    short: 'Silver',   color: '#94a3b8', badgeBg: 'linear-gradient(90deg,#64748b,#cbd5e1 50%,#64748b)' },
+  { value: 'premium',      label: 'Premium',           short: 'Premium',  color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'rlc',          label: 'Red Line Club',     short: 'RLC',      color: '#dc2626', badgeBg: 'rgba(220,38,38,.95)' },
+  { value: 'other',        label: 'Outra linha',       short: 'Outra',    color: '#6b7280', badgeBg: 'rgba(107,114,128,.9)' },
 ]
 
-const BY_VALUE: Record<string, LineMeta> = Object.fromEntries(LINES.map((l) => [l.value, l]))
+// Legado: sub-tipos de Premium e outros mapeiam para 'premium' nos badges
+const LEGACY: LineMeta[] = [
+  { value: 'premium-car-culture',    label: 'Premium · Car Culture',    short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'premium-boulevard',      label: 'Premium · Boulevard',      short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'premium-pop-culture',    label: 'Premium · Pop Culture',    short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'premium-fast-furious',   label: 'Premium · Fast & Furious', short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'premium-entertainment',  label: 'Premium · Entertainment',  short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'premium-team-transport', label: 'Premium · Team Transport', short: 'Premium', color: '#1f6feb', badgeBg: 'rgba(31,111,235,.9)' },
+  { value: 'convention', label: 'Convention',    short: 'Outra', color: '#6b7280', badgeBg: 'rgba(107,114,128,.9)' },
+  { value: 'mystery',    label: 'Mystery Models', short: 'Outra', color: '#6b7280', badgeBg: 'rgba(107,114,128,.9)' },
+]
+
+const BY_VALUE: Record<string, LineMeta> = Object.fromEntries([...LINES, ...LEGACY].map((l) => [l.value, l]))
 
 export function lineMeta(line: Line | undefined): LineMeta | undefined {
   if (!line) return undefined
