@@ -34,15 +34,19 @@ export default function SeriesGroup({
 
   const checked = visible.filter((it) => checks[`${serie.nome}__${it.n || ''}`]?.owned).length
 
+  const isDefault = serie.nome === 'Geral'
+
   return (
     <details className="series" open>
-      <summary>
-        <svg className="chev" width="16" height="16" viewBox="0 0 24 24">
-          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
-        </svg>
-        <div className="title">{serie.nome}</div>
-        <span className="badge">{checked}/{visible.length}</span>
-      </summary>
+      {!isDefault && (
+        <summary>
+          <svg className="chev" width="16" height="16" viewBox="0 0 24 24">
+            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
+          </svg>
+          <div className="title">{serie.nome}</div>
+          <span className="badge">{checked}/{visible.length}</span>
+        </summary>
+      )}
       <div className="items">
         {visible.map((it) => {
           const globalIdx = feedOffset + sorted.indexOf(it)
