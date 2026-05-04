@@ -168,6 +168,41 @@ export function useHotlist(user: User | null) {
     scheduleSync()
   }, [persistSeries, persistChecks, scheduleSync])
 
+  const moveItemToSerie = useCallback((key: string, targetSerie: string) => {
+    let movedItem: SerieItem | null = null
+    const ownership = checksRef.current[key]
+
+    // Remove from current série
+    let next = seriesRef.current.map((s) => {
+      if (!key.startsWith(`${s.nome}__`)) return s
+      const item = s.items.find((it) => `${s.nome}__${it.n || ''}` === key)
+      if (item) movedItem = item
+      return { ...s, items: s.items.filter((it) => `${s.nome}__${it.n || ''}` !== key) }
+    })
+
+    if (!movedItem) return
+
+    // Create target série if it doesn't exist
+    if (!next.find((s) => s.nome === targetSerie)) {
+      next = [...next, { nome: targetSerie, items: [] }]
+    }
+
+    // Add to target série
+    next = next.map((s) =>
+      s.nome === targetSerie ? { ...s, items: [...s.items, movedItem!] } : s,
+    )
+
+    persistSeries(next)
+
+    // Migrate ownership key
+    const newKey = `${targetSerie}__${(movedItem as SerieItem).n || ''}`
+    const nextChecks = { ...checksRef.current }
+    delete nextChecks[key]
+    if (ownership) nextChecks[newKey] = ownership
+    persistChecks(nextChecks)
+    scheduleSync()
+  }, [persistSeries, persistChecks, scheduleSync])
+
   const setOwnership = useCallback((key: string, partial: Partial<Ownership>) => {
     const current = checksRef.current[key] || { owned: false }
     const merged: Ownership = { ...current, ...partial }
@@ -250,6 +285,7 @@ export function useHotlist(user: User | null) {
     updateItemMetaByKey,
     removeItem,
     removeItemByKey,
+    moveItemToSerie,
     toggleCheck,
     toggleWishlist,
     setOwnership,
