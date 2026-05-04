@@ -20,8 +20,7 @@ export default function ItemRow({
 
   useEffect(() => {
     const img = imgRef.current
-    if (!img) return
-    if (!item.img) { img.src = CAR_PLACEHOLDER; return }
+    if (!img || !item.img) return
     if ('IntersectionObserver' in window) {
       const io = new IntersectionObserver(
         (entries, obs) => {
@@ -38,7 +37,7 @@ export default function ItemRow({
       io.observe(img)
       return () => io.unobserve(img)
     } else {
-      img.src = item.img || ''
+      img.src = item.img
     }
   }, [item.img])
 
@@ -59,7 +58,8 @@ export default function ItemRow({
           ref={imgRef}
           className="thumb"
           alt={item.modelo || ''}
-          data-src={item.img || CAR_PLACEHOLDER}
+          src={item.img ? undefined : CAR_PLACEHOLDER}
+          data-src={item.img || undefined}
           loading="lazy"
         />
         {showBadge && (
