@@ -178,7 +178,6 @@ export default function App() {
 
       <AddItemSheet
         open={addSheetOpen}
-        series={series}
         onClose={() => setAddSheetOpen(false)}
         onAdd={addItemQuick}
       />

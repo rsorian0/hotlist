@@ -1,5 +1,5 @@
 import { useState, useRef, lazy, Suspense } from 'react'
-import type { SerieItem, Line, Ownership, Serie } from '../types'
+import type { SerieItem, Line, Ownership } from '../types'
 import { LINES } from '../utils/line'
 import { isUrl } from '../utils/url'
 
@@ -7,7 +7,6 @@ const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 type Props = {
   open: boolean
-  series: Serie[]
   onClose: () => void
   onAdd: (serieNome: string, item: SerieItem, ownership?: Partial<Ownership>) => void
 }
@@ -15,12 +14,10 @@ type Props = {
 const QUICK_LINES: Line[] = ['mainline', 'th', 'sth', 'premium-car-culture', 'premium-boulevard', 'premium-pop-culture', 'rlc']
 const DEFAULT_SERIE = 'Geral'
 
-export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
+export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const [line, setLine] = useState<Line | ''>('')
   const [modelo, setModelo] = useState('')
   const [ref, setRef] = useState('')
-  const [serieNome, setSerieNome] = useState('')
-  const [showSuggestions, setShowSuggestions] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [imgUrl, setImgUrl] = useState('')
   const [paidPrice, setPaidPrice] = useState('')
@@ -28,14 +25,9 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const modeloRef = useRef<HTMLInputElement>(null)
 
-  const serieSuggestions = series
-    .map((s) => s.nome)
-    .filter((nome) => nome.toLowerCase().includes(serieNome.toLowerCase()) && serieNome.trim() !== '')
-
   const reset = () => {
-    setLine(''); setModelo(''); setRef(''); setSerieNome('')
+    setLine(''); setModelo(''); setRef('')
     setExpanded(false); setImgUrl(''); setPaidPrice(''); setOwned(true)
-    setShowSuggestions(false)
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -56,7 +48,7 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
       ? { owned: true, paidPrice: Number.isFinite(num) ? num : undefined }
       : undefined
 
-    onAdd(serieNome.trim() || DEFAULT_SERIE, item, ownership)
+    onAdd(DEFAULT_SERIE, item, ownership)
     reset()
     onClose()
   }
@@ -175,26 +167,6 @@ export default function AddItemSheet({ open, series, onClose, onAdd }: Props) {
 
           {expanded && (
             <div className="sheet-extras">
-              <div style={{ position: 'relative' }}>
-                <label className="sheet-field">
-                  <span className="sheet-label">Série / Coleção</span>
-                  <input
-                    placeholder={`ex.: Car Culture 2024 (padrão: ${DEFAULT_SERIE})`}
-                    value={serieNome}
-                    onChange={(e) => { setSerieNome(e.target.value); setShowSuggestions(true) }}
-                    onFocus={() => setShowSuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                  />
-                </label>
-                {showSuggestions && serieSuggestions.length > 0 && (
-                  <ul className="serie-suggestions">
-                    {serieSuggestions.map((s) => (
-                      <li key={s} onMouseDown={() => { setSerieNome(s); setShowSuggestions(false) }}>{s}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-
               {owned && (
                 <label className="sheet-field">
                   <span className="sheet-label">Preço pago (R$)</span>
