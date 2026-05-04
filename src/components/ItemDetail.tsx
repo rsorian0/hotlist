@@ -135,7 +135,7 @@ export default function ItemDetail({
               onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
             >
               <option value="">Detectar automaticamente</option>
-              {LINES.map((l) => (
+              {LINES.filter((l) => !l.value.startsWith('premium-') && l.value !== 'convention' && l.value !== 'mystery').map((l) => (
                 <option key={l.value} value={l.value}>{l.label}</option>
               ))}
             </select>
