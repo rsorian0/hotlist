@@ -18,6 +18,7 @@ export const LINES: LineMeta[] = [
   { value: 'premium-fast-furious', label: 'Premium · Fast & Furious', short: 'F&F', color: '#f97316', badgeBg: 'rgba(249,115,22,.9)' },
   { value: 'premium-entertainment', label: 'Premium · Entertainment', short: 'Entertainment', color: '#10b981', badgeBg: 'rgba(16,185,129,.9)' },
   { value: 'premium-team-transport', label: 'Premium · Team Transport', short: 'Team Transport', color: '#0ea5e9', badgeBg: 'rgba(14,165,233,.9)' },
+  { value: 'silver-series', label: 'Silver Series', short: 'Silver', color: '#94a3b8', badgeBg: 'linear-gradient(90deg,#94a3b8,#cbd5e1 60%,#94a3b8)' },
   { value: 'rlc', label: 'Red Line Club', short: 'RLC', color: '#dc2626', badgeBg: 'rgba(220,38,38,.95)' },
   { value: 'convention', label: 'Convention', short: 'Convention', color: '#eab308', badgeBg: 'rgba(234,179,8,.9)' },
   { value: 'mystery', label: 'Mystery Models', short: 'Mystery', color: '#7c3aed', badgeBg: 'rgba(124,58,237,.9)' },

@@ -11,7 +11,7 @@ type Props = {
   onAdd: (serieNome: string, item: SerieItem, ownership?: Partial<Ownership>) => void
 }
 
-const QUICK_LINES: Line[] = ['mainline', 'th', 'sth', 'premium-car-culture', 'premium-boulevard', 'premium-pop-culture', 'rlc']
+const QUICK_LINES: Line[] = ['mainline', 'th', 'sth', 'silver-series', 'premium-car-culture', 'premium-boulevard', 'premium-pop-culture', 'rlc']
 const DEFAULT_SERIE = 'Geral'
 
 export default function AddItemSheet({ open, onClose, onAdd }: Props) {

@@ -8,6 +8,7 @@ export type Line =
   | 'premium-fast-furious'
   | 'premium-entertainment'
   | 'premium-team-transport'
+  | 'silver-series'
   | 'rlc'
   | 'convention'
   | 'mystery'
