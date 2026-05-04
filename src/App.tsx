@@ -142,7 +142,6 @@ export default function App() {
         onAddItem={addItem}
         onUpdateItem={updateItem}
         onRemoveItem={removeItem}
-        onMoveItem={moveItemToSerie}
         onImport={importData}
         toast={toast}
       />
@@ -152,11 +151,13 @@ export default function App() {
         itemKey={detailKey}
         item={detail.item}
         serieNome={detail.serieNome}
+        series={series}
         ownership={detailKey ? checks[detailKey] : undefined}
         onClose={() => setDetailKey(null)}
         onChange={setOwnership}
         onItemMetaChange={updateItemMetaByKey}
         onDelete={removeItemByKey}
+        onMove={(key, target) => { moveItemToSerie(key, target); setDetailKey(null) }}
       />
 
       <Modal

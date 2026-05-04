@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Ownership, Condition, Packaging, SerieItem, Line } from '../types'
+import type { Ownership, Condition, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 
 type Props = {
@@ -7,11 +7,13 @@ type Props = {
   itemKey: string | null
   item: SerieItem | null
   serieNome: string | null
+  series: Serie[]
   ownership: Ownership | undefined
   onClose: () => void
   onChange: (key: string, partial: Partial<Ownership>) => void
   onItemMetaChange: (key: string, partial: Partial<SerieItem>) => void
   onDelete: (key: string) => void
+  onMove: (key: string, targetSerie: string) => void
 }
 
 const CONDITIONS: { value: Condition; label: string }[] = [
@@ -23,7 +25,7 @@ const CONDITIONS: { value: Condition; label: string }[] = [
 ]
 
 export default function ItemDetail({
-  open, itemKey, item, serieNome, ownership, onClose, onChange, onItemMetaChange, onDelete,
+  open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
 
@@ -83,6 +85,18 @@ export default function ItemDetail({
               })()}
             </div>
           </div>
+
+          <label className="field full" style={{ marginBottom: 14 }}>
+            <span>Coleção</span>
+            <select
+              value={serieNome || ''}
+              onChange={(e) => { if (e.target.value && e.target.value !== serieNome) onMove(itemKey, e.target.value) }}
+            >
+              {series.map((s) => (
+                <option key={s.nome} value={s.nome}>{s.nome}</option>
+              ))}
+            </select>
+          </label>
 
           <div className="field-grid" style={{ marginBottom: 14 }}>
             <label className="field">

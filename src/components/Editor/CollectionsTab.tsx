@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { Serie } from '../../types'
-import { smartSortItems } from '../../utils/sort'
 
 type Props = {
   series: Serie[]
@@ -8,17 +7,13 @@ type Props = {
   onIndexChange: (i: number) => void
   onAddSerie: (nome: string) => number
   onDeleteSerie: (i: number) => void
-  onMoveItem: (key: string, targetSerie: string) => void
   toast: (msg: string) => void
 }
 
 export default function CollectionsTab({
-  series, currentIndex, onIndexChange, onAddSerie, onDeleteSerie, onMoveItem, toast,
+  series, currentIndex, onIndexChange, onAddSerie, onDeleteSerie, toast,
 }: Props) {
   const [newNome, setNewNome] = useState('')
-  const [selectedKey, setSelectedKey] = useState('')
-  const [targetSerie, setTargetSerie] = useState('')
-  const [newTargetNome, setNewTargetNome] = useState('')
 
   const handleAddSerie = () => {
     const nome = newNome.trim()
@@ -36,28 +31,6 @@ export default function CollectionsTab({
     onDeleteSerie(currentIndex)
     toast('Coleção excluída')
   }
-
-  const handleMove = () => {
-    if (!selectedKey) { alert('Escolha uma mini.'); return }
-    const destino = newTargetNome.trim() || targetSerie
-    if (!destino) { alert('Escolha ou crie uma coleção de destino.'); return }
-    onMoveItem(selectedKey, destino)
-    setSelectedKey('')
-    setTargetSerie('')
-    setNewTargetNome('')
-    toast('Mini vinculada à coleção')
-  }
-
-  // All items across all series, flattened
-  const allItems = series.flatMap((s) =>
-    smartSortItems(s.items).map((it) => ({
-      key: `${s.nome}__${it.n || ''}`,
-      label: `${it.modelo || '—'}${it.n ? ` · ${it.n}` : ''} (${s.nome})`,
-      currentSerie: s.nome,
-    }))
-  )
-
-  const serieNames = series.map((s) => s.nome)
 
   return (
     <div className="pane active" id="tab-colecoes">
@@ -91,41 +64,6 @@ export default function CollectionsTab({
             </button>
           </div>
         )}
-      </div>
-
-      <div className="group">
-        <h4>Vincular mini a uma coleção</h4>
-        <div className="stack">
-          <label>Mini cadastrada <span className="tiny">(opcional)</span></label>
-          <select value={selectedKey} onChange={(e) => setSelectedKey(e.target.value)}>
-            <option value="">— todas as minis —</option>
-            {allItems.map((it) => (
-              <option key={it.key} value={it.key}>{it.label}</option>
-            ))}
-          </select>
-
-          <label style={{ marginTop: 8 }}>Coleção destino</label>
-          <select
-            value={targetSerie}
-            onChange={(e) => { setTargetSerie(e.target.value); setNewTargetNome('') }}
-          >
-            <option value="">— selecione existente —</option>
-            {serieNames.map((nome) => (
-              <option key={nome} value={nome}>{nome}</option>
-            ))}
-          </select>
-
-          <label style={{ marginTop: 8 }}>Ou criar nova coleção</label>
-          <input
-            placeholder="Nome da nova coleção"
-            value={newTargetNome}
-            onChange={(e) => { setNewTargetNome(e.target.value); setTargetSerie('') }}
-          />
-
-          <button className="btn" type="button" onClick={handleMove} style={{ marginTop: 4 }}>
-            Vincular
-          </button>
-        </div>
       </div>
     </div>
   )

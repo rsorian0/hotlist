@@ -16,7 +16,6 @@ type Props = {
   onAddItem: (si: number, item: SerieItem) => void
   onUpdateItem: (si: number, ii: number, item: SerieItem) => void
   onRemoveItem: (si: number, ii: number) => void
-  onMoveItem: (key: string, targetSerie: string) => void
   onImport: (data: ImportData, mode: 'merge' | 'replace') => void
   toast: (msg: string) => void
 }
@@ -25,7 +24,7 @@ type Tab = 'tab-colecoes' | 'tab-backup'
 
 export default function Editor({
   open, series, checks, currentIndex, onIndexChange, onClose,
-  onAddSerie, onDeleteSerie, onAddItem, onUpdateItem, onRemoveItem, onMoveItem, onImport, toast,
+  onAddSerie, onDeleteSerie, onAddItem, onUpdateItem, onRemoveItem, onImport, toast,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(() => load<Tab>(LS_TAB, 'tab-colecoes'))
 
@@ -69,7 +68,6 @@ export default function Editor({
               onIndexChange={onIndexChange}
               onAddSerie={onAddSerie}
               onDeleteSerie={onDeleteSerie}
-              onMoveItem={onMoveItem}
               toast={toast}
             />
           ) : (
