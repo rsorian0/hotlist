@@ -15,6 +15,7 @@ export type Line =
 
 export type SerieItem = {
   n?: string | number
+  barcode?: string
   modelo?: string
   img?: string
   line?: Line

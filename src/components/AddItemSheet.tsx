@@ -18,6 +18,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const [line, setLine] = useState<Line | ''>('')
   const [modelo, setModelo] = useState('')
   const [ref, setRef] = useState('')
+  const [barcode, setBarcode] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [imgUrl, setImgUrl] = useState('')
   const [paidPrice, setPaidPrice] = useState('')
@@ -26,7 +27,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const modeloRef = useRef<HTMLInputElement>(null)
 
   const reset = () => {
-    setLine(''); setModelo(''); setRef('')
+    setLine(''); setModelo(''); setRef(''); setBarcode('')
     setExpanded(false); setImgUrl(''); setPaidPrice(''); setOwned(true)
   }
 
@@ -39,6 +40,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
     const item: SerieItem = {
       modelo: modelo.trim(),
       n: ref.trim() || undefined,
+      barcode: barcode.trim() || undefined,
       img: imgUrl.trim() || undefined,
       line: line || undefined,
     }
@@ -62,7 +64,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
       <Suspense fallback={null}>
         <BarcodeScannerModal
           open={scannerOpen}
-          onResult={(code) => { setRef(code); setScannerOpen(false) }}
+          onResult={(code) => { setBarcode(code); setScannerOpen(false) }}
           onClose={() => setScannerOpen(false)}
         />
       </Suspense>
@@ -118,15 +120,27 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             </label>
           </div>
 
-          {/* Cód. referência + scanner */}
+          {/* Cód. referência */}
           <div className="sheet-section">
             <label className="sheet-field">
               <span className="sheet-label">Cód. referência</span>
+              <input
+                placeholder="ex.: FYF84 (código impresso na cartela)"
+                value={ref}
+                onChange={(e) => setRef(e.target.value)}
+              />
+            </label>
+          </div>
+
+          {/* Cód. de barras + scanner */}
+          <div className="sheet-section">
+            <label className="sheet-field">
+              <span className="sheet-label">Cód. de barras</span>
               <div className="n-input-wrap">
                 <input
-                  placeholder="ex.: FYF84 (código da cartela)"
-                  value={ref}
-                  onChange={(e) => setRef(e.target.value)}
+                  placeholder="Escaneie ou digite"
+                  value={barcode}
+                  onChange={(e) => setBarcode(e.target.value)}
                 />
                 <button
                   type="button"

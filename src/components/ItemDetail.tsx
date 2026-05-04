@@ -84,15 +84,35 @@ export default function ItemDetail({
             </div>
           </div>
 
-          <label className="field full" style={{ marginBottom: 14 }}>
-            <span>URL da foto</span>
-            <input
-              type="url"
-              placeholder="https://… (cole o link da imagem)"
-              value={item.img || ''}
-              onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
-            />
-          </label>
+          <div className="field-grid" style={{ marginBottom: 14 }}>
+            <label className="field">
+              <span>Cód. referência</span>
+              <input
+                type="text"
+                placeholder="ex.: FYF84"
+                value={String(item.n || '')}
+                onChange={(e) => onItemMetaChange(itemKey, { n: e.target.value.trim() || undefined })}
+              />
+            </label>
+            <label className="field">
+              <span>Cód. de barras</span>
+              <input
+                type="text"
+                placeholder="—"
+                value={item.barcode || ''}
+                onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
+              />
+            </label>
+            <label className="field full">
+              <span>URL da foto</span>
+              <input
+                type="url"
+                placeholder="https://…"
+                value={item.img || ''}
+                onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
+              />
+            </label>
+          </div>
 
           <label className="field full" style={{ marginBottom: 14 }}>
             <span>Categoria / Linha</span>
