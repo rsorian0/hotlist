@@ -36,37 +36,39 @@ export default function SeriesGroup({
 
   const isDefault = serie.nome === 'Geral'
 
+  const items = visible.map((it) => {
+    const globalIdx = feedOffset + sorted.indexOf(it)
+    const key = `${serie.nome}__${it.n || ''}`
+    const own = checks[key]
+    return (
+      <ItemRow
+        key={`${it.n}-${it.modelo}`}
+        item={it}
+        serieNome={serie.nome}
+        ownership={own}
+        galleryIndex={globalIdx}
+        onToggle={() => onToggle(key)}
+        onOpenModal={onOpenModal}
+        onItemClick={() => onItemClick(key)}
+        feed={fullFeed}
+      />
+    )
+  })
+
+  if (isDefault) {
+    return <div className="items">{items}</div>
+  }
+
   return (
     <details className="series" open>
-      {!isDefault && (
-        <summary>
-          <svg className="chev" width="16" height="16" viewBox="0 0 24 24">
-            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
-          </svg>
-          <div className="title">{serie.nome}</div>
-          <span className="badge">{checked}/{visible.length}</span>
-        </summary>
-      )}
-      <div className="items">
-        {visible.map((it) => {
-          const globalIdx = feedOffset + sorted.indexOf(it)
-          const key = `${serie.nome}__${it.n || ''}`
-          const own = checks[key]
-          return (
-            <ItemRow
-              key={`${it.n}-${it.modelo}`}
-              item={it}
-              serieNome={serie.nome}
-              ownership={own}
-              galleryIndex={globalIdx}
-              onToggle={() => onToggle(key)}
-              onOpenModal={onOpenModal}
-              onItemClick={() => onItemClick(key)}
-              feed={fullFeed}
-            />
-          )
-        })}
-      </div>
+      <summary>
+        <svg className="chev" width="16" height="16" viewBox="0 0 24 24">
+          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
+        </svg>
+        <div className="title">{serie.nome}</div>
+        <span className="badge">{checked}/{visible.length}</span>
+      </summary>
+      <div className="items">{items}</div>
     </details>
   )
 }
