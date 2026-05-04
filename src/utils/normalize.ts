@@ -21,6 +21,7 @@ export function normalizeState(raw: { series: Serie[]; checks: OwnershipMap }) {
         (s.items || []).map((it) =>
           defined({
             n: it.n ?? undefined,
+            barcode: it.barcode ?? undefined,
             modelo: it.modelo ?? undefined,
             img: it.img ?? undefined,
             line: it.line ?? undefined,
