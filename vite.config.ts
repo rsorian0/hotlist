@@ -10,6 +10,8 @@ export default defineConfig(({ mode }) => ({
       outDir: 'docs',
       injectRegister: 'auto',
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         globDirectory: 'docs',
         globPatterns: ['**/*.{js,css,html,png,webmanifest}'],
         navigateFallback: '/hotlist/index.html',
