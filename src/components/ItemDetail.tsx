@@ -127,24 +127,6 @@ export default function ItemDetail({
             </select>
           </label>
 
-          <div className="detail-toggles">
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={!!draft.owned}
-                onChange={(e) => update({ owned: e.target.checked, wishlist: e.target.checked ? false : draft.wishlist })}
-              />
-              <span>Tenho</span>
-            </label>
-            <label className="toggle">
-              <input
-                type="checkbox"
-                checked={!!draft.wishlist}
-                onChange={(e) => update({ wishlist: e.target.checked })}
-              />
-              <span>Quero (wishlist)</span>
-            </label>
-          </div>
 
           <div className="field-grid">
             <label className="field">
