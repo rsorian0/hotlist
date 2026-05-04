@@ -85,6 +85,16 @@ export default function ItemDetail({
           </div>
 
           <label className="field full" style={{ marginBottom: 14 }}>
+            <span>URL da foto</span>
+            <input
+              type="url"
+              placeholder="https://… (cole o link da imagem)"
+              value={item.img || ''}
+              onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
+            />
+          </label>
+
+          <label className="field full" style={{ marginBottom: 14 }}>
             <span>Categoria / Linha</span>
             <select
               value={item.line || ''}
