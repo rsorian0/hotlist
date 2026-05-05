@@ -27,15 +27,41 @@ function median(arr) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-// Headers que imitam um browser Android real
-const BROWSER_HEADERS = {
+const HEADERS = {
   'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-  'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'Accept-Language': 'pt-BR,pt;q=0.9',
   'Accept-Encoding': 'gzip, deflate, br',
-  'Referer': 'https://www.mercadolivre.com.br/',
-  'Origin': 'https://www.mercadolivre.com.br',
   'Connection': 'keep-alive',
+}
+
+// Extrai preços do HTML da página de busca do ML
+function parsePricesFromHtml(html) {
+  const prices = []
+
+  // Tenta extrair do __PRELOADED_STATE__ (JSON embutido no HTML)
+  const stateMatch = html.match(/__PRELOADED_STATE__\s*=\s*(\{.+?\});\s*window\./)
+  if (stateMatch) {
+    try {
+      const state = JSON.parse(stateMatch[1])
+      const results = state?.initialState?.results ?? state?.results ?? []
+      for (const r of results) {
+        const p = r?.price?.amount ?? r?.prices?.price?.amount
+        if (p > 0) prices.push(p)
+      }
+      if (prices.length > 0) return prices
+    } catch {}
+  }
+
+  // Fallback: regex nos metadados de preço no HTML
+  const pricePattern = /"price"\s*:\s*(\d+(?:\.\d+)?)/g
+  let m
+  while ((m = pricePattern.exec(html)) !== null) {
+    const p = parseFloat(m[1])
+    if (p > 5 && p < 5000) prices.push(p) // filtra valores absurdos
+  }
+
+  return prices
 }
 
 async function fetchPrices(modelo, n) {
@@ -44,11 +70,12 @@ async function fetchPrices(modelo, n) {
     ['hot wheels', modelo].filter(Boolean).join(' '),
   ]
   for (const q of queries) {
-    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(q)}&limit=20`
-    const res = await fetch(url, { headers: BROWSER_HEADERS })
+    const slug = q.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const url = `https://lista.mercadolivre.com.br/${slug}`
+    const res = await fetch(url, { headers: HEADERS })
     if (!res.ok) throw new Error(`ML ${res.status}`)
-    const data = await res.json()
-    const prices = (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
+    const html = await res.text()
+    const prices = parsePricesFromHtml(html).filter((p) => p > 0)
     if (prices.length >= 3) return prices
   }
   return []
