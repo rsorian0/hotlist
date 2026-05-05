@@ -11,21 +11,31 @@ function median(arr: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-async function fetchML(query: string): Promise<number[]> {
+async function fetchWithTimeout(url: string, ms = 12_000): Promise<Response> {
   const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), 10_000)
+  const timer = setTimeout(() => ctrl.abort(), ms)
   try {
-    const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=20`
-    const res = await fetch(url, {
-      signal: ctrl.signal,
-      headers: { Accept: 'application/json' },
-    })
-    if (!res.ok) throw new Error(`ML ${res.status}`)
-    const data = await res.json() as { results?: { price: number }[] }
-    return (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
+    return await fetch(url, { signal: ctrl.signal })
   } finally {
     clearTimeout(timer)
   }
+}
+
+async function fetchML(query: string): Promise<number[]> {
+  const mlUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=20`
+
+  // tenta direto primeiro; se falhar por CORS/rede, tenta via proxy
+  let res: Response
+  try {
+    res = await fetchWithTimeout(mlUrl)
+  } catch {
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(mlUrl)}`
+    res = await fetchWithTimeout(proxyUrl)
+  }
+
+  if (!res.ok) throw new Error(`ML ${res.status}`)
+  const data = await res.json() as { results?: { price: number }[] }
+  return (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
 }
 
 export async function fetchMarketPrice(
