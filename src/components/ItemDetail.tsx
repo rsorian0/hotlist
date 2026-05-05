@@ -42,8 +42,9 @@ export default function ItemDetail({
       } else {
         setPriceError('Sem anúncios encontrados no ML')
       }
-    } catch {
-      setPriceError('Erro ao buscar preço — tente novamente')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setPriceError(`Erro: ${msg}`)
     } finally {
       setFetchingPrice(false)
     }
