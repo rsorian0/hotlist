@@ -43,17 +43,42 @@ async function fetchPrices(modelo, n) {
   return []
 }
 
-const snapshot = await db.collection('catalog').get()
-const entries = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+// Coleta itens do catálogo + de todos os usuários (sem duplicatas por n)
+const items = new Map()
 
-console.log(`Atualizando preços de ${entries.length} modelos no catálogo…\n`)
+// 1. Catálogo compartilhado
+const catalogSnap = await db.collection('catalog').get()
+for (const d of catalogSnap.docs) {
+  const data = d.data()
+  if (data.n && data.modelo) items.set(data.n, { id: data.n, n: data.n, modelo: data.modelo })
+}
+
+// 2. Dados de cada usuário
+const usersSnap = await db.collection('users').get()
+for (const userDoc of usersSnap.docs) {
+  try {
+    const hotlistSnap = await userDoc.ref.collection('app').doc('hotlist').get()
+    if (!hotlistSnap.exists) continue
+    const state = (hotlistSnap.data()?.state) || {}
+    for (const serie of state.series || []) {
+      for (const item of serie.items || []) {
+        if (item.n && item.modelo && !items.has(String(item.n))) {
+          items.set(String(item.n), { id: String(item.n), n: String(item.n), modelo: item.modelo })
+        }
+      }
+    }
+  } catch {}
+}
+
+const entries = [...items.values()]
+console.log(`Atualizando preços de ${entries.length} modelos…\n`)
 
 let ok = 0
 let skip = 0
 let fail = 0
 
 for (const entry of entries) {
-  await sleep(300) // respeita rate limit do ML
+  await sleep(300)
 
   try {
     const prices = await fetchPrices(entry.modelo, entry.n)
@@ -64,13 +89,16 @@ for (const entry of entries) {
     }
 
     const med = Math.round(median(prices) * 100) / 100
-    await db.collection('catalog').doc(entry.id).update({
-      marketPrice:     med,
-      priceMin:        Math.round(Math.min(...prices) * 100) / 100,
-      priceMax:        Math.round(Math.max(...prices) * 100) / 100,
-      priceCount:      prices.length,
-      priceUpdatedAt:  new Date().toISOString(),
-    })
+    const update = {
+      n:             entry.n,
+      modelo:        entry.modelo,
+      marketPrice:   med,
+      priceMin:      Math.round(Math.min(...prices) * 100) / 100,
+      priceMax:      Math.round(Math.max(...prices) * 100) / 100,
+      priceCount:    prices.length,
+      priceUpdatedAt: new Date().toISOString(),
+    }
+    await db.collection('catalog').doc(entry.id).set(update, { merge: true })
     console.log(`✓ ${entry.modelo}: R$ ${med.toFixed(2)} (${prices.length} anúncios)`)
     ok++
   } catch (e) {
