@@ -229,35 +229,40 @@ export default function ItemDetail({
                   onChange={(e) => update({ paidPrice: num(e.target.value) })}
                 />
               </label>
-              <label className="field flex1">
-                <span>Estimado (R$)</span>
-                <input
-                  type="number" min={0} step="0.01"
-                  value={draft.marketPrice ?? ''}
-                  onChange={(e) => update({ marketPrice: num(e.target.value) })}
-                />
-              </label>
+              <div className="field flex1">
+                <span>Valor de mercado</span>
+                <div className={`price-value${catalogPrice ? '' : ' price-value--empty'}`}>
+                  {catalogPrice
+                    ? `R$ ${catalogPrice.marketPrice.toFixed(2)}`
+                    : draft.marketPrice
+                    ? `R$ ${draft.marketPrice.toFixed(2)}`
+                    : '—'}
+                </div>
+              </div>
             </div>
 
-            {/* Preço do catálogo ML */}
             {catalogPrice && (
-              <div className="price-range">
-                <span>
-                  ML · {catalogPrice.priceCount} anúncios · {formatDate(catalogPrice.priceUpdatedAt)}
-                  {catalogPrice.priceMin != null && catalogPrice.priceMax != null
-                    ? ` · R$ ${catalogPrice.priceMin.toFixed(2)}–${catalogPrice.priceMax.toFixed(2)}`
-                    : ''}
-                </span>
-                {!draft.marketPrice && (
-                  <button
-                    type="button"
-                    className="btn ghost"
-                    style={{ fontSize: 12, padding: '3px 10px' }}
-                    onClick={() => update({ marketPrice: catalogPrice.marketPrice })}
-                  >
-                    Usar R$ {catalogPrice.marketPrice.toFixed(2)}
-                  </button>
-                )}
+              <div className="price-ml-card">
+                <div className="price-ml-row">
+                  <span className="price-ml-source">Mercado Livre · mediana · {formatDate(catalogPrice.priceUpdatedAt)}</span>
+                </div>
+                <div className="price-ml-range">
+                  <div className="price-ml-col">
+                    <span className="price-ml-lbl">Mais barato</span>
+                    <span className="price-ml-val">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
+                  </div>
+                  <div className="price-ml-divider" />
+                  <div className="price-ml-col">
+                    <span className="price-ml-lbl">Mediana</span>
+                    <span className="price-ml-val price-ml-val--main">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
+                  </div>
+                  <div className="price-ml-divider" />
+                  <div className="price-ml-col">
+                    <span className="price-ml-lbl">Mais caro</span>
+                    <span className="price-ml-val">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
+                  </div>
+                </div>
+                <div className="price-ml-count">{catalogPrice.priceCount} anúncios analisados</div>
               </div>
             )}
           </div>

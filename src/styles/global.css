@@ -530,8 +530,31 @@ img.thumb {
 .scan-btn { display: grid; place-items: center; width: var(--touch); height: var(--touch); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); flex-shrink: 0; }
 .scan-btn svg { width: 20px; height: 20px; }
 .scan-btn:hover { border-color: var(--accent); color: var(--accent); }
-/* ─── PRICE FETCH ─────────────────────────────────────────────────────────── */
-.price-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 4px 2px 0; }
+/* ─── PRICE DISPLAY ───────────────────────────────────────────────────────── */
+.price-value {
+  display: flex; align-items: center;
+  height: var(--touch); padding: 0 var(--s3);
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--r-md); font-size: 15px; font-weight: 600;
+  color: var(--text);
+}
+.price-value--empty { color: var(--subtle); font-weight: 400; }
+
+.price-ml-card {
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--r-md); padding: var(--s3); display: flex;
+  flex-direction: column; gap: var(--s2);
+}
+.price-ml-row { display: flex; align-items: center; justify-content: space-between; }
+.price-ml-source { font-size: 11px; color: var(--muted); }
+.price-ml-range { display: flex; align-items: stretch; gap: 0; }
+.price-ml-col { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: 1; }
+.price-ml-divider { width: 1px; background: var(--border-2); margin: 0 var(--s2); flex-shrink: 0; }
+.price-ml-lbl { font-size: 10px; color: var(--subtle); text-transform: uppercase; letter-spacing: .4px; }
+.price-ml-val { font-size: 14px; font-weight: 600; color: var(--muted); }
+.price-ml-val--main { font-size: 16px; color: var(--text); }
+.price-ml-count { font-size: 11px; color: var(--subtle); text-align: center; }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin .8s linear infinite; }
 
