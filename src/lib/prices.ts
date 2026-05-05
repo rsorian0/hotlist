@@ -1,3 +1,6 @@
+import { getFunctions, httpsCallable } from 'firebase/functions'
+import { app } from './firebase'
+
 type PriceResult = {
   median: number
   min: number
@@ -11,36 +14,12 @@ function median(arr: number[]): number {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-async function fetchWithTimeout(url: string, ms = 12_000): Promise<Response> {
-  const ctrl = new AbortController()
-  const timer = setTimeout(() => ctrl.abort(), ms)
-  try {
-    return await fetch(url, { signal: ctrl.signal })
-  } finally {
-    clearTimeout(timer)
-  }
-}
+const functions = getFunctions(app, 'southamerica-east1')
+const mlPrices = httpsCallable<{ query: string }, { prices: number[] }>(functions, 'mlPrices')
 
 async function fetchML(query: string): Promise<number[]> {
-  const mlUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=20`
-
-  // tenta direto; se falhar por rede ou status ruim, tenta via proxy
-  let res: Response | null = null
-  try {
-    res = await fetchWithTimeout(mlUrl)
-    if (!res.ok) res = null
-  } catch {
-    // erro de rede — vai tentar proxy
-  }
-
-  if (!res) {
-    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(mlUrl)}`
-    res = await fetchWithTimeout(proxyUrl)
-  }
-
-  if (!res.ok) throw new Error(`ML ${res.status}`)
-  const data = await res.json() as { results?: { price: number }[] }
-  return (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
+  const result = await mlPrices({ query })
+  return result.data.prices
 }
 
 export async function fetchMarketPrice(
