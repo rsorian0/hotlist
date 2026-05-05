@@ -48,26 +48,34 @@ const items = new Map()
 
 // 1. Catálogo compartilhado
 const catalogSnap = await db.collection('catalog').get()
+console.log(`Catálogo: ${catalogSnap.size} entradas`)
 for (const d of catalogSnap.docs) {
   const data = d.data()
-  if (data.n && data.modelo) items.set(data.n, { id: data.n, n: data.n, modelo: data.modelo })
+  if (data.n && data.modelo) items.set(String(data.n), { id: String(data.n), n: String(data.n), modelo: data.modelo })
 }
 
 // 2. Dados de cada usuário
 const usersSnap = await db.collection('users').get()
+console.log(`Usuários encontrados: ${usersSnap.size}`)
 for (const userDoc of usersSnap.docs) {
   try {
     const hotlistSnap = await userDoc.ref.collection('app').doc('hotlist').get()
-    if (!hotlistSnap.exists) continue
+    if (!hotlistSnap.exists) { console.log(`  uid=${userDoc.id}: sem hotlist`); continue }
     const state = (hotlistSnap.data()?.state) || {}
-    for (const serie of state.series || []) {
+    const series = state.series || []
+    let total = 0; let comN = 0
+    for (const serie of series) {
       for (const item of serie.items || []) {
-        if (item.n && item.modelo && !items.has(String(item.n))) {
-          items.set(String(item.n), { id: String(item.n), n: String(item.n), modelo: item.modelo })
+        total++
+        const key = item.n ? String(item.n) : `modelo:${item.modelo}`
+        if (item.modelo && !items.has(key)) {
+          items.set(key, { id: key.replace(/[^a-zA-Z0-9_-]/g, '_'), n: item.n, modelo: item.modelo })
+          if (item.n) comN++
         }
       }
     }
-  } catch {}
+    console.log(`  uid=${userDoc.id}: ${total} itens (${comN} com cód. referência)`)
+  } catch (e) { console.error(`  uid=${userDoc.id}: erro — ${e.message}`) }
 }
 
 const entries = [...items.values()]
