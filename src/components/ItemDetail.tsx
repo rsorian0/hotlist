@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
+import { fetchMarketPrice } from '../lib/prices'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -24,6 +25,23 @@ export default function ItemDetail({
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
+  const [fetchingPrice, setFetchingPrice] = useState(false)
+  const [priceInfo, setPriceInfo] = useState<{ min: number; max: number; count: number } | null>(null)
+
+  const handleFetchPrice = async () => {
+    if (!item?.modelo) return
+    setFetchingPrice(true)
+    setPriceInfo(null)
+    try {
+      const result = await fetchMarketPrice(item.modelo, item.n)
+      if (result) {
+        update({ marketPrice: result.median })
+        setPriceInfo({ min: result.min, max: result.max, count: result.count })
+      }
+    } finally {
+      setFetchingPrice(false)
+    }
+  }
 
   useEffect(() => {
     setDraft(ownership || { owned: false })
@@ -207,13 +225,33 @@ export default function ItemDetail({
               </label>
               <label className="field flex1">
                 <span>Estimado (R$)</span>
-                <input
-                  type="number" min={0} step="0.01"
-                  value={draft.marketPrice ?? ''}
-                  onChange={(e) => update({ marketPrice: num(e.target.value) })}
-                />
+                <div className="n-input-wrap">
+                  <input
+                    type="number" min={0} step="0.01"
+                    value={draft.marketPrice ?? ''}
+                    onChange={(e) => { update({ marketPrice: num(e.target.value) }); setPriceInfo(null) }}
+                  />
+                  <button
+                    type="button"
+                    className={`scan-btn${fetchingPrice ? ' loading' : ''}`}
+                    title="Buscar preço no Mercado Livre"
+                    onClick={handleFetchPrice}
+                    disabled={fetchingPrice}
+                  >
+                    {fetchingPrice
+                      ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin"><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+                      : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                    }
+                  </button>
+                </div>
               </label>
             </div>
+            {priceInfo && (
+              <div className="price-range">
+                <span>Mediana de {priceInfo.count} anúncios no ML</span>
+                <span>R$ {priceInfo.min.toFixed(2)} – R$ {priceInfo.max.toFixed(2)}</span>
+              </div>
+            )}
           </div>
 
         </div>

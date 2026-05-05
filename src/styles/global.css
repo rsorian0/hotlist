@@ -530,6 +530,11 @@ img.thumb {
 .scan-btn { display: grid; place-items: center; width: var(--touch); height: var(--touch); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); flex-shrink: 0; }
 .scan-btn svg { width: 20px; height: 20px; }
 .scan-btn:hover { border-color: var(--accent); color: var(--accent); }
+/* ─── PRICE FETCH ─────────────────────────────────────────────────────────── */
+.price-range { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); padding: 4px 2px 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .8s linear infinite; }
+
 /* ─── CATALOG AUTOCOMPLETE ────────────────────────────────────────────────── */
 .catalog-suggestions {
   position: absolute; left: 0; right: 0; top: 100%;
