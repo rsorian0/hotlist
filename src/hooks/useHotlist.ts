@@ -64,6 +64,16 @@ export function useHotlist(user: User | null) {
         }
         persistSeries(merged.series)
         persistChecks(merged.checks)
+
+        // Contribui todos os itens existentes ao catálogo (uma vez por dispositivo)
+        const CATALOG_SYNC_KEY = 'catalogSynced_v1'
+        if (!localStorage.getItem(CATALOG_SYNC_KEY)) {
+          const allItems = merged.series.flatMap((s) => s.items)
+          allItems
+            .filter((it) => it.n && it.modelo)
+            .forEach((it) => contributeToCatalog(it).catch(() => {}))
+          localStorage.setItem(CATALOG_SYNC_KEY, '1')
+        }
       } else {
         const normalized = normalizeState({ series: seriesRef.current, checks: checksRef.current })
         setDoc(ref, { state: normalized, updatedAt: serverTimestamp() }, { merge: true })
