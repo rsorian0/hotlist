@@ -113,12 +113,26 @@ export default function ItemDetail({
             </label>
             <label className="field full">
               <span>URL da foto</span>
-              <input
-                type="url"
-                placeholder="https://…"
-                value={item.img || ''}
-                onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
-              />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="url"
+                  placeholder="https://…"
+                  value={item.img || ''}
+                  onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
+                  style={{ flex: 1 }}
+                />
+                <a
+                  href={`https://www.google.com/search?tbm=isch&q=hot+wheels+${encodeURIComponent([item.n, item.modelo].filter(Boolean).join(' '))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn ghost"
+                  title="Buscar foto no Google Imagens"
+                  style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '0 10px' }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                  Buscar
+                </a>
+              </div>
             </label>
           </div>
 
