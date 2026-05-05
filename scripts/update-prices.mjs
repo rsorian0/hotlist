@@ -27,14 +27,29 @@ function median(arr) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-async function fetchPrices(modelo, n) {
+async function getMLToken() {
+  const clientId = process.env.ML_CLIENT_ID
+  const clientSecret = process.env.ML_CLIENT_SECRET
+  if (!clientId || !clientSecret) throw new Error('ML_CLIENT_ID e ML_CLIENT_SECRET não definidos')
+
+  const res = await fetch('https://api.mercadolibre.com/oauth/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }),
+  })
+  if (!res.ok) throw new Error(`Token ML ${res.status}`)
+  const data = await res.json()
+  return data.access_token
+}
+
+async function fetchPrices(modelo, n, token) {
   const queries = [
     ['hot wheels', n, modelo].filter(Boolean).join(' '),
     ['hot wheels', modelo].filter(Boolean).join(' '),
   ]
   for (const q of queries) {
     const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(q)}&limit=20`
-    const res = await fetch(url)
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
     if (!res.ok) throw new Error(`ML ${res.status}`)
     const data = await res.json()
     const prices = (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
@@ -82,6 +97,9 @@ for (const hotlistDoc of hotlistDocs) {
 const entries = [...items.values()]
 console.log(`Atualizando preços de ${entries.length} modelos…\n`)
 
+const mlToken = await getMLToken()
+console.log('Token ML obtido com sucesso\n')
+
 let ok = 0
 let skip = 0
 let fail = 0
@@ -90,7 +108,7 @@ for (const entry of entries) {
   await sleep(300)
 
   try {
-    const prices = await fetchPrices(entry.modelo, entry.n)
+    const prices = await fetchPrices(entry.modelo, entry.n, mlToken)
     if (prices.length === 0) {
       console.log(`— ${entry.modelo}: sem anúncios suficientes`)
       skip++
