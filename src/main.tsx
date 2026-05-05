@@ -3,11 +3,18 @@ import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles/global.css'
 
-// Recarrega a página quando um novo service worker assumir o controle,
-// garantindo que o usuário sempre veja a versão mais recente do app.
 if ('serviceWorker' in navigator) {
+  // Recarrega assim que o novo SW assume o controle
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload()
+  })
+
+  // Verifica atualização ao trazer o app para o primeiro plano
+  // (no mobile o app fica em background por horas sem recarregar)
+  navigator.serviceWorker.ready.then((reg) => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') reg.update()
+    })
   })
 }
 
