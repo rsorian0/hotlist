@@ -7,6 +7,7 @@ import { db } from '../lib/firebase'
 import { normalizeState, stableJSON } from '../utils/normalize'
 import { mergeSeries } from '../utils/io'
 import { migrateOwnershipMap, toOwnership, isMeaningful } from '../utils/ownership'
+import { contributeToCatalog } from '../lib/catalog'
 
 export function useHotlist(user: User | null) {
   const [series, setSeries] = useState<Serie[]>(() => load<Serie[]>(LS_SERIES, []))
@@ -217,8 +218,9 @@ export function useHotlist(user: User | null) {
         persistChecks(nextChecks)
       }
       scheduleSync()
+      if (user && item.n && item.modelo) contributeToCatalog(item).catch(() => {})
     },
-    [persistSeries, persistChecks, scheduleSync],
+    [user, persistSeries, persistChecks, scheduleSync],
   )
 
   return {

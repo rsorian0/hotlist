@@ -1,7 +1,8 @@
-import { useState, useRef, lazy, Suspense } from 'react'
+import { useState, useRef, useEffect, lazy, Suspense } from 'react'
 import type { SerieItem, Line, Ownership } from '../types'
-import { LINES } from '../utils/line'
+import { LINES, lineMeta } from '../utils/line'
 import { isUrl } from '../utils/url'
+import { searchCatalog, getCatalogEntry, type CatalogEntry } from '../lib/catalog'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -23,11 +24,48 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const [imgUrl, setImgUrl] = useState('')
   const [paidPrice, setPaidPrice] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
+
+  const [suggestions, setSuggestions] = useState<CatalogEntry[]>([])
+  const [catalogHint, setCatalogHint] = useState<CatalogEntry | null>(null)
+
   const modeloRef = useRef<HTMLInputElement>(null)
+  const searchTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!open) { setSuggestions([]); setCatalogHint(null) }
+  }, [open])
 
   const reset = () => {
     setLine(''); setModelo(''); setRef(''); setBarcode('')
     setExpanded(false); setImgUrl(''); setPaidPrice('')
+    setSuggestions([]); setCatalogHint(null)
+  }
+
+  const applyEntry = (entry: CatalogEntry) => {
+    setModelo(entry.modelo)
+    setRef(entry.n)
+    if (entry.line) setLine(entry.line)
+    if (entry.img)  setImgUrl(entry.img)
+    setSuggestions([])
+    setCatalogHint(null)
+  }
+
+  const handleModeloChange = (val: string) => {
+    setModelo(val)
+    setCatalogHint(null)
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    if (val.length < 2) { setSuggestions([]); return }
+    searchTimer.current = window.setTimeout(async () => {
+      const results = await searchCatalog(val).catch(() => [])
+      setSuggestions(results)
+    }, 300)
+  }
+
+  const handleRefBlur = async () => {
+    const n = ref.trim()
+    if (!n || modelo) return
+    const entry = await getCatalogEntry(n).catch(() => null)
+    if (entry) setCatalogHint(entry)
   }
 
   const handleClose = () => { reset(); onClose() }
@@ -97,17 +135,38 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             </div>
           </div>
 
-          {/* Modelo */}
-          <div className="sheet-section">
+          {/* Modelo + autocomplete */}
+          <div className="sheet-section" style={{ position: 'relative' }}>
             <label className="sheet-field">
               <span className="sheet-label">Modelo *</span>
               <input
                 ref={modeloRef}
                 placeholder="ex.: DMC DeLorean"
                 value={modelo}
-                onChange={(e) => setModelo(e.target.value)}
+                onChange={(e) => handleModeloChange(e.target.value)}
+                onBlur={() => setTimeout(() => setSuggestions([]), 150)}
+                autoComplete="off"
               />
             </label>
+            {suggestions.length > 0 && (
+              <ul className="catalog-suggestions">
+                {suggestions.map((s) => {
+                  const m = s.line ? lineMeta(s.line) : null
+                  return (
+                    <li key={s.n} className="catalog-suggestion" onMouseDown={() => applyEntry(s)}>
+                      {s.img && <img src={s.img} alt="" className="catalog-suggestion-img" />}
+                      <div className="catalog-suggestion-info">
+                        <span className="catalog-suggestion-name">{s.modelo}</span>
+                        <span className="catalog-suggestion-meta">
+                          {s.n}
+                          {m && <span className="line-tag" style={{ background: m.badgeBg || m.color, fontSize: 9, padding: '1px 5px', marginLeft: 4 }}>{m.short}</span>}
+                        </span>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
 
           {/* Cód. referência + Cód. de barras */}
@@ -117,7 +176,8 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
               <input
                 placeholder="ex.: FYF84"
                 value={ref}
-                onChange={(e) => setRef(e.target.value)}
+                onChange={(e) => { setRef(e.target.value); setCatalogHint(null) }}
+                onBlur={handleRefBlur}
               />
             </label>
             <label className="sheet-field flex1">
@@ -128,12 +188,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                   value={barcode}
                   onChange={(e) => setBarcode(e.target.value)}
                 />
-                <button
-                  type="button"
-                  className="scan-btn"
-                  title="Escanear código de barras"
-                  onClick={() => setScannerOpen(true)}
-                >
+                <button type="button" className="scan-btn" title="Escanear" onClick={() => setScannerOpen(true)}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
                     <line x1="7" y1="12" x2="7" y2="12.01"/>
@@ -147,16 +202,29 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             </label>
           </div>
 
+          {/* Hint do catálogo pelo cód. referência */}
+          {catalogHint && (
+            <div className="catalog-hint">
+              {catalogHint.img && <img src={catalogHint.img} alt="" className="catalog-hint-img" />}
+              <div className="catalog-hint-text">
+                <span className="catalog-hint-name">{catalogHint.modelo}</span>
+                <span className="catalog-hint-sub">Encontrado no catálogo</span>
+              </div>
+              <button type="button" className="btn" style={{ fontSize: 13, padding: '6px 12px' }} onClick={() => applyEntry(catalogHint)}>
+                Usar
+              </button>
+              <button type="button" className="icon-btn" onClick={() => setCatalogHint(null)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          )}
+
           {/* Expandable extras */}
-          <button
-            type="button"
-            className="sheet-expand-btn"
-            onClick={() => setExpanded((v) => !v)}
-          >
+          <button type="button" className="sheet-expand-btn" onClick={() => setExpanded((v) => !v)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: '.2s' }}>
               <path d="M6 9l6 6 6-6" />
             </svg>
-            {expanded ? 'Menos opções' : 'Série, preço e imagem…'}
+            {expanded ? 'Menos opções' : 'Preço e imagem…'}
           </button>
 
           {expanded && (
@@ -165,7 +233,6 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                 <span className="sheet-label">Preço pago (R$)</span>
                 <input type="number" min={0} step="0.01" placeholder="12,90" value={paidPrice} onChange={(e) => setPaidPrice(e.target.value)} />
               </label>
-
               <label className="sheet-field">
                 <span className="sheet-label">URL da imagem</span>
                 <input placeholder="https://..." value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />

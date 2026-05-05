@@ -530,6 +530,33 @@ img.thumb {
 .scan-btn { display: grid; place-items: center; width: var(--touch); height: var(--touch); border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); flex-shrink: 0; }
 .scan-btn svg { width: 20px; height: 20px; }
 .scan-btn:hover { border-color: var(--accent); color: var(--accent); }
+/* ─── CATALOG AUTOCOMPLETE ────────────────────────────────────────────────── */
+.catalog-suggestions {
+  position: absolute; left: 0; right: 0; top: 100%;
+  background: #0f1520; border: 1px solid var(--border-2);
+  border-radius: var(--r-md); list-style: none; margin: 4px 0 0; padding: 4px 0;
+  z-index: 80; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  max-height: 260px; overflow-y: auto;
+}
+.catalog-suggestion {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s2) var(--s3); cursor: pointer;
+}
+.catalog-suggestion:hover { background: var(--surface-2); }
+.catalog-suggestion-img { width: 36px; height: 36px; object-fit: cover; border-radius: var(--r-sm); flex-shrink: 0; background: var(--surface-2); }
+.catalog-suggestion-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.catalog-suggestion-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catalog-suggestion-meta { font-size: 11px; color: var(--muted); display: flex; align-items: center; }
+.catalog-hint {
+  display: flex; align-items: center; gap: var(--s2);
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  border-radius: var(--r-md); padding: var(--s2) var(--s3);
+}
+.catalog-hint-img { width: 40px; height: 40px; object-fit: cover; border-radius: var(--r-sm); flex-shrink: 0; }
+.catalog-hint-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.catalog-hint-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.catalog-hint-sub { font-size: 11px; color: var(--accent); }
+
 .line-chips-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
 .line-chip { background: var(--surface-2); border: 1px solid var(--border-2); color: var(--muted); padding: 6px var(--s3); border-radius: var(--r-full); font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .line-chip.active { color: #fff; }
