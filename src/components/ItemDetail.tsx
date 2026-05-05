@@ -27,17 +27,23 @@ export default function ItemDetail({
   const [scannerOpen, setScannerOpen] = useState(false)
   const [fetchingPrice, setFetchingPrice] = useState(false)
   const [priceInfo, setPriceInfo] = useState<{ min: number; max: number; count: number } | null>(null)
+  const [priceError, setPriceError] = useState<string | null>(null)
 
   const handleFetchPrice = async () => {
     if (!item?.modelo) return
     setFetchingPrice(true)
     setPriceInfo(null)
+    setPriceError(null)
     try {
       const result = await fetchMarketPrice(item.modelo, item.n)
       if (result) {
         update({ marketPrice: result.median })
         setPriceInfo({ min: result.min, max: result.max, count: result.count })
+      } else {
+        setPriceError('Sem anúncios encontrados no ML')
       }
+    } catch {
+      setPriceError('Erro ao buscar preço — tente novamente')
     } finally {
       setFetchingPrice(false)
     }
@@ -248,9 +254,12 @@ export default function ItemDetail({
             </div>
             {priceInfo && (
               <div className="price-range">
-                <span>Mediana de {priceInfo.count} anúncios no ML</span>
+                <span>Mediana de {priceInfo.count} anúncios · ML</span>
                 <span>R$ {priceInfo.min.toFixed(2)} – R$ {priceInfo.max.toFixed(2)}</span>
               </div>
+            )}
+            {priceError && (
+              <div className="price-range" style={{ color: '#f85149' }}>{priceError}</div>
             )}
           </div>
 
