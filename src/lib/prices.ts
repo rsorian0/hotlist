@@ -24,11 +24,16 @@ async function fetchWithTimeout(url: string, ms = 12_000): Promise<Response> {
 async function fetchML(query: string): Promise<number[]> {
   const mlUrl = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(query)}&limit=20`
 
-  // tenta direto primeiro; se falhar por CORS/rede, tenta via proxy
-  let res: Response
+  // tenta direto; se falhar por rede ou status ruim, tenta via proxy
+  let res: Response | null = null
   try {
     res = await fetchWithTimeout(mlUrl)
+    if (!res.ok) res = null
   } catch {
+    // erro de rede — vai tentar proxy
+  }
+
+  if (!res) {
     const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(mlUrl)}`
     res = await fetchWithTimeout(proxyUrl)
   }
