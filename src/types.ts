@@ -25,7 +25,6 @@ export type ModalFeedItem = {
   alt: string
 }
 
-export type Condition = 'mint' | 'near-mint' | 'good' | 'loose' | 'damaged'
 export type Packaging = 'carded' | 'loose'
 
 export type Ownership = {
@@ -33,12 +32,12 @@ export type Ownership = {
   qty?: number
   paidPrice?: number
   marketPrice?: number
-  condition?: Condition
   packaging?: Packaging
   acquiredAt?: string
   source?: string
   notes?: string
   wishlist?: boolean
+  condition?: string
 }
 
 export type OwnershipMap = Record<string, Ownership>

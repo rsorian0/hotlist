@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Ownership, Condition, Packaging, SerieItem, Line, Serie } from '../types'
+import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 
@@ -17,13 +17,6 @@ type Props = {
   onMove: (key: string, targetSerie: string) => void
 }
 
-const CONDITIONS: { value: Condition; label: string }[] = [
-  { value: 'mint', label: 'Mint' },
-  { value: 'near-mint', label: 'Near Mint' },
-  { value: 'good', label: 'Good' },
-  { value: 'loose', label: 'Loose' },
-  { value: 'damaged', label: 'Danificado' },
-]
 
 export default function ItemDetail({
   open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
@@ -145,29 +138,6 @@ export default function ItemDetail({
 
           <div className="field-grid">
             <label className="field">
-              <span>Quantidade</span>
-              <input
-                type="number"
-                min={0}
-                value={draft.qty ?? ''}
-                onChange={(e) => update({ qty: num(e.target.value) })}
-              />
-            </label>
-
-            <label className="field">
-              <span>Estado</span>
-              <select
-                value={draft.condition || ''}
-                onChange={(e) => update({ condition: (e.target.value || undefined) as Condition | undefined })}
-              >
-                <option value="">—</option>
-                {CONDITIONS.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="field">
               <span>Embalagem</span>
               <select
                 value={draft.packaging || ''}
@@ -198,35 +168,6 @@ export default function ItemDetail({
                 step="0.01"
                 value={draft.marketPrice ?? ''}
                 onChange={(e) => update({ marketPrice: num(e.target.value) })}
-              />
-            </label>
-
-            <label className="field">
-              <span>Data da compra</span>
-              <input
-                type="date"
-                value={draft.acquiredAt || ''}
-                onChange={(e) => update({ acquiredAt: e.target.value || undefined })}
-              />
-            </label>
-
-            <label className="field full">
-              <span>Local da compra</span>
-              <input
-                type="text"
-                placeholder="Mercado Livre, Walmart, presente…"
-                value={draft.source || ''}
-                onChange={(e) => update({ source: e.target.value || undefined })}
-              />
-            </label>
-
-            <label className="field full">
-              <span>Notas</span>
-              <textarea
-                rows={3}
-                placeholder="Observações pessoais sobre esta peça"
-                value={draft.notes || ''}
-                onChange={(e) => update({ notes: e.target.value || undefined })}
               />
             </label>
           </div>
