@@ -1,7 +1,19 @@
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  console.error('ERRO: variável FIREBASE_SERVICE_ACCOUNT não definida.')
+  process.exit(1)
+}
+
+let serviceAccount
+try {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+} catch (e) {
+  console.error('ERRO: FIREBASE_SERVICE_ACCOUNT não é um JSON válido.', e.message)
+  process.exit(1)
+}
+
 initializeApp({ credential: cert(serviceAccount) })
 const db = getFirestore()
 
