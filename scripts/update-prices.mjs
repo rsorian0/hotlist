@@ -27,29 +27,25 @@ function median(arr) {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-async function getMLToken() {
-  const clientId = process.env.ML_CLIENT_ID
-  const clientSecret = process.env.ML_CLIENT_SECRET
-  if (!clientId || !clientSecret) throw new Error('ML_CLIENT_ID e ML_CLIENT_SECRET não definidos')
-
-  const res = await fetch('https://api.mercadolibre.com/oauth/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: clientId, client_secret: clientSecret }),
-  })
-  if (!res.ok) throw new Error(`Token ML ${res.status}`)
-  const data = await res.json()
-  return data.access_token
+// Headers que imitam um browser Android real
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Referer': 'https://www.mercadolivre.com.br/',
+  'Origin': 'https://www.mercadolivre.com.br',
+  'Connection': 'keep-alive',
 }
 
-async function fetchPrices(modelo, n, token) {
+async function fetchPrices(modelo, n) {
   const queries = [
     ['hot wheels', n, modelo].filter(Boolean).join(' '),
     ['hot wheels', modelo].filter(Boolean).join(' '),
   ]
   for (const q of queries) {
     const url = `https://api.mercadolibre.com/sites/MLB/search?q=${encodeURIComponent(q)}&limit=20`
-    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    const res = await fetch(url, { headers: BROWSER_HEADERS })
     if (!res.ok) throw new Error(`ML ${res.status}`)
     const data = await res.json()
     const prices = (data.results ?? []).map((r) => r.price).filter((p) => p > 0)
@@ -61,7 +57,6 @@ async function fetchPrices(modelo, n, token) {
 // Coleta itens do catálogo + de todos os usuários (sem duplicatas)
 const items = new Map()
 
-// 1. Catálogo compartilhado
 const catalogSnap = await db.collection('catalog').get()
 console.log(`Catálogo: ${catalogSnap.size} entradas`)
 for (const d of catalogSnap.docs) {
@@ -72,8 +67,6 @@ for (const d of catalogSnap.docs) {
   }
 }
 
-// 2. Todos os documentos 'hotlist' via collection group query
-// (users/{uid}/app/hotlist — o doc pai users/{uid} é vazio e não aparece em .get())
 const hotlistSnap = await db.collectionGroup('app').get()
 const hotlistDocs = hotlistSnap.docs.filter((d) => d.id === 'hotlist')
 console.log(`Usuários com hotlist: ${hotlistDocs.length}`)
@@ -95,20 +88,18 @@ for (const hotlistDoc of hotlistDocs) {
 }
 
 const entries = [...items.values()]
-console.log(`Atualizando preços de ${entries.length} modelos…\n`)
-
-const mlToken = await getMLToken()
-console.log('Token ML obtido com sucesso\n')
+console.log(`\nAtualizando preços de ${entries.length} modelos…\n`)
 
 let ok = 0
 let skip = 0
 let fail = 0
 
 for (const entry of entries) {
-  await sleep(300)
+  // Delay generoso para não acionar rate limit
+  await sleep(2000)
 
   try {
-    const prices = await fetchPrices(entry.modelo, entry.n, mlToken)
+    const prices = await fetchPrices(entry.modelo, entry.n)
     if (prices.length === 0) {
       console.log(`— ${entry.modelo}: sem anúncios suficientes`)
       skip++
@@ -116,16 +107,15 @@ for (const entry of entries) {
     }
 
     const med = Math.round(median(prices) * 100) / 100
-    const update = {
-      n:             entry.n,
-      modelo:        entry.modelo,
-      marketPrice:   med,
-      priceMin:      Math.round(Math.min(...prices) * 100) / 100,
-      priceMax:      Math.round(Math.max(...prices) * 100) / 100,
-      priceCount:    prices.length,
+    await db.collection('catalog').doc(entry.id).set({
+      n:              entry.n,
+      modelo:         entry.modelo,
+      marketPrice:    med,
+      priceMin:       Math.round(Math.min(...prices) * 100) / 100,
+      priceMax:       Math.round(Math.max(...prices) * 100) / 100,
+      priceCount:     prices.length,
       priceUpdatedAt: new Date().toISOString(),
-    }
-    await db.collection('catalog').doc(entry.id).set(update, { merge: true })
+    }, { merge: true })
     console.log(`✓ ${entry.modelo}: R$ ${med.toFixed(2)} (${prices.length} anúncios)`)
     ok++
   } catch (e) {
