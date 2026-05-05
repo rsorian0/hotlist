@@ -43,7 +43,7 @@ async function fetchPrices(modelo, n) {
   return []
 }
 
-// Coleta itens do catálogo + de todos os usuários (sem duplicatas por n)
+// Coleta itens do catálogo + de todos os usuários (sem duplicatas)
 const items = new Map()
 
 // 1. Catálogo compartilhado
@@ -51,31 +51,32 @@ const catalogSnap = await db.collection('catalog').get()
 console.log(`Catálogo: ${catalogSnap.size} entradas`)
 for (const d of catalogSnap.docs) {
   const data = d.data()
-  if (data.n && data.modelo) items.set(String(data.n), { id: String(data.n), n: String(data.n), modelo: data.modelo })
+  if (data.modelo) {
+    const key = data.n ? String(data.n) : `modelo:${data.modelo}`
+    items.set(key, { id: d.id, n: data.n, modelo: data.modelo })
+  }
 }
 
-// 2. Dados de cada usuário
-const usersSnap = await db.collection('users').get()
-console.log(`Usuários encontrados: ${usersSnap.size}`)
-for (const userDoc of usersSnap.docs) {
-  try {
-    const hotlistSnap = await userDoc.ref.collection('app').doc('hotlist').get()
-    if (!hotlistSnap.exists) { console.log(`  uid=${userDoc.id}: sem hotlist`); continue }
-    const state = (hotlistSnap.data()?.state) || {}
-    const series = state.series || []
-    let total = 0; let comN = 0
-    for (const serie of series) {
-      for (const item of serie.items || []) {
-        total++
-        const key = item.n ? String(item.n) : `modelo:${item.modelo}`
-        if (item.modelo && !items.has(key)) {
-          items.set(key, { id: key.replace(/[^a-zA-Z0-9_-]/g, '_'), n: item.n, modelo: item.modelo })
-          if (item.n) comN++
-        }
+// 2. Todos os documentos 'hotlist' via collection group query
+// (users/{uid}/app/hotlist — o doc pai users/{uid} é vazio e não aparece em .get())
+const hotlistSnap = await db.collectionGroup('app').get()
+const hotlistDocs = hotlistSnap.docs.filter((d) => d.id === 'hotlist')
+console.log(`Usuários com hotlist: ${hotlistDocs.length}`)
+for (const hotlistDoc of hotlistDocs) {
+  const state = hotlistDoc.data()?.state || {}
+  let total = 0; let novos = 0
+  for (const serie of state.series || []) {
+    for (const item of serie.items || []) {
+      total++
+      const key = item.n ? String(item.n) : `modelo:${item.modelo}`
+      if (item.modelo && !items.has(key)) {
+        const id = item.n ? String(item.n) : item.modelo.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 60)
+        items.set(key, { id, n: item.n, modelo: item.modelo })
+        novos++
       }
     }
-    console.log(`  uid=${userDoc.id}: ${total} itens (${comN} com cód. referência)`)
-  } catch (e) { console.error(`  uid=${userDoc.id}: erro — ${e.message}`) }
+  }
+  console.log(`  hotlist: ${total} itens, ${novos} novos no mapa`)
 }
 
 const entries = [...items.values()]
