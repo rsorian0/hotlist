@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
-import { fetchMarketPrice } from '../lib/prices'
+import { getCatalogPrice } from '../lib/catalog'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -20,39 +20,28 @@ type Props = {
   onMove: (key: string, targetSerie: string) => void
 }
 
+type CatalogPrice = {
+  marketPrice: number
+  priceMin?: number
+  priceMax?: number
+  priceCount?: number
+  priceUpdatedAt?: string
+}
+
 export default function ItemDetail({
   open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
-  const [fetchingPrice, setFetchingPrice] = useState(false)
-  const [priceInfo, setPriceInfo] = useState<{ min: number; max: number; count: number } | null>(null)
-  const [priceError, setPriceError] = useState<string | null>(null)
-
-  const handleFetchPrice = async () => {
-    if (!item?.modelo) return
-    setFetchingPrice(true)
-    setPriceInfo(null)
-    setPriceError(null)
-    try {
-      const result = await fetchMarketPrice(item.modelo, item.n)
-      if (result) {
-        update({ marketPrice: result.median })
-        setPriceInfo({ min: result.min, max: result.max, count: result.count })
-      } else {
-        setPriceError('Sem anúncios encontrados no ML')
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      setPriceError(`Erro: ${msg}`)
-    } finally {
-      setFetchingPrice(false)
-    }
-  }
+  const [catalogPrice, setCatalogPrice] = useState<CatalogPrice | null>(null)
 
   useEffect(() => {
     setDraft(ownership || { owned: false })
-  }, [ownership, itemKey])
+    setCatalogPrice(null)
+    if (item?.n) {
+      getCatalogPrice(item.n).then((p) => setCatalogPrice(p)).catch(() => {})
+    }
+  }, [ownership, itemKey, item?.n])
 
   if (!open || !itemKey || !item) return null
 
@@ -72,6 +61,16 @@ export default function ItemDetail({
     if (!confirm(`Remover "${item.modelo || itemKey}" da coleção?`)) return
     onDelete(itemKey)
     onClose()
+  }
+
+  const formatDate = (iso?: string) => {
+    if (!iso) return ''
+    const d = new Date(iso)
+    const hoje = new Date()
+    const diff = Math.floor((hoje.getTime() - d.getTime()) / 86_400_000)
+    if (diff === 0) return 'hoje'
+    if (diff === 1) return 'ontem'
+    return `há ${diff} dias`
   }
 
   const meta = lineMeta(effectiveLine(item))
@@ -232,35 +231,34 @@ export default function ItemDetail({
               </label>
               <label className="field flex1">
                 <span>Estimado (R$)</span>
-                <div className="n-input-wrap">
-                  <input
-                    type="number" min={0} step="0.01"
-                    value={draft.marketPrice ?? ''}
-                    onChange={(e) => { update({ marketPrice: num(e.target.value) }); setPriceInfo(null) }}
-                  />
-                  <button
-                    type="button"
-                    className={`scan-btn${fetchingPrice ? ' loading' : ''}`}
-                    title="Buscar preço no Mercado Livre"
-                    onClick={handleFetchPrice}
-                    disabled={fetchingPrice}
-                  >
-                    {fetchingPrice
-                      ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="spin"><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-                      : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                    }
-                  </button>
-                </div>
+                <input
+                  type="number" min={0} step="0.01"
+                  value={draft.marketPrice ?? ''}
+                  onChange={(e) => update({ marketPrice: num(e.target.value) })}
+                />
               </label>
             </div>
-            {priceInfo && (
+
+            {/* Preço do catálogo ML */}
+            {catalogPrice && (
               <div className="price-range">
-                <span>Mediana de {priceInfo.count} anúncios · ML</span>
-                <span>R$ {priceInfo.min.toFixed(2)} – R$ {priceInfo.max.toFixed(2)}</span>
+                <span>
+                  ML · {catalogPrice.priceCount} anúncios · {formatDate(catalogPrice.priceUpdatedAt)}
+                  {catalogPrice.priceMin != null && catalogPrice.priceMax != null
+                    ? ` · R$ ${catalogPrice.priceMin.toFixed(2)}–${catalogPrice.priceMax.toFixed(2)}`
+                    : ''}
+                </span>
+                {!draft.marketPrice && (
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    style={{ fontSize: 12, padding: '3px 10px' }}
+                    onClick={() => update({ marketPrice: catalogPrice.marketPrice })}
+                  >
+                    Usar R$ {catalogPrice.marketPrice.toFixed(2)}
+                  </button>
+                )}
               </div>
-            )}
-            {priceError && (
-              <div className="price-range" style={{ color: '#f85149' }}>{priceError}</div>
             )}
           </div>
 

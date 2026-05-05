@@ -12,6 +12,26 @@ export type CatalogEntry = {
   line?: Line
   img?: string
   count: number
+  marketPrice?: number
+  priceMin?: number
+  priceMax?: number
+  priceCount?: number
+  priceUpdatedAt?: string
+}
+
+export async function getCatalogPrice(n: string): Promise<Pick<CatalogEntry, 'marketPrice' | 'priceMin' | 'priceMax' | 'priceCount' | 'priceUpdatedAt'> | null> {
+  if (!n) return null
+  const snap = await getDoc(doc(db, 'catalog', n))
+  if (!snap.exists()) return null
+  const data = snap.data() as CatalogEntry
+  if (!data.marketPrice) return null
+  return {
+    marketPrice:    data.marketPrice,
+    priceMin:       data.priceMin,
+    priceMax:       data.priceMax,
+    priceCount:     data.priceCount,
+    priceUpdatedAt: data.priceUpdatedAt,
+  }
 }
 
 export async function contributeToCatalog(item: SerieItem): Promise<void> {
