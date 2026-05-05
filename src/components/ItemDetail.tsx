@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
+
+const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
 type Props = {
   open: boolean
@@ -22,6 +24,7 @@ export default function ItemDetail({
   open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
 }: Props) {
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
+  const [scannerOpen, setScannerOpen] = useState(false)
 
   useEffect(() => {
     setDraft(ownership || { owned: false })
@@ -49,6 +52,13 @@ export default function ItemDetail({
 
   return (
     <>
+      <Suspense fallback={null}>
+        <BarcodeScannerModal
+          open={scannerOpen}
+          onResult={(code) => { onItemMetaChange(itemKey, { barcode: code }); setScannerOpen(false) }}
+          onClose={() => setScannerOpen(false)}
+        />
+      </Suspense>
       <div className="panel-backdrop" onClick={onClose} />
       <aside className="panel open" aria-label="Detalhes do item">
         <div className="hd">
@@ -104,12 +114,22 @@ export default function ItemDetail({
             </label>
             <label className="field">
               <span>Cód. de barras</span>
-              <input
-                type="text"
-                placeholder="—"
-                value={item.barcode || ''}
-                onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
-              />
+              <div className="n-input-wrap">
+                <input
+                  type="text"
+                  placeholder="—"
+                  value={item.barcode || ''}
+                  onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
+                />
+                <button type="button" className="scan-btn" title="Escanear" onClick={() => setScannerOpen(true)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
+                    <line x1="7" y1="12" x2="7" y2="12.01"/><line x1="10" y1="9" x2="10" y2="15"/>
+                    <line x1="13" y1="7" x2="13" y2="17"/><line x1="16" y1="9" x2="16" y2="15"/>
+                    <line x1="19" y1="12" x2="19" y2="12.01"/>
+                  </svg>
+                </button>
+              </div>
             </label>
             <label className="field full">
               <span>URL da foto</span>
