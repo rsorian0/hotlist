@@ -64,6 +64,8 @@ function parsePricesFromHtml(html) {
   return prices
 }
 
+let debugPrinted = false
+
 async function fetchPrices(modelo, n) {
   const queries = [
     ['hot wheels', n, modelo].filter(Boolean).join(' '),
@@ -75,6 +77,15 @@ async function fetchPrices(modelo, n) {
     const res = await fetch(url, { headers: HEADERS })
     if (!res.ok) throw new Error(`ML ${res.status}`)
     const html = await res.text()
+
+    // Debug: imprime trecho do HTML do primeiro modelo
+    if (!debugPrinted) {
+      debugPrinted = true
+      console.log('\n--- DEBUG HTML (primeiros 2000 chars) ---')
+      console.log(html.slice(0, 2000))
+      console.log('--- FIM DEBUG ---\n')
+    }
+
     const prices = parsePricesFromHtml(html).filter((p) => p > 0)
     if (prices.length >= 3) return prices
   }
