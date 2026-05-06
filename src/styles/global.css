@@ -490,6 +490,17 @@ img.thumb {
 .hist-row { display: flex; justify-content: space-between; font-size: 13px; padding: var(--s2) 0; border-bottom: 1px solid var(--border); }
 .hist-row:last-child { border-bottom: none; }
 
+/* ─── STATS EXTRAS ─────────────────────────────────────────────────────────── */
+.stat-highlights { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); }
+.stat-highlight-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s3); text-align: center; }
+.stat-hl-num { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.stat-hl-num.positive { color: var(--success); }
+.stat-hl-num.negative { color: #f85149; }
+.stat-hl-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-top: 3px; }
+.top-list-item { display: flex; align-items: center; gap: var(--s2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: var(--s2) var(--s3); }
+.top-list-item img { width: 44px; height: 44px; object-fit: cover; border-radius: var(--r-sm); flex-shrink: 0; }
+.top-price.positive { color: var(--success); }
+
 /* ─── ADD ITEM SHEET ──────────────────────────────────────────────────────── */
 .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 70; }
 .sheet {
