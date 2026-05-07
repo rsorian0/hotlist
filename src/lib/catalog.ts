@@ -17,9 +17,10 @@ export type CatalogEntry = {
   priceMax?: number
   priceCount?: number
   priceUpdatedAt?: string
+  priceSource?: string
 }
 
-export async function getCatalogPrice(n: string): Promise<Pick<CatalogEntry, 'marketPrice' | 'priceMin' | 'priceMax' | 'priceCount' | 'priceUpdatedAt'> | null> {
+export async function getCatalogPrice(n: string): Promise<Pick<CatalogEntry, 'marketPrice' | 'priceMin' | 'priceMax' | 'priceCount' | 'priceUpdatedAt' | 'priceSource'> | null> {
   if (!n) return null
   const snap = await getDoc(doc(db, 'catalog', n))
   if (!snap.exists()) return null
@@ -31,6 +32,7 @@ export async function getCatalogPrice(n: string): Promise<Pick<CatalogEntry, 'ma
     priceMax:       data.priceMax,
     priceCount:     data.priceCount,
     priceUpdatedAt: data.priceUpdatedAt,
+    priceSource:    data.priceSource,
   }
 }
 
@@ -61,4 +63,20 @@ export async function getCatalogEntry(n: string): Promise<CatalogEntry | null> {
   if (!n) return null
   const snap = await getDoc(doc(db, 'catalog', n))
   return snap.exists() ? (snap.data() as CatalogEntry) : null
+}
+
+export async function contributeMarketPrice(
+  n: string,
+  modelo: string,
+  price: number,
+): Promise<void> {
+  if (!n || price <= 0) return
+  const ref = doc(db, 'catalog', String(n))
+  await setDoc(ref, {
+    n: String(n),
+    modelo,
+    marketPrice: price,
+    priceUpdatedAt: new Date().toISOString(),
+    priceSource: 'community',
+  }, { merge: true })
 }

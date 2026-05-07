@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
-import { getCatalogPrice } from '../lib/catalog'
+import { getCatalogPrice, contributeMarketPrice } from '../lib/catalog'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -26,6 +26,7 @@ type CatalogPrice = {
   priceMax?: number
   priceCount?: number
   priceUpdatedAt?: string
+  priceSource?: string
 }
 
 export default function ItemDetail({
@@ -229,22 +230,30 @@ export default function ItemDetail({
                   onChange={(e) => update({ paidPrice: num(e.target.value) })}
                 />
               </label>
-              <div className="field flex1">
+              <label className="field flex1">
                 <span>Valor de mercado</span>
-                <div className={`price-value${catalogPrice ? '' : ' price-value--empty'}`}>
-                  {catalogPrice
-                    ? `R$ ${catalogPrice.marketPrice.toFixed(2)}`
-                    : draft.marketPrice
-                    ? `R$ ${draft.marketPrice.toFixed(2)}`
-                    : '—'}
-                </div>
-              </div>
+                <input
+                  type="number" min={0} step="0.01"
+                  placeholder={catalogPrice ? `R$ ${catalogPrice.marketPrice.toFixed(2)}` : '—'}
+                  value={draft.marketPrice ?? ''}
+                  onChange={(e) => update({ marketPrice: num(e.target.value) })}
+                  onBlur={() => {
+                    if (item?.n && item?.modelo && draft.marketPrice && draft.marketPrice > 0) {
+                      contributeMarketPrice(item.n, item.modelo, draft.marketPrice).catch(() => {})
+                    }
+                  }}
+                />
+              </label>
             </div>
 
             {catalogPrice && (
               <div className="price-ml-card">
                 <div className="price-ml-row">
-                  <span className="price-ml-source">Mercado Livre · mediana · {formatDate(catalogPrice.priceUpdatedAt)}</span>
+                  <span className="price-ml-source">
+                    {catalogPrice.priceSource === 'community'
+                      ? `Comunidade · ${formatDate(catalogPrice.priceUpdatedAt)}`
+                      : `Mercado Livre · mediana · ${formatDate(catalogPrice.priceUpdatedAt)}`}
+                  </span>
                 </div>
                 <div className="price-ml-range">
                   <div className="price-ml-col">
