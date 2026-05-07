@@ -9,9 +9,11 @@ if ('serviceWorker' in navigator) {
     window.location.reload()
   })
 
-  // Verifica atualização ao trazer o app para o primeiro plano
-  // (no mobile o app fica em background por horas sem recarregar)
   navigator.serviceWorker.ready.then((reg) => {
+    // Verifica atualização imediatamente ao carregar
+    reg.update()
+
+    // Verifica também ao voltar ao primeiro plano
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') reg.update()
     })
