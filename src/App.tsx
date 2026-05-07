@@ -5,6 +5,7 @@ import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { effectiveLine } from './utils/line'
+import LoginScreen from './components/LoginScreen'
 import Header from './components/Header'
 import BottomNav from './components/BottomNav'
 import SeriesList from './components/SeriesList'
@@ -20,7 +21,7 @@ import type { Line } from './types'
 type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 
 export default function App() {
-  const { user, signIn, signOut } = useAuth()
+  const { user, loading, signIn, signOut } = useAuth()
   const {
     series, checks, addSerie, addItemQuick, deleteSerie,
     updateItemMetaByKey, removeItemByKey, moveItemToSerie, setOwnership, importData,
@@ -69,6 +70,9 @@ export default function App() {
   }
 
   const showChips = activeTab === 'list' || activeTab === 'grid'
+
+  if (loading) return null
+  if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
     <>

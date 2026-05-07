@@ -43,22 +43,16 @@ export default function Header({
             </button>
           )}
 
-          <div id="authBar" style={{ display: 'flex', gap: 8, alignItems: 'center', marginLeft: 'auto' }}>
-            {!user ? (
-              <button className="btn ghost" onClick={onSignIn}>Entrar</button>
-            ) : (
-              user.photoURL && (
-                <img
-                  src={user.photoURL}
-                  alt=""
-                  referrerPolicy="no-referrer"
-                  style={{ width: 28, height: 28, borderRadius: '50%', cursor: 'pointer' }}
-                  onClick={onSignOut}
-                  title="Sair"
-                />
-              )
-            )}
-          </div>
+          {user?.photoURL && (
+            <img
+              src={user.photoURL}
+              alt=""
+              referrerPolicy="no-referrer"
+              style={{ width: 30, height: 30, borderRadius: '50%', cursor: 'pointer', flexShrink: 0 }}
+              onClick={onSignOut}
+              title="Sair da conta"
+            />
+          )}
         </div>
 
         {activeLines.length > 0 && (

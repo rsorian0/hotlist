@@ -12,10 +12,14 @@ import { auth } from '../lib/firebase'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     getRedirectResult(auth).catch(() => {})
-    return onAuthStateChanged(auth, setUser)
+    return onAuthStateChanged(auth, (u) => {
+      setUser(u)
+      setLoading(false)
+    })
   }, [])
 
   const signIn = async () => {
@@ -40,5 +44,5 @@ export function useAuth() {
 
   const signOutUser = () => signOut(auth)
 
-  return { user, signIn, signOut: signOutUser }
+  return { user, loading, signIn, signOut: signOutUser }
 }

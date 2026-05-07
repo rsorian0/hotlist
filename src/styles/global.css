@@ -626,6 +626,16 @@ img.thumb {
 @keyframes spin { to { transform: rotate(360deg); } }
 .scanner-hint { color: rgba(255,255,255,.6); font-size: 13px; text-align: center; padding: var(--s3) var(--s6) calc(var(--s3) + env(safe-area-inset-bottom)); margin: 0; background: rgba(0,0,0,.7); }
 
+/* ─── LOGIN SCREEN ────────────────────────────────────────────────────────── */
+.login-screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: var(--s6); z-index: 200; }
+.login-card { display: flex; flex-direction: column; align-items: center; gap: var(--s4); width: 100%; max-width: 360px; text-align: center; }
+.login-logo { display: flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: var(--surface); border-radius: var(--r-xl); border: 1px solid var(--border-2); }
+.login-title { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+.login-sub { margin: 0; font-size: 15px; color: var(--muted); }
+.btn-google { display: flex; align-items: center; gap: var(--s3); background: #fff; color: #1f2328; border: none; border-radius: var(--r-md); padding: 0 var(--s5); height: 48px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; justify-content: center; margin-top: var(--s3); transition: background .15s; }
+.btn-google:hover { background: #f0f0f0; }
+.login-hint { margin: 0; font-size: 13px; color: var(--subtle); max-width: 280px; line-height: 1.5; }
+
 /* ─── EMPTY STATE ─────────────────────────────────────────────────────────── */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px var(--s6); text-align: center; gap: var(--s2); }
 .empty-icon { font-size: 48px; line-height: 1; margin-bottom: var(--s2); }
