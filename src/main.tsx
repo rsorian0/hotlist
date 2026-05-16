@@ -4,18 +4,29 @@ import App from './App'
 import './styles/global.css'
 
 if ('serviceWorker' in navigator) {
-  // Recarrega assim que o novo SW assume o controle
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload()
   })
 
   navigator.serviceWorker.ready.then((reg) => {
-    // Verifica atualização imediatamente ao carregar
     reg.update()
 
-    // Verifica também ao voltar ao primeiro plano
+    // Verifica ao voltar ao primeiro plano
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') reg.update()
+    })
+
+    // Verifica a cada 60 segundos em background
+    setInterval(() => reg.update(), 60_000)
+
+    // Se houver SW esperando, aplica imediatamente
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing
+      newSW?.addEventListener('statechange', () => {
+        if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+          newSW.postMessage({ type: 'SKIP_WAITING' })
+        }
+      })
     })
   })
 }
