@@ -42,40 +42,51 @@ export default function ItemRow({
   }, [item.img])
 
   const qty = ownership?.qty && ownership.qty > 1 ? ownership.qty : null
+  const owned = !!ownership?.owned
   const line = effectiveLine(item)
   const meta = lineMeta(line)
-  const accent = meta?.color || 'transparent'
   const showBadge = !!meta && line !== 'mainline'
 
   return (
     <div
-      className="row"
-      style={{ '--accent-col': accent } as React.CSSProperties}
+      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors border-b border-zinc-100 last:border-0"
       onClick={onItemClick}
     >
-      <div className="thumb-wrap" onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}>
+      <div
+        className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-zinc-100 cursor-pointer"
+        onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}
+      >
         <img
           ref={imgRef}
-          className="thumb"
+          className="w-full h-full object-contain"
           alt={item.modelo || ''}
           src={item.img ? undefined : CAR_PLACEHOLDER}
           data-src={item.img || undefined}
           loading="lazy"
         />
         {showBadge && (
-          <div className="line-badge" style={{ background: meta!.badgeBg || meta!.color }}>
+          <span
+            className="absolute bottom-0.5 left-0.5 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
+            style={{ background: meta!.badgeBg || meta!.color }}
+          >
             {meta!.short}
-          </div>
+          </span>
         )}
       </div>
 
-      <div className="row-body">
-        <div className="muted">{item.n || ''}</div>
-        <div className="title">
+      <div className="flex-1 min-w-0">
+        <div className="text-[11px] text-zinc-400">{item.n || ''}</div>
+        <div className={['text-sm font-medium truncate', owned ? 'text-zinc-900' : 'text-zinc-500'].join(' ')}>
           {item.modelo || ''}
-          {qty && <span className="qty-pill">x{qty}</span>}
+          {qty && (
+            <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-200 text-zinc-600 rounded-full">
+              x{qty}
+            </span>
+          )}
         </div>
       </div>
+
+      <div className={['shrink-0 w-2 h-2 rounded-full', owned ? 'bg-emerald-500' : 'bg-zinc-200'].join(' ')} />
     </div>
   )
 }

@@ -24,6 +24,7 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
       n?: string | number
       img?: string
       line?: Line
+      owned: boolean
     }> = []
 
     for (const s of series) {
@@ -32,7 +33,7 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
         const line = effectiveLine(it)
         if (lineFilter && line !== lineFilter) continue
         if (f && !`${it.modelo || ''} ${it.n || ''} ${s.nome}`.toLowerCase().includes(f)) continue
-        result.push({ key, serie: s.nome, modelo: it.modelo || '', n: it.n, img: it.img, line })
+        result.push({ key, serie: s.nome, modelo: it.modelo || '', n: it.n, img: it.img, line, owned: !!checks[key]?.owned })
       }
     }
     return result
@@ -42,24 +43,43 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
   if (items.length === 0) return <EmptyState filtered onAddClick={onAddClick} />
 
   return (
-    <section className="grid-view">
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-px bg-zinc-100 border-t border-zinc-100">
       {items.map((it) => {
         const meta = lineMeta(it.line)
         return (
-          <div key={it.key} className="grid-card" onClick={() => onItemClick(it.key)}>
-            <div className="grid-img-wrap">
-              <img src={it.img || CAR_PLACEHOLDER} alt={it.modelo} loading="lazy" />
+          <div
+            key={it.key}
+            className="relative bg-white flex flex-col cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors"
+            onClick={() => onItemClick(it.key)}
+          >
+            <div className="relative aspect-square bg-zinc-50">
+              <img
+                src={it.img || CAR_PLACEHOLDER}
+                alt={it.modelo}
+                loading="lazy"
+                className="w-full h-full object-contain"
+              />
               {meta && it.line !== 'mainline' && (
-                <div className="grid-badge" style={{ background: meta.badgeBg || meta.color }}>{meta.short}</div>
+                <span
+                  className="absolute top-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
+                  style={{ background: meta.badgeBg || meta.color }}
+                >
+                  {meta.short}
+                </span>
+              )}
+              {it.owned && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" />
               )}
             </div>
-            <div className="grid-info">
-              <div className="grid-modelo">{it.modelo}</div>
-              <div className="grid-sub">{it.serie !== 'Geral' ? `${it.serie}${it.n ? ` · ${it.n}` : ''}` : (it.n || '')}</div>
+            <div className="px-2 py-1.5">
+              <div className="text-[11px] font-medium text-zinc-700 truncate leading-tight">{it.modelo}</div>
+              <div className="text-[10px] text-zinc-400 truncate">
+                {it.serie !== 'Geral' ? it.serie : (it.n || '')}
+              </div>
             </div>
           </div>
         )
       })}
-    </section>
+    </div>
   )
 }

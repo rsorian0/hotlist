@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import type { Serie, ModalFeedItem, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
 import { effectiveLine } from '../utils/line'
+import { ChevronDown } from 'lucide-react'
 import ItemRow from './ItemRow'
 
 type Props = {
@@ -17,6 +19,8 @@ type Props = {
 export default function SeriesGroup({
   serie, checks, filter, lineFilter, feedOffset, fullFeed, onOpenModal, onItemClick,
 }: Props) {
+  const [open, setOpen] = useState(true)
+
   const f = filter.toLowerCase().trim()
   const sorted = smartSortItems(serie.items || [])
   const visible = sorted.filter((it) => {
@@ -27,17 +31,20 @@ export default function SeriesGroup({
   if (visible.length === 0) return null
 
   const isDefault = serie.nome === 'Geral'
+  const ownedCount = visible.filter((it) => {
+    const key = `${serie.nome}__${it.n || ''}`
+    return !!checks[key]?.owned
+  }).length
 
-  const items = visible.map((it) => {
+  const rows = visible.map((it) => {
     const globalIdx = feedOffset + sorted.indexOf(it)
     const key = `${serie.nome}__${it.n || ''}`
-    const own = checks[key]
     return (
       <ItemRow
         key={`${it.n}-${it.modelo}`}
         item={it}
         serieNome={serie.nome}
-        ownership={own}
+        ownership={checks[key]}
         galleryIndex={globalIdx}
         onOpenModal={onOpenModal}
         onItemClick={() => onItemClick(key)}
@@ -46,20 +53,26 @@ export default function SeriesGroup({
     )
   })
 
-  if (isDefault) {
-    return <div className="items">{items}</div>
-  }
+  if (isDefault) return <div>{rows}</div>
 
   return (
-    <details className="series" open>
-      <summary>
-        <svg className="chev" width="16" height="16" viewBox="0 0 24 24">
-          <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" fill="none" />
-        </svg>
-        <div className="title">{serie.nome}</div>
-        <span className="badge">{visible.length}</span>
-      </summary>
-      <div className="items">{items}</div>
-    </details>
+    <div className="border-b border-zinc-100">
+      <button
+        type="button"
+        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-zinc-50 transition-colors"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <ChevronDown
+          size={16}
+          className={['text-zinc-400 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
+        />
+        <span className="flex-1 text-sm font-semibold text-zinc-800 truncate">{serie.nome}</span>
+        <span className="text-xs text-zinc-400">
+          {ownedCount}/{visible.length}
+        </span>
+      </button>
+
+      {open && <div>{rows}</div>}
+    </div>
   )
 }
