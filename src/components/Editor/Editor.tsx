@@ -38,33 +38,33 @@ export default function Editor({
       <SheetContent
         side="right"
         hideClose
-        className="p-0 flex flex-col bg-white w-full sm:max-w-sm overflow-hidden"
+        className="p-0 flex flex-col bg-white dark:bg-neutral-900 w-full sm:max-w-sm overflow-hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {/* Header */}
-        <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
-          <SheetTitle className="text-base font-semibold text-zinc-900">Gerenciar</SheetTitle>
+        <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
+          <SheetTitle className="text-base font-semibold text-zinc-900 dark:text-neutral-100">Gerenciar</SheetTitle>
           <Button
             variant="ghost"
             size="icon"
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="text-zinc-500 hover:text-zinc-900"
+            className="text-zinc-500 dark:text-neutral-400 hover:text-zinc-900 dark:hover:text-neutral-100"
           >
             <X className="h-4 w-4" />
           </Button>
         </SheetHeader>
 
         {/* Tabs */}
-        <div className="flex border-b border-zinc-100 shrink-0">
+        <div className="flex border-b border-neutral-200 dark:border-neutral-800 shrink-0">
           <button
             type="button"
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-colecoes'
-                ? 'border-zinc-900 text-zinc-900'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700',
+                ? 'border-neutral-900 dark:border-neutral-100 text-zinc-900 dark:text-neutral-100'
+                : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-colecoes')}
           >
@@ -75,8 +75,8 @@ export default function Editor({
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-backup'
-                ? 'border-zinc-900 text-zinc-900'
-                : 'border-transparent text-zinc-500 hover:text-zinc-700',
+                ? 'border-neutral-900 dark:border-neutral-100 text-zinc-900 dark:text-neutral-100'
+                : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-backup')}
           >
