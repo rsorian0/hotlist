@@ -5,9 +5,7 @@ import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { effectiveLine } from './utils/line'
-import LoginScreen from './components/LoginScreen'
 import Header from './components/Header'
-import BottomNav from './components/BottomNav'
 import SeriesList from './components/SeriesList'
 import GridView from './components/GridView'
 import Stats from './components/Stats'
@@ -16,7 +14,9 @@ import Toast from './components/Toast'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
 import AddItemSheet from './components/AddItemSheet'
+import LoginScreen from './components/LoginScreen'
 import type { Line } from './types'
+import { Plus } from 'lucide-react'
 
 type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 
@@ -70,12 +70,13 @@ export default function App() {
   }
 
   const showChips = activeTab === 'list' || activeTab === 'grid'
+  const showFab   = activeTab === 'list' || activeTab === 'grid'
 
   if (loading) return null
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <>
+    <div className="min-h-screen bg-white">
       <Header
         filter={filter}
         onFilterChange={setFilter}
@@ -87,9 +88,11 @@ export default function App() {
         onSignOut={signOut}
         canInstall={canInstall}
         onInstall={install}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
       />
 
-      <main>
+      <main className="max-w-3xl mx-auto pb-24">
         {activeTab === 'list' && (
           <SeriesList
             series={series}
@@ -118,19 +121,15 @@ export default function App() {
         )}
       </main>
 
-      <BottomNav active={activeTab} onChange={setActiveTab} />
-
-      {(activeTab === 'list' || activeTab === 'grid') && (
+      {showFab && (
         <button
-          className="fab"
           type="button"
           aria-label="Adicionar peça"
           onClick={() => setAddSheetOpen(true)}
+          className="fixed bottom-6 right-4 z-30 flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900 text-white shadow-lg hover:bg-zinc-700 active:scale-95 transition-all"
+          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19"/>
-            <line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
+          <Plus size={24} />
         </button>
       )}
 
@@ -177,6 +176,6 @@ export default function App() {
         onClose={() => setAddSheetOpen(false)}
         onAdd={addItemQuick}
       />
-    </>
+    </div>
   )
 }
