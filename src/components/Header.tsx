@@ -44,7 +44,7 @@ export default function Header({
       {/* ── Toolbar ── */}
       <div className="flex items-center gap-3 px-4 h-14 max-w-3xl mx-auto">
         <img
-          src="/hotlist/logo-black.svg"
+          src="/logo-black.svg"
           alt="Hotlist"
           className="h-7 w-auto shrink-0"
         />

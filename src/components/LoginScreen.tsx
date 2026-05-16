@@ -10,7 +10,7 @@ export default function LoginScreen({ onSignIn }: Props) {
       <div className="flex flex-col items-center gap-6 w-full max-w-sm text-center">
 
         <img
-          src="/hotlist/logo-black.svg"
+          src="/logo-black.svg"
           alt="Hotlist Diecast Club"
           className="w-64"
         />

@@ -18,8 +18,8 @@ export default defineConfig(({ mode }) => ({
         clientsClaim: true,
         globDirectory: 'docs',
         globPatterns: ['**/*.{js,css,html,png,webmanifest}'],
-        navigateFallback: '/hotlist/index.html',
-        navigateFallbackDenylist: [/^\/hotlist\/assets\//],
+        navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/assets\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firestore\.googleapis\.com\//,
@@ -37,9 +37,9 @@ export default defineConfig(({ mode }) => ({
         name: 'Hotlist',
         short_name: 'Hotlist',
         description: 'Checklist de coleções Hot Wheels.',
-        start_url: '/hotlist/',
-        scope: '/hotlist/',
-        id: '/hotlist/',
+        start_url: '/',
+        scope: '/',
+        id: '/',
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
-  base: mode === 'development' ? '/' : '/hotlist/',
+  base: '/',
   build: {
     outDir: 'docs',
     rollupOptions: {
