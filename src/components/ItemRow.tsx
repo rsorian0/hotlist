@@ -49,11 +49,11 @@ export default function ItemRow({
 
   return (
     <div
-      className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-zinc-50 dark:hover:bg-neutral-800 active:bg-zinc-100 dark:active:bg-neutral-700 transition-colors border-b border-zinc-100 dark:border-neutral-800 last:border-0"
+      className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800 active:bg-neutral-100 dark:active:bg-neutral-700 transition-colors border-b border-neutral-100 dark:border-neutral-800 last:border-0"
       onClick={onItemClick}
     >
       <div
-        className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden bg-zinc-100 dark:bg-neutral-800 cursor-pointer"
+        className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-pointer"
         onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}
       >
         <img
@@ -79,7 +79,7 @@ export default function ItemRow({
         <div className={['text-[13px] font-medium truncate leading-tight', owned ? 'text-zinc-900 dark:text-neutral-100' : 'text-zinc-500 dark:text-neutral-400'].join(' ')}>
           {item.modelo || ''}
           {qty && (
-            <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-200 dark:bg-neutral-700 text-zinc-600 dark:text-neutral-300 rounded-full">
+            <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-full">
               x{qty}
             </span>
           )}

@@ -20,7 +20,7 @@ type Props = {
 
 export default function Header({ filter, onFilterChange, user, onSignOut, canInstall, onInstall, theme, onToggleTheme }: Props) {
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-zinc-100 dark:border-neutral-800">
+    <header className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
       <div className="flex items-center gap-2 px-3 h-12">
         {/* Logo — mobile only (sidebar has it on desktop) */}
         <img src="/logo-black.svg" alt="Hotlist" className="h-5 w-auto shrink-0 md:hidden dark:invert" />
@@ -31,7 +31,7 @@ export default function Header({ filter, onFilterChange, user, onSignOut, canIns
             placeholder="Buscar modelo…"
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="h-8 bg-zinc-50 dark:bg-neutral-900 border-zinc-200 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500 text-sm"
+            className="h-8 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500 text-sm"
           />
         </div>
 

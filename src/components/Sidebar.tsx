@@ -20,9 +20,9 @@ const TABS: { id: Tab; label: string; Icon: React.FC<{ size?: number }> }[] = [
 
 export default function Sidebar({ active, onChange, user, onSignIn, onSignOut }: Props) {
   return (
-    <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-zinc-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 sticky top-0 h-dvh">
+    <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 sticky top-0 h-dvh">
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-zinc-100 dark:border-neutral-800">
+      <div className="px-4 py-4 border-b border-neutral-200 dark:border-neutral-800">
         <img src="/logo-black.svg" alt="Hotlist" className="h-6 w-auto dark:invert" />
       </div>
 
@@ -37,7 +37,7 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut }:
               'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left w-full',
               active === id
                 ? 'bg-zinc-100 dark:bg-neutral-800 text-zinc-900 dark:text-neutral-100'
-                : 'text-zinc-500 dark:text-neutral-400 hover:bg-zinc-50 dark:hover:bg-neutral-900 hover:text-zinc-700 dark:hover:text-neutral-200',
+                : 'text-zinc-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-zinc-700 dark:hover:text-neutral-200',
             ].join(' ')}
           >
             <Icon size={17} />
@@ -47,12 +47,12 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut }:
       </nav>
 
       {/* User */}
-      <div className="px-2 pb-4 border-t border-zinc-100 dark:border-neutral-800 pt-3">
+      <div className="px-2 pb-4 border-t border-neutral-200 dark:border-neutral-800 pt-3">
         {!user ? (
           <button
             type="button"
             onClick={onSignIn}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-500 dark:text-neutral-400 hover:bg-zinc-50 dark:hover:bg-neutral-900 hover:text-zinc-700 dark:hover:text-neutral-200 transition-colors w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-zinc-700 dark:hover:text-neutral-200 transition-colors w-full"
           >
             <LogIn size={17} />
             Entrar
@@ -62,7 +62,7 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut }:
             type="button"
             onClick={onSignOut}
             title="Sair da conta"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg w-full hover:bg-zinc-50 dark:hover:bg-neutral-900 transition-colors group"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg w-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors group"
           >
             {user.photoURL ? (
               <img

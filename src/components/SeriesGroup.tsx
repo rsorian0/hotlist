@@ -53,13 +53,13 @@ export default function SeriesGroup({
     )
   })
 
-  if (isDefault) return <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-neutral-800 mb-2">{rows}</div>
+  if (isDefault) return <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">{rows}</div>
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-neutral-800 mb-2">
+    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">
       <button
         type="button"
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-neutral-800 transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         onClick={() => setOpen((v) => !v)}
       >
         <ChevronDown

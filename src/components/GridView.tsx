@@ -54,11 +54,11 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
                 'relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95',
                 it.owned
                   ? 'ring-2 ring-emerald-400 dark:ring-emerald-500'
-                  : 'border border-zinc-100 dark:border-neutral-800',
+                  : 'border border-neutral-200 dark:border-neutral-800',
               ].join(' ')}
               onClick={() => onItemClick(it.key)}
             >
-              <div className="relative aspect-square bg-zinc-50 dark:bg-neutral-800">
+              <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800">
                 <img
                   src={it.img || CAR_PLACEHOLDER}
                   alt={it.modelo}

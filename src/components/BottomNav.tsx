@@ -17,7 +17,7 @@ type Props = {
 export default function BottomNav({ active, onChange }: Props) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 flex bg-white dark:bg-neutral-950 border-t border-zinc-100 dark:border-neutral-800 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-30 flex bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {TABS.map(({ id, label, Icon }) => (
