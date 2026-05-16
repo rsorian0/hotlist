@@ -33,6 +33,10 @@ type CatalogPrice = {
   priceSource?: string
 }
 
+const selectClass = 'w-full h-9 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-500'
+const labelClass = 'text-xs text-neutral-500 dark:text-neutral-400'
+const sectionLabelClass = 'text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide'
+
 export default function ItemDetail({
   open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
 }: Props) {
@@ -95,16 +99,29 @@ export default function ItemDetail({
         <SheetContent
           side="right"
           hideClose
-          className="p-0 flex flex-col bg-white w-full sm:max-w-md overflow-hidden"
+          className="p-0 flex flex-col bg-white dark:bg-neutral-900 w-full sm:max-w-md overflow-hidden"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {/* Header */}
-          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
-            <Button variant="ghost" size="icon" type="button" onClick={onClose} aria-label="Fechar" className="text-zinc-500 hover:text-zinc-900">
+          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
+            >
               <X className="h-4 w-4" />
             </Button>
-            <SheetTitle className="text-base font-semibold text-zinc-900">Detalhes</SheetTitle>
-            <Button variant="ghost" size="sm" type="button" onClick={handleDelete} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+            <SheetTitle className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Detalhes</SheetTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              onClick={handleDelete}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+            >
               <Trash2 className="h-4 w-4 mr-1" />
               Excluir
             </Button>
@@ -114,7 +131,7 @@ export default function ItemDetail({
           <div className="flex-1 overflow-y-auto">
 
             {/* Hero */}
-            <div className="relative bg-zinc-100 h-48 flex items-center justify-center overflow-hidden">
+            <div className="relative bg-neutral-100 dark:bg-neutral-800 h-48 flex items-center justify-center overflow-hidden">
               <img
                 src={item.img || CAR_PLACEHOLDER}
                 alt={item.modelo || ''}
@@ -139,9 +156,9 @@ export default function ItemDetail({
 
               {/* Coleção */}
               <div className="space-y-1.5">
-                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Coleção</div>
+                <div className={sectionLabelClass}>Coleção</div>
                 <select
-                  className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                  className={selectClass}
                   value={serieNome || ''}
                   onChange={(e) => { if (e.target.value && e.target.value !== serieNome) onMove(itemKey, e.target.value) }}
                 >
@@ -153,26 +170,27 @@ export default function ItemDetail({
 
               {/* Identificação */}
               <div className="space-y-1.5">
-                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Identificação</div>
+                <div className={sectionLabelClass}>Identificação</div>
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs text-zinc-500">Cód. referência</label>
+                    <label className={labelClass}>Cód. referência</label>
                     <Input
                       type="text"
                       placeholder="ex.: FYF84"
                       value={String(item.n || '')}
                       onChange={(e) => onItemMetaChange(itemKey, { n: e.target.value.trim() || undefined })}
+                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs text-zinc-500">Cód. de barras</label>
+                    <label className={labelClass}>Cód. de barras</label>
                     <div className="flex gap-1">
                       <Input
                         type="text"
                         placeholder="—"
                         value={item.barcode || ''}
                         onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
-                        className="flex-1"
+                        className="flex-1 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                       />
                       <Button
                         type="button"
@@ -180,7 +198,7 @@ export default function ItemDetail({
                         size="icon"
                         title="Escanear"
                         onClick={() => setScannerOpen(true)}
-                        className="shrink-0"
+                        className="shrink-0 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                       >
                         <ScanLine className="h-4 w-4" />
                       </Button>
@@ -191,20 +209,20 @@ export default function ItemDetail({
 
               {/* Foto */}
               <div className="space-y-1.5">
-                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Foto</div>
+                <div className={sectionLabelClass}>Foto</div>
                 <div className="flex gap-1">
                   <Input
                     type="url"
                     placeholder="https://…"
                     value={item.img || ''}
                     onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
-                    className="flex-1"
+                    className="flex-1 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     asChild
-                    className="shrink-0"
+                    className="shrink-0 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
                   >
                     <a
                       href={`https://www.google.com/search?tbm=isch&q=${searchQuery}`}
@@ -220,12 +238,12 @@ export default function ItemDetail({
 
               {/* Detalhes */}
               <div className="space-y-1.5">
-                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Detalhes</div>
+                <div className={sectionLabelClass}>Detalhes</div>
                 <div className="flex gap-3">
                   <div className="flex-[2] space-y-1">
-                    <label className="text-xs text-zinc-500">Categoria / Linha</label>
+                    <label className={labelClass}>Categoria / Linha</label>
                     <select
-                      className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                      className={selectClass}
                       value={item.line || ''}
                       onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
                     >
@@ -236,9 +254,9 @@ export default function ItemDetail({
                     </select>
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs text-zinc-500">Embalagem</label>
+                    <label className={labelClass}>Embalagem</label>
                     <select
-                      className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                      className={selectClass}
                       value={draft.packaging || ''}
                       onChange={(e) => update({ packaging: (e.target.value || undefined) as Packaging | undefined })}
                     >
@@ -252,20 +270,21 @@ export default function ItemDetail({
 
               {/* Preços */}
               <div className="space-y-1.5">
-                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Preços</div>
+                <div className={sectionLabelClass}>Preços</div>
                 <div className="flex gap-3">
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs text-zinc-500">Pago (R$)</label>
+                    <label className={labelClass}>Pago (R$)</label>
                     <Input
                       type="number"
                       min={0}
                       step="0.01"
                       value={draft.paidPrice ?? ''}
                       onChange={(e) => update({ paidPrice: num(e.target.value) })}
+                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
-                    <label className="text-xs text-zinc-500">Valor de mercado</label>
+                    <label className={labelClass}>Valor de mercado</label>
                     <Input
                       type="number"
                       min={0}
@@ -278,32 +297,33 @@ export default function ItemDetail({
                           contributeMarketPrice(item.n, item.modelo, draft.marketPrice).catch(() => {})
                         }
                       }}
+                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                     />
                   </div>
                 </div>
 
                 {catalogPrice && (
-                  <div className="mt-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-                    <div className="text-[11px] text-zinc-500 mb-2">
+                  <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3">
+                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2">
                       {catalogPrice.priceSource === 'community'
                         ? `Comunidade · ${formatDate(catalogPrice.priceUpdatedAt)}`
                         : `Mercado Livre · mediana · ${formatDate(catalogPrice.priceUpdatedAt)}`}
                     </div>
-                    <div className="flex divide-x divide-zinc-200">
+                    <div className="flex divide-x divide-neutral-200 dark:divide-neutral-700">
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-zinc-400 mb-0.5">Mais barato</span>
-                        <span className="text-sm font-medium text-zinc-700">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais barato</span>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-zinc-400 mb-0.5">Mediana</span>
-                        <span className="text-sm font-bold text-zinc-900">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mediana</span>
+                        <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-zinc-400 mb-0.5">Mais caro</span>
-                        <span className="text-sm font-medium text-zinc-700">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
+                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais caro</span>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-zinc-400 text-center mt-2">{catalogPrice.priceCount} anúncios analisados</div>
+                    <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center mt-2">{catalogPrice.priceCount} anúncios analisados</div>
                   </div>
                 )}
               </div>
