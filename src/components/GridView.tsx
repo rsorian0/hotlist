@@ -4,6 +4,7 @@ import { smartSortItems } from '../utils/sort'
 import { effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import EmptyState from './EmptyState'
+import { Check } from 'lucide-react'
 
 type Props = {
   series: Serie[]
@@ -50,21 +51,22 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
           return (
             <div
               key={it.key}
-              className={[
-                'relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95',
-                it.owned
-                  ? 'ring-2 ring-emerald-400 dark:ring-emerald-500'
-                  : 'border border-neutral-200 dark:border-neutral-800',
-              ].join(' ')}
+              className="relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-none transition-all duration-150 hover:shadow-md dark:hover:bg-neutral-800 active:scale-95"
               onClick={() => onItemClick(it.key)}
             >
-              <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800">
+              {/* Image */}
+              <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
                 <img
                   src={it.img || CAR_PLACEHOLDER}
                   alt={it.modelo}
                   loading="lazy"
-                  className="w-full h-full object-contain"
+                  className={[
+                    'w-full h-full object-contain transition-all duration-200',
+                    it.owned ? '' : 'opacity-40 grayscale',
+                  ].join(' ')}
                 />
+
+                {/* Line badge — bottom left */}
                 {meta && it.line !== 'mainline' && (
                   <span
                     className="absolute bottom-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
@@ -73,10 +75,24 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
                     {meta.short}
                   </span>
                 )}
+
+                {/* Owned checkmark — bottom right */}
+                {it.owned && (
+                  <div className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-full bg-emerald-500 flex items-center justify-center shadow-sm ring-1 ring-white/30">
+                    <Check size={10} className="text-white" strokeWidth={3} />
+                  </div>
+                )}
               </div>
+
+              {/* Info */}
               <div className="px-2 py-1.5">
-                <div className="text-[11px] font-medium text-zinc-700 dark:text-neutral-300 truncate leading-tight">{it.modelo}</div>
-                <div className="text-[10px] text-zinc-400 dark:text-neutral-500 truncate">
+                <div className={[
+                  'text-[11px] font-medium truncate leading-tight',
+                  it.owned ? 'text-neutral-800 dark:text-neutral-200' : 'text-neutral-400 dark:text-neutral-500',
+                ].join(' ')}>
+                  {it.modelo}
+                </div>
+                <div className="text-[10px] text-neutral-400 dark:text-neutral-600 truncate mt-px">
                   {it.serie !== 'Geral' ? it.serie : (it.n || '')}
                 </div>
               </div>
