@@ -3,6 +3,9 @@ import type { Serie, ImportData, OwnershipMap } from '../../types'
 import { load, save, LS_TAB } from '../../lib/storage'
 import CollectionsTab from './CollectionsTab'
 import BackupTab from './BackupTab'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { X } from 'lucide-react'
 
 type Props = {
   open: boolean
@@ -31,33 +34,58 @@ export default function Editor({
   }
 
   return (
-    <aside className={`panel${open ? ' open' : ''}`} id="editor" aria-hidden={!open}>
-      <div className="hd">
-        <h3>Gerenciar</h3>
-        <button className="btn ghost" type="button" onClick={onClose}>Fechar</button>
-      </div>
+    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <SheetContent
+        side="right"
+        hideClose
+        className="p-0 flex flex-col bg-white w-full sm:max-w-sm overflow-hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        {/* Header */}
+        <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
+          <SheetTitle className="text-base font-semibold text-zinc-900">Gerenciar</SheetTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="text-zinc-500 hover:text-zinc-900"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </SheetHeader>
 
-      <div className="tabs">
-        <button
-          className={`tab-btn${activeTab === 'tab-colecoes' ? ' active' : ''}`}
-          data-tab="tab-colecoes"
-          type="button"
-          onClick={() => switchTab('tab-colecoes')}
-        >
-          Coleções
-        </button>
-        <button
-          className={`tab-btn${activeTab === 'tab-backup' ? ' active' : ''}`}
-          data-tab="tab-backup"
-          type="button"
-          onClick={() => switchTab('tab-backup')}
-        >
-          Backup
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="flex border-b border-zinc-100 shrink-0">
+          <button
+            type="button"
+            className={[
+              'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
+              activeTab === 'tab-colecoes'
+                ? 'border-zinc-900 text-zinc-900'
+                : 'border-transparent text-zinc-500 hover:text-zinc-700',
+            ].join(' ')}
+            onClick={() => switchTab('tab-colecoes')}
+          >
+            Coleções
+          </button>
+          <button
+            type="button"
+            className={[
+              'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
+              activeTab === 'tab-backup'
+                ? 'border-zinc-900 text-zinc-900'
+                : 'border-transparent text-zinc-500 hover:text-zinc-700',
+            ].join(' ')}
+            onClick={() => switchTab('tab-backup')}
+          >
+            Backup
+          </button>
+        </div>
 
-      <div className="body">
-        <div className="panes">
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-5 py-5">
           {activeTab === 'tab-colecoes' ? (
             <CollectionsTab
               series={series}
@@ -76,7 +104,7 @@ export default function Editor({
             />
           )}
         </div>
-      </div>
-    </aside>
+      </SheetContent>
+    </Sheet>
   )
 }

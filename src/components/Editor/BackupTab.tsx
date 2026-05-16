@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import type { Serie, ImportData, OwnershipMap } from '../../types'
 import { exportJSON, validateImport } from '../../utils/io'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 
 type Props = {
   series: Serie[]
@@ -60,46 +62,86 @@ export default function BackupTab({ series, checks, onImport, toast }: Props) {
   }
 
   return (
-    <div className="pane active" id="tab-backup">
-      <div className="group">
-        <h4>Exportar</h4>
-        <div className="stack">
-          <button className="btn" type="button" onClick={handleExport}>Exportar agora</button>
-          <div className="tiny">
-            Baixa um <code>.json</code> com coleções, itens e marcados. Nome:{' '}
-            <code>hotlist-backup-AAAAMMDD.json</code>.
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Exportar */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Exportar</h4>
+        <Button type="button" className="w-full" onClick={handleExport}>
+          Exportar agora
+        </Button>
+        <p className="text-xs text-zinc-500">
+          Baixa um <code className="font-mono bg-zinc-100 rounded px-1">.json</code> com coleções, itens e marcados.
+          Nome: <code className="font-mono bg-zinc-100 rounded px-1">hotlist-backup-AAAAMMDD.json</code>.
+        </p>
       </div>
 
-      <div className="group">
-        <h4>Importar</h4>
-        <div className="stack">
-          <div className="file">
-            <label className="fake" htmlFor="importFile">Escolher arquivo (.json)</label>
+      <Separator />
+
+      {/* Importar */}
+      <div className="space-y-3">
+        <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">Importar</h4>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="importFile"
+            className="flex items-center justify-center w-full h-9 rounded-md border border-dashed border-zinc-300 bg-zinc-50 text-sm text-zinc-600 cursor-pointer hover:bg-zinc-100 transition-colors"
+          >
+            Escolher arquivo (.json)
+          </label>
+          <input
+            ref={fileRef}
+            id="importFile"
+            type="file"
+            accept="application/json"
+            className="sr-only"
+            onChange={handleFileChange}
+          />
+        </div>
+
+        {/* Merge mode */}
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
             <input
-              ref={fileRef}
-              id="importFile"
-              type="file"
-              accept="application/json"
-              onChange={handleFileChange}
+              type="radio"
+              name="mergeMode"
+              value="merge"
+              checked={mergeMode === 'merge'}
+              onChange={() => setMergeMode('merge')}
+              className="accent-zinc-900"
             />
-            <div className="opts">
-              <label className="tiny">
-                <input type="radio" name="mergeMode" value="merge" checked={mergeMode === 'merge'} onChange={() => setMergeMode('merge')} />
-                {' '}Mesclar
-              </label>
-              <label className="tiny">
-                <input type="radio" name="mergeMode" value="replace" checked={mergeMode === 'replace'} onChange={() => setMergeMode('replace')} />
-                {' '}Substituir tudo
-              </label>
-            </div>
+            Mesclar
+          </label>
+          <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
+            <input
+              type="radio"
+              name="mergeMode"
+              value="replace"
+              checked={mergeMode === 'replace'}
+              onChange={() => setMergeMode('replace')}
+              className="accent-zinc-900"
+            />
+            Substituir tudo
+          </label>
+        </div>
+
+        {summary && (
+          <div className={[
+            'text-xs rounded-lg px-3 py-2',
+            summary.startsWith('Arquivo válido')
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200',
+          ].join(' ')}>
+            {summary}
           </div>
-          {summary && <div className="tiny" id="importSummary">{summary}</div>}
-          <div className="row actions">
-            <button className="btn" type="button" disabled={!buffer} onClick={handleApply}>Aplicar importação</button>
-            <button className="btn ghost" type="button" onClick={handleClear}>Limpar seleção</button>
-          </div>
+        )}
+
+        <div className="flex gap-2">
+          <Button type="button" className="flex-1" disabled={!buffer} onClick={handleApply}>
+            Aplicar importação
+          </Button>
+          <Button type="button" variant="outline" onClick={handleClear}>
+            Limpar
+          </Button>
         </div>
       </div>
     </div>
