@@ -17,7 +17,7 @@ type Props = {
 export default function BottomNav({ active, onChange }: Props) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-30 flex bg-white border-t border-zinc-100 md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-30 flex bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-800 md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {TABS.map(({ id, label, Icon }) => (
@@ -27,7 +27,9 @@ export default function BottomNav({ active, onChange }: Props) {
           onClick={() => onChange(id)}
           className={[
             'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors',
-            active === id ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600',
+            active === id
+              ? 'text-zinc-900 dark:text-zinc-100'
+              : 'text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400',
           ].join(' ')}
         >
           <Icon size={18} />

@@ -4,6 +4,7 @@ import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
+import { useTheme } from './hooks/useTheme'
 import { effectiveLine } from './utils/line'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -31,6 +32,7 @@ export default function App() {
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
   const { message: toastMsg, toast } = useToast()
   const { canInstall, install } = useInstallPrompt()
+  const { theme, toggle: toggleTheme } = useTheme()
 
   const [filter, setFilter] = useState('')
   const [activeTab, setActiveTab] = useState<ActiveTab>('list')
@@ -65,7 +67,7 @@ export default function App() {
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <div className="flex min-h-dvh bg-zinc-50 overflow-x-hidden">
+    <div className="flex min-h-dvh bg-zinc-50 dark:bg-zinc-950 overflow-x-hidden">
       <Sidebar
         active={activeTab}
         onChange={setActiveTab}
@@ -82,6 +84,8 @@ export default function App() {
           onSignOut={signOut}
           canInstall={canInstall}
           onInstall={install}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
 
         <main className="flex-1 pb-20 md:pb-6">

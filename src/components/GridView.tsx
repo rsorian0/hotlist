@@ -43,45 +43,47 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
   if (items.length === 0) return <EmptyState filtered onAddClick={onAddClick} />
 
   return (
-    <div className="pt-3 px-3">
-    <div className="grid grid-cols-3 sm:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden">
-      {items.map((it) => {
-        const meta = lineMeta(it.line)
-        return (
-          <div
-            key={it.key}
-            className="relative bg-white flex flex-col cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors"
-            onClick={() => onItemClick(it.key)}
-          >
-            <div className="relative aspect-square bg-zinc-50">
-              <img
-                src={it.img || CAR_PLACEHOLDER}
-                alt={it.modelo}
-                loading="lazy"
-                className="w-full h-full object-contain"
-              />
-              {meta && it.line !== 'mainline' && (
-                <span
-                  className="absolute top-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
-                  style={{ background: meta.badgeBg || meta.color }}
-                >
-                  {meta.short}
-                </span>
-              )}
-              {it.owned && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500" />
-              )}
-            </div>
-            <div className="px-2 py-1.5">
-              <div className="text-[11px] font-medium text-zinc-700 truncate leading-tight">{it.modelo}</div>
-              <div className="text-[10px] text-zinc-400 truncate">
-                {it.serie !== 'Geral' ? it.serie : (it.n || '')}
+    <div className="pt-3 px-3 pb-3">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+        {items.map((it) => {
+          const meta = lineMeta(it.line)
+          return (
+            <div
+              key={it.key}
+              className={[
+                'relative bg-white dark:bg-zinc-900 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95',
+                it.owned
+                  ? 'ring-2 ring-emerald-400 dark:ring-emerald-500'
+                  : 'border border-zinc-100 dark:border-zinc-800',
+              ].join(' ')}
+              onClick={() => onItemClick(it.key)}
+            >
+              <div className="relative aspect-square bg-zinc-50 dark:bg-zinc-800">
+                <img
+                  src={it.img || CAR_PLACEHOLDER}
+                  alt={it.modelo}
+                  loading="lazy"
+                  className="w-full h-full object-contain"
+                />
+                {meta && it.line !== 'mainline' && (
+                  <span
+                    className="absolute bottom-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
+                    style={{ background: meta.badgeBg || meta.color }}
+                  >
+                    {meta.short}
+                  </span>
+                )}
+              </div>
+              <div className="px-2 py-1.5">
+                <div className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 truncate leading-tight">{it.modelo}</div>
+                <div className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                  {it.serie !== 'Geral' ? it.serie : (it.n || '')}
+                </div>
               </div>
             </div>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

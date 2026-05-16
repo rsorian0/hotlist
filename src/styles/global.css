@@ -6,7 +6,7 @@
 /* Hanken Grotesk Italic — usada no logotipo "DIECAST CLUB" */
 @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@1,400&display=swap');
 
-/* ─── SHADCN THEME (Zinc / Light) ────────────────────────────────────────── */
+/* ─── SHADCN THEME (Zinc / Light + Dark) ─────────────────────────────────── */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -29,6 +29,27 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+  }
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
@@ -695,6 +716,28 @@ img.thumb {
 .empty-icon { font-size: 48px; line-height: 1; margin-bottom: var(--s2); }
 .empty-title { margin: 0; font-size: 18px; font-weight: 600; }
 .empty-sub { margin: 0; font-size: 14px; color: var(--muted); max-width: 260px; }
+
+/* ─── DARK THEME TOKENS ───────────────────────────────────────────────────── */
+.dark {
+  --bg:           #09090b;
+  --surface:      #18181b;
+  --surface-2:    #27272a;
+  --border:       #3f3f46;
+  --border-2:     #52525b;
+  --text:         #fafafa;
+  --muted:        #a1a1aa;
+  --subtle:       #71717a;
+  --accent:       #fafafa;
+  --accent-hover: #e4e4e7;
+}
+.dark body { background: #09090b; color: #fafafa; }
+.dark header { background: rgba(9,9,11,.95); border-bottom-color: #3f3f46; }
+.dark .bottom-nav { background: rgba(9,9,11,.95); border-top-color: #3f3f46; }
+.dark .panel { background: #18181b; border-left-color: #3f3f46; }
+.dark .sheet { background: #18181b; border-top-color: #3f3f46; }
+.dark .catalog-suggestions { background: #18181b; }
+.dark .user-menu { background: #27272a; }
+.dark .serie-suggestions { background: #18181b; }
 
 /* ─── TOAST ───────────────────────────────────────────────────────────────── */
 .toast { position: fixed; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--s3)); left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: var(--s2) var(--s4); border-radius: var(--r-full); font-size: 14px; font-weight: 500; white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,.4); z-index: 80; opacity: 0; pointer-events: none; transition: opacity .2s; }

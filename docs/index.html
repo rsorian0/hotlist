@@ -16,12 +16,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@1,400&display=swap" rel="stylesheet" />
 
     <title>Hotlist</title>
-    <script type="module" crossorigin src="/assets/index-D6ePq6GH.js"></script>
+    <script type="module" crossorigin src="/assets/index-mQYD8hd5.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-D3F3s8fL.js">
     <link rel="modulepreload" crossorigin href="/assets/firebase-CgwkaOhd.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-BBIbqI8B.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-DVBeAiYy.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
+    <script>
+      try {
+        var t = localStorage.getItem('theme')
+        if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch(e) {}
+    </script>
     <div id="root"></div>
     <noscript>Habilite o JavaScript para usar o Hotlist.</noscript>
   </body>
