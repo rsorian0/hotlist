@@ -26,11 +26,11 @@ export default function BottomNav({ active, onChange }: Props) {
           type="button"
           onClick={() => onChange(id)}
           className={[
-            'flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-medium transition-colors',
+            'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors',
             active === id ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600',
           ].join(' ')}
         >
-          <Icon size={20} />
+          <Icon size={18} />
           {label}
         </button>
       ))}

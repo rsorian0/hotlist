@@ -53,20 +53,20 @@ export default function SeriesGroup({
     )
   })
 
-  if (isDefault) return <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-zinc-100 mx-3 mb-2 mt-3">{rows}</div>
+  if (isDefault) return <div className="bg-white rounded-xl overflow-hidden border border-zinc-100 mb-2">{rows}</div>
 
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-zinc-100 mx-3 mb-2">
+    <div className="bg-white rounded-xl overflow-hidden border border-zinc-100 mb-2">
       <button
         type="button"
-        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-zinc-50 transition-colors bg-white"
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-zinc-50 transition-colors"
         onClick={() => setOpen((v) => !v)}
       >
         <ChevronDown
           size={16}
           className={['text-zinc-400 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
         />
-        <span className="flex-1 text-sm font-semibold text-zinc-800 truncate">{serie.nome}</span>
+        <span className="flex-1 text-[13px] font-semibold text-zinc-800 truncate">{serie.nome}</span>
         <span className="text-xs text-zinc-400">
           {ownedCount}/{visible.length}
         </span>

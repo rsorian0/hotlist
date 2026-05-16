@@ -83,10 +83,9 @@ button { font-family: inherit; cursor: pointer; }
 input, select, textarea { font-family: inherit; }
 
 /* ─── LAYOUT ──────────────────────────────────────────────────────────────── */
+/* main layout is handled by Tailwind in App.tsx */
 main, .app-main {
-  max-width: var(--max-w);
-  margin: 0 auto;
-  padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + var(--s4));
+  width: 100%;
 }
 
 /* ─── HEADER ──────────────────────────────────────────────────────────────── */
@@ -259,7 +258,7 @@ header {
 .fab svg { width: 28px; height: 28px; }
 
 /* ─── LIST VIEW ───────────────────────────────────────────────────────────── */
-#list { padding: var(--s3) var(--s4); }
+#list { padding: 0; }
 details.series {
   background: var(--surface);
   border: 1px solid var(--border);

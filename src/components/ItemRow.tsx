@@ -49,11 +49,11 @@ export default function ItemRow({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors border-b border-zinc-100 last:border-0"
+      className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-zinc-50 active:bg-zinc-100 transition-colors border-b border-zinc-100 last:border-0"
       onClick={onItemClick}
     >
       <div
-        className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-zinc-100 cursor-pointer"
+        className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden bg-zinc-100 cursor-pointer"
         onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}
       >
         <img
@@ -75,8 +75,8 @@ export default function ItemRow({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="text-[11px] text-zinc-400">{item.n || ''}</div>
-        <div className={['text-sm font-medium truncate', owned ? 'text-zinc-900' : 'text-zinc-500'].join(' ')}>
+        <div className="text-[10px] text-zinc-400 leading-none mb-0.5">{item.n || ''}</div>
+        <div className={['text-[13px] font-medium truncate leading-tight', owned ? 'text-zinc-900' : 'text-zinc-500'].join(' ')}>
           {item.modelo || ''}
           {qty && (
             <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-zinc-200 text-zinc-600 rounded-full">

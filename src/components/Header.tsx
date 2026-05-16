@@ -19,9 +19,9 @@ type Props = {
 export default function Header({ filter, onFilterChange, user, onSignOut, canInstall, onInstall }: Props) {
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-zinc-100">
-      <div className="flex items-center gap-3 px-4 h-14">
+      <div className="flex items-center gap-2 px-3 h-12">
         {/* Logo — mobile only (sidebar has it on desktop) */}
-        <img src="/logo-black.svg" alt="Hotlist" className="h-6 w-auto shrink-0 md:hidden" />
+        <img src="/logo-black.svg" alt="Hotlist" className="h-5 w-auto shrink-0 md:hidden" />
 
         <div className="flex-1">
           <Input
@@ -29,7 +29,7 @@ export default function Header({ filter, onFilterChange, user, onSignOut, canIns
             placeholder="Buscar modelo…"
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="h-9 bg-zinc-50 border-zinc-200 text-sm"
+            className="h-8 bg-zinc-50 border-zinc-200 text-sm"
           />
         </div>
 
@@ -48,7 +48,7 @@ export default function Header({ filter, onFilterChange, user, onSignOut, canIns
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2">
-                <Avatar className="h-8 w-8 cursor-pointer">
+                <Avatar className="h-7 w-7 cursor-pointer">
                   <AvatarImage src={user.photoURL ?? undefined} referrerPolicy="no-referrer" />
                   <AvatarFallback className="text-xs bg-zinc-100 text-zinc-600">
                     {user.displayName?.[0] ?? '?'}
