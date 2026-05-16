@@ -78,7 +78,7 @@ export default function BarcodeScannerModal({ open, onResult, onClose }: Props) 
       </div>
 
       <p className="scanner-hint">
-        Aponte para o código de barras na cartela do Hot Wheels
+        Aponte para o código de barras na cartela
       </p>
     </div>
   )

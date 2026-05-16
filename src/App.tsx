@@ -6,6 +6,7 @@ import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { effectiveLine } from './utils/line'
 import Header from './components/Header'
+import Sidebar from './components/Sidebar'
 import SeriesList from './components/SeriesList'
 import GridView from './components/GridView'
 import Stats from './components/Stats'
@@ -76,7 +77,16 @@ export default function App() {
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="flex min-h-dvh bg-white">
+      <Sidebar
+        active={activeTab}
+        onChange={setActiveTab}
+        user={user}
+        onSignIn={signIn}
+        onSignOut={signOut}
+      />
+
+      <div className="flex flex-col flex-1 min-w-0">
       <Header
         filter={filter}
         onFilterChange={setFilter}
@@ -176,6 +186,7 @@ export default function App() {
         onClose={() => setAddSheetOpen(false)}
         onAdd={addItemQuick}
       />
+      </div>{/* end app-content */}
     </div>
   )
 }

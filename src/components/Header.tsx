@@ -43,10 +43,11 @@ export default function Header({
 
       {/* ── Toolbar ── */}
       <div className="flex items-center gap-3 px-4 h-14 max-w-3xl mx-auto">
+        {/* Logo only on mobile (sidebar shows it on desktop) */}
         <img
           src="/logo-black.svg"
           alt="Hotlist"
-          className="h-7 w-auto shrink-0"
+          className="h-7 w-auto shrink-0 md:hidden"
         />
 
         <div className="flex-1">
@@ -102,8 +103,8 @@ export default function Header({
         )}
       </div>
 
-      {/* ── Tab navigation ── */}
-      <div className="flex border-t border-zinc-100 max-w-3xl mx-auto">
+      {/* ── Tab navigation — hidden on desktop (sidebar handles it) ── */}
+      <div className="flex border-t border-zinc-100 max-w-3xl mx-auto md:hidden">
         {tabs.map((tab) => (
           <button
             key={tab.id}
