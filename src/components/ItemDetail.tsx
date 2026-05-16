@@ -3,6 +3,10 @@ import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import { getCatalogPrice, contributeMarketPrice } from '../lib/catalog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ScanLine, Search, Trash2, X } from 'lucide-react'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -86,198 +90,228 @@ export default function ItemDetail({
           onClose={() => setScannerOpen(false)}
         />
       </Suspense>
-      <div className="panel-backdrop" onClick={onClose} />
-      <aside className="panel open" aria-label="Detalhes do item">
 
-        {/* ── Header ── */}
-        <div className="hd">
-          <button className="icon-btn" type="button" onClick={onClose} aria-label="Fechar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-          <h3>Detalhes</h3>
-          <button className="btn ghost danger" type="button" onClick={handleDelete}>Excluir</button>
-        </div>
+      <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+        <SheetContent
+          side="right"
+          hideClose
+          className="p-0 flex flex-col bg-white w-full sm:max-w-md overflow-hidden"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {/* Header */}
+          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
+            <Button variant="ghost" size="icon" type="button" onClick={onClose} aria-label="Fechar" className="text-zinc-500 hover:text-zinc-900">
+              <X className="h-4 w-4" />
+            </Button>
+            <SheetTitle className="text-base font-semibold text-zinc-900">Detalhes</SheetTitle>
+            <Button variant="ghost" size="sm" type="button" onClick={handleDelete} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Excluir
+            </Button>
+          </SheetHeader>
 
-        <div className="body detail-body">
+          {/* Scrollable body */}
+          <div className="flex-1 overflow-y-auto">
 
-          {/* ── Hero ── */}
-          <div className="detail-hero">
-            <img src={item.img || CAR_PLACEHOLDER} alt={item.modelo || ''} className="detail-hero-img" />
-            <div className="detail-hero-overlay">
-              {meta && (
-                <span className="line-tag" style={{ background: meta.badgeBg || meta.color, marginBottom: 4 }}>
-                  {meta.short}
-                </span>
-              )}
-              <div className="detail-hero-title">{item.modelo || '—'}</div>
-              <div className="detail-hero-sub">{serieNome}{item.n ? ` · ${item.n}` : ''}</div>
-            </div>
-          </div>
-
-          {/* ── Coleção ── */}
-          <div className="detail-section">
-            <div className="detail-section-label">Coleção</div>
-            <select
-              className="detail-select"
-              value={serieNome || ''}
-              onChange={(e) => { if (e.target.value && e.target.value !== serieNome) onMove(itemKey, e.target.value) }}
-            >
-              {series.map((s) => (
-                <option key={s.nome} value={s.nome}>{s.nome}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* ── Identificação ── */}
-          <div className="detail-section">
-            <div className="detail-section-label">Identificação</div>
-            <div className="detail-row">
-              <label className="field flex1">
-                <span>Cód. referência</span>
-                <input
-                  type="text"
-                  placeholder="ex.: FYF84"
-                  value={String(item.n || '')}
-                  onChange={(e) => onItemMetaChange(itemKey, { n: e.target.value.trim() || undefined })}
-                />
-              </label>
-              <label className="field flex1">
-                <span>Cód. de barras</span>
-                <div className="n-input-wrap">
-                  <input
-                    type="text"
-                    placeholder="—"
-                    value={item.barcode || ''}
-                    onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
-                  />
-                  <button type="button" className="scan-btn" title="Escanear" onClick={() => setScannerOpen(true)}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
-                      <line x1="7" y1="12" x2="7" y2="12.01"/><line x1="10" y1="9" x2="10" y2="15"/>
-                      <line x1="13" y1="7" x2="13" y2="17"/><line x1="16" y1="9" x2="16" y2="15"/>
-                      <line x1="19" y1="12" x2="19" y2="12.01"/>
-                    </svg>
-                  </button>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* ── Foto ── */}
-          <div className="detail-section">
-            <div className="detail-section-label">Foto</div>
-            <div className="n-input-wrap">
-              <input
-                className="detail-input"
-                type="url"
-                placeholder="https://…"
-                value={item.img || ''}
-                onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
+            {/* Hero */}
+            <div className="relative bg-zinc-100 h-48 flex items-center justify-center overflow-hidden">
+              <img
+                src={item.img || CAR_PLACEHOLDER}
+                alt={item.modelo || ''}
+                className="h-full w-full object-contain"
               />
-              <a
-                href={`https://www.google.com/search?tbm=isch&q=${searchQuery}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="scan-btn"
-                title="Buscar no Google Imagens"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-              </a>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+                {meta && (
+                  <span
+                    className="inline-block text-[10px] font-bold text-white rounded px-1.5 py-px mb-1 leading-none"
+                    style={{ background: meta.badgeBg || meta.color }}
+                  >
+                    {meta.short}
+                  </span>
+                )}
+                <div className="text-white font-semibold text-base leading-tight">{item.modelo || '—'}</div>
+                <div className="text-white/70 text-xs mt-0.5">{serieNome}{item.n ? ` · ${item.n}` : ''}</div>
+              </div>
             </div>
-          </div>
 
-          {/* ── Detalhes ── */}
-          <div className="detail-section">
-            <div className="detail-section-label">Detalhes</div>
-            <div className="detail-row">
-              <label className="field flex2">
-                <span>Categoria / Linha</span>
+            <div className="px-5 py-4 space-y-5">
+
+              {/* Coleção */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Coleção</div>
                 <select
-                  value={item.line || ''}
-                  onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
+                  className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                  value={serieNome || ''}
+                  onChange={(e) => { if (e.target.value && e.target.value !== serieNome) onMove(itemKey, e.target.value) }}
                 >
-                  <option value="">Detectar automaticamente</option>
-                  {LINES.map((l) => (
-                    <option key={l.value} value={l.value}>{l.label}</option>
+                  {series.map((s) => (
+                    <option key={s.nome} value={s.nome}>{s.nome}</option>
                   ))}
                 </select>
-              </label>
-              <label className="field flex1">
-                <span>Embalagem</span>
-                <select
-                  value={draft.packaging || ''}
-                  onChange={(e) => update({ packaging: (e.target.value || undefined) as Packaging | undefined })}
-                >
-                  <option value="">—</option>
-                  <option value="carded">Cartelada</option>
-                  <option value="loose">Solto</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
-          {/* ── Preços ── */}
-          <div className="detail-section">
-            <div className="detail-section-label">Preços</div>
-            <div className="detail-row">
-              <label className="field flex1">
-                <span>Pago (R$)</span>
-                <input
-                  type="number" min={0} step="0.01"
-                  value={draft.paidPrice ?? ''}
-                  onChange={(e) => update({ paidPrice: num(e.target.value) })}
-                />
-              </label>
-              <label className="field flex1">
-                <span>Valor de mercado</span>
-                <input
-                  type="number" min={0} step="0.01"
-                  placeholder={catalogPrice ? `R$ ${catalogPrice.marketPrice.toFixed(2)}` : '—'}
-                  value={draft.marketPrice ?? ''}
-                  onChange={(e) => update({ marketPrice: num(e.target.value) })}
-                  onBlur={() => {
-                    if (item?.n && item?.modelo && draft.marketPrice && draft.marketPrice > 0) {
-                      contributeMarketPrice(item.n, item.modelo, draft.marketPrice).catch(() => {})
-                    }
-                  }}
-                />
-              </label>
-            </div>
-
-            {catalogPrice && (
-              <div className="price-ml-card">
-                <div className="price-ml-row">
-                  <span className="price-ml-source">
-                    {catalogPrice.priceSource === 'community'
-                      ? `Comunidade · ${formatDate(catalogPrice.priceUpdatedAt)}`
-                      : `Mercado Livre · mediana · ${formatDate(catalogPrice.priceUpdatedAt)}`}
-                  </span>
-                </div>
-                <div className="price-ml-range">
-                  <div className="price-ml-col">
-                    <span className="price-ml-lbl">Mais barato</span>
-                    <span className="price-ml-val">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
-                  </div>
-                  <div className="price-ml-divider" />
-                  <div className="price-ml-col">
-                    <span className="price-ml-lbl">Mediana</span>
-                    <span className="price-ml-val price-ml-val--main">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
-                  </div>
-                  <div className="price-ml-divider" />
-                  <div className="price-ml-col">
-                    <span className="price-ml-lbl">Mais caro</span>
-                    <span className="price-ml-val">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
-                  </div>
-                </div>
-                <div className="price-ml-count">{catalogPrice.priceCount} anúncios analisados</div>
               </div>
-            )}
-          </div>
 
-        </div>
-      </aside>
+              {/* Identificação */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Identificação</div>
+                <div className="flex gap-3">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-zinc-500">Cód. referência</label>
+                    <Input
+                      type="text"
+                      placeholder="ex.: FYF84"
+                      value={String(item.n || '')}
+                      onChange={(e) => onItemMetaChange(itemKey, { n: e.target.value.trim() || undefined })}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-zinc-500">Cód. de barras</label>
+                    <div className="flex gap-1">
+                      <Input
+                        type="text"
+                        placeholder="—"
+                        value={item.barcode || ''}
+                        onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
+                        className="flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        title="Escanear"
+                        onClick={() => setScannerOpen(true)}
+                        className="shrink-0"
+                      >
+                        <ScanLine className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Foto */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Foto</div>
+                <div className="flex gap-1">
+                  <Input
+                    type="url"
+                    placeholder="https://…"
+                    value={item.img || ''}
+                    onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    asChild
+                    className="shrink-0"
+                  >
+                    <a
+                      href={`https://www.google.com/search?tbm=isch&q=${searchQuery}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Buscar no Google Imagens"
+                    >
+                      <Search className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Detalhes */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Detalhes</div>
+                <div className="flex gap-3">
+                  <div className="flex-[2] space-y-1">
+                    <label className="text-xs text-zinc-500">Categoria / Linha</label>
+                    <select
+                      className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                      value={item.line || ''}
+                      onChange={(e) => onItemMetaChange(itemKey, { line: (e.target.value || undefined) as Line | undefined })}
+                    >
+                      <option value="">Detectar automaticamente</option>
+                      {LINES.map((l) => (
+                        <option key={l.value} value={l.value}>{l.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-zinc-500">Embalagem</label>
+                    <select
+                      className="w-full h-9 rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-400"
+                      value={draft.packaging || ''}
+                      onChange={(e) => update({ packaging: (e.target.value || undefined) as Packaging | undefined })}
+                    >
+                      <option value="">—</option>
+                      <option value="carded">Cartelada</option>
+                      <option value="loose">Solto</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preços */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Preços</div>
+                <div className="flex gap-3">
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-zinc-500">Pago (R$)</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={draft.paidPrice ?? ''}
+                      onChange={(e) => update({ paidPrice: num(e.target.value) })}
+                    />
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    <label className="text-xs text-zinc-500">Valor de mercado</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      placeholder={catalogPrice ? `R$ ${catalogPrice.marketPrice.toFixed(2)}` : '—'}
+                      value={draft.marketPrice ?? ''}
+                      onChange={(e) => update({ marketPrice: num(e.target.value) })}
+                      onBlur={() => {
+                        if (item?.n && item?.modelo && draft.marketPrice && draft.marketPrice > 0) {
+                          contributeMarketPrice(item.n, item.modelo, draft.marketPrice).catch(() => {})
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {catalogPrice && (
+                  <div className="mt-2 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                    <div className="text-[11px] text-zinc-500 mb-2">
+                      {catalogPrice.priceSource === 'community'
+                        ? `Comunidade · ${formatDate(catalogPrice.priceUpdatedAt)}`
+                        : `Mercado Livre · mediana · ${formatDate(catalogPrice.priceUpdatedAt)}`}
+                    </div>
+                    <div className="flex divide-x divide-zinc-200">
+                      <div className="flex-1 flex flex-col items-center px-2">
+                        <span className="text-[10px] text-zinc-400 mb-0.5">Mais barato</span>
+                        <span className="text-sm font-medium text-zinc-700">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center px-2">
+                        <span className="text-[10px] text-zinc-400 mb-0.5">Mediana</span>
+                        <span className="text-sm font-bold text-zinc-900">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center px-2">
+                        <span className="text-[10px] text-zinc-400 mb-0.5">Mais caro</span>
+                        <span className="text-sm font-medium text-zinc-700">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
+                      </div>
+                    </div>
+                    <div className="text-[10px] text-zinc-400 text-center mt-2">{catalogPrice.priceCount} anúncios analisados</div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

@@ -3,6 +3,10 @@ import type { SerieItem, Line, Ownership } from '../types'
 import { LINES, lineMeta } from '../utils/line'
 import { isUrl } from '../utils/url'
 import { searchCatalog, getCatalogEntry, type CatalogEntry } from '../lib/catalog'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ChevronDown, ScanLine, X } from 'lucide-react'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -93,8 +97,6 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
     onClose()
   }
 
-  if (!open) return null
-
   const displayLines = LINES.filter((l) => ALL_LINES.includes(l.value as Line))
 
   return (
@@ -106,40 +108,59 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
           onClose={() => setScannerOpen(false)}
         />
       </Suspense>
-      <div className="sheet-backdrop" onClick={handleClose} />
-      <div className="sheet">
-        <div className="sheet-handle" />
-        <div className="sheet-hd">
-          <h3>Adicionar peça</h3>
-          <button className="icon-btn" type="button" onClick={handleClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-          </button>
-        </div>
 
-        <div className="sheet-body">
-          {/* Categoria */}
-          <div className="sheet-section">
-            <label className="sheet-label">Categoria</label>
-            <div className="line-chips-wrap">
-              {displayLines.map((l) => (
-                <button
-                  key={l.value}
-                  type="button"
-                  className={`line-chip${line === l.value ? ' active' : ''}`}
-                  style={line === l.value ? { background: l.badgeBg || l.color, borderColor: l.color } : {}}
-                  onClick={() => setLine(line === l.value ? '' : l.value)}
-                >
-                  {l.short}
-                </button>
-              ))}
-            </div>
+      <Sheet open={open} onOpenChange={(v) => { if (!v) handleClose() }}>
+        <SheetContent
+          side="bottom"
+          hideClose
+          className="p-0 rounded-t-2xl max-h-[92dvh] flex flex-col bg-white"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {/* Handle */}
+          <div className="flex justify-center pt-3 pb-1 shrink-0">
+            <div className="w-10 h-1 rounded-full bg-zinc-300" />
           </div>
 
-          {/* Modelo + autocomplete */}
-          <div className="sheet-section" style={{ position: 'relative' }}>
-            <label className="sheet-field">
-              <span className="sheet-label">Modelo *</span>
-              <input
+          {/* Header */}
+          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
+            <SheetTitle className="text-base font-semibold text-zinc-900">Adicionar peça</SheetTitle>
+            <Button variant="ghost" size="icon" type="button" onClick={handleClose} className="text-zinc-500 hover:text-zinc-900">
+              <X className="h-4 w-4" />
+            </Button>
+          </SheetHeader>
+
+          {/* Body */}
+          <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+            {/* Categoria */}
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Categoria</span>
+              <div className="flex flex-wrap gap-2">
+                {displayLines.map((l) => (
+                  <button
+                    key={l.value}
+                    type="button"
+                    className={[
+                      'px-3 py-1 text-xs font-semibold rounded-full border transition-colors',
+                      line === l.value
+                        ? 'text-white border-transparent'
+                        : 'text-zinc-600 bg-zinc-100 border-zinc-200 hover:bg-zinc-200',
+                    ].join(' ')}
+                    style={line === l.value ? { background: l.badgeBg || l.color, borderColor: l.color } : {}}
+                    onClick={() => setLine(line === l.value ? '' : l.value)}
+                  >
+                    {l.short}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modelo + autocomplete */}
+            <div className="space-y-1.5 relative">
+              <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                Modelo *
+              </label>
+              <Input
                 ref={modeloRef}
                 placeholder="ex.: DMC DeLorean"
                 value={modelo}
@@ -147,104 +168,147 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                 onBlur={() => setTimeout(() => setSuggestions([]), 150)}
                 autoComplete="off"
               />
-            </label>
-            {suggestions.length > 0 && (
-              <ul className="catalog-suggestions">
-                {suggestions.map((s) => {
-                  const m = s.line ? lineMeta(s.line) : null
-                  return (
-                    <li key={s.n} className="catalog-suggestion" onMouseDown={() => applyEntry(s)}>
-                      {s.img && <img src={s.img} alt="" className="catalog-suggestion-img" />}
-                      <div className="catalog-suggestion-info">
-                        <span className="catalog-suggestion-name">{s.modelo}</span>
-                        <span className="catalog-suggestion-meta">
-                          {s.n}
-                          {m && <span className="line-tag" style={{ background: m.badgeBg || m.color, fontSize: 9, padding: '1px 5px', marginLeft: 4 }}>{m.short}</span>}
-                        </span>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
+              {suggestions.length > 0 && (
+                <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg overflow-hidden">
+                  {suggestions.map((s) => {
+                    const m = s.line ? lineMeta(s.line) : null
+                    return (
+                      <li
+                        key={s.n}
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-zinc-50 cursor-pointer"
+                        onMouseDown={() => applyEntry(s)}
+                      >
+                        {s.img && (
+                          <img src={s.img} alt="" className="w-8 h-8 object-contain rounded bg-zinc-100 shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-zinc-900 truncate">{s.modelo}</div>
+                          <div className="flex items-center gap-1 text-xs text-zinc-400">
+                            {s.n}
+                            {m && (
+                              <span
+                                className="text-white rounded px-1 py-px font-bold leading-none"
+                                style={{ background: m.badgeBg || m.color, fontSize: 9 }}
+                              >
+                                {m.short}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+
+            {/* Cód. referência + Cód. de barras */}
+            <div className="flex gap-3">
+              <div className="flex-1 space-y-1.5">
+                <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Cód. referência
+                </label>
+                <Input
+                  placeholder="ex.: FYF84"
+                  value={ref}
+                  onChange={(e) => { setRef(e.target.value); setCatalogHint(null) }}
+                  onBlur={handleRefBlur}
+                />
+              </div>
+              <div className="flex-1 space-y-1.5">
+                <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  Cód. de barras
+                </label>
+                <div className="flex gap-1">
+                  <Input
+                    placeholder="Escaneie ou digite"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    title="Escanear"
+                    onClick={() => setScannerOpen(true)}
+                    className="shrink-0"
+                  >
+                    <ScanLine className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Hint do catálogo pelo cód. referência */}
+            {catalogHint && (
+              <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-lg">
+                {catalogHint.img && (
+                  <img src={catalogHint.img} alt="" className="w-10 h-10 object-contain rounded bg-white shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-zinc-900 truncate">{catalogHint.modelo}</div>
+                  <div className="text-xs text-zinc-500">Encontrado no catálogo</div>
+                </div>
+                <Button type="button" size="sm" onClick={() => applyEntry(catalogHint)}>
+                  Usar
+                </Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => setCatalogHint(null)} className="text-zinc-400">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Expandable extras */}
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+              onClick={() => setExpanded((v) => !v)}
+            >
+              <ChevronDown
+                className="h-4 w-4 transition-transform duration-200"
+                style={{ transform: expanded ? 'rotate(180deg)' : 'none' }}
+              />
+              {expanded ? 'Menos opções' : 'Preço e imagem…'}
+            </button>
+
+            {expanded && (
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                    Preço pago (R$)
+                  </label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder="12,90"
+                    value={paidPrice}
+                    onChange={(e) => setPaidPrice(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                    URL da imagem
+                  </label>
+                  <Input
+                    placeholder="https://..."
+                    value={imgUrl}
+                    onChange={(e) => setImgUrl(e.target.value)}
+                  />
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Cód. referência + Cód. de barras */}
-          <div className="sheet-row">
-            <label className="sheet-field flex1">
-              <span className="sheet-label">Cód. referência</span>
-              <input
-                placeholder="ex.: FYF84"
-                value={ref}
-                onChange={(e) => { setRef(e.target.value); setCatalogHint(null) }}
-                onBlur={handleRefBlur}
-              />
-            </label>
-            <label className="sheet-field flex1">
-              <span className="sheet-label">Cód. de barras</span>
-              <div className="n-input-wrap">
-                <input
-                  placeholder="Escaneie ou digite"
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                />
-                <button type="button" className="scan-btn" title="Escanear" onClick={() => setScannerOpen(true)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/>
-                    <line x1="7" y1="12" x2="7" y2="12.01"/>
-                    <line x1="10" y1="9" x2="10" y2="15"/>
-                    <line x1="13" y1="7" x2="13" y2="17"/>
-                    <line x1="16" y1="9" x2="16" y2="15"/>
-                    <line x1="19" y1="12" x2="19" y2="12.01"/>
-                  </svg>
-                </button>
-              </div>
-            </label>
+          {/* Footer */}
+          <div className="shrink-0 px-5 py-4 border-t border-zinc-100">
+            <Button type="button" className="w-full" onClick={handleAdd}>
+              Adicionar
+            </Button>
           </div>
-
-          {/* Hint do catálogo pelo cód. referência */}
-          {catalogHint && (
-            <div className="catalog-hint">
-              {catalogHint.img && <img src={catalogHint.img} alt="" className="catalog-hint-img" />}
-              <div className="catalog-hint-text">
-                <span className="catalog-hint-name">{catalogHint.modelo}</span>
-                <span className="catalog-hint-sub">Encontrado no catálogo</span>
-              </div>
-              <button type="button" className="btn" style={{ fontSize: 13, padding: '6px 12px' }} onClick={() => applyEntry(catalogHint)}>
-                Usar
-              </button>
-              <button type="button" className="icon-btn" onClick={() => setCatalogHint(null)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-          )}
-
-          {/* Expandable extras */}
-          <button type="button" className="sheet-expand-btn" onClick={() => setExpanded((v) => !v)}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: '.2s' }}>
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-            {expanded ? 'Menos opções' : 'Preço e imagem…'}
-          </button>
-
-          {expanded && (
-            <div className="sheet-extras">
-              <label className="sheet-field">
-                <span className="sheet-label">Preço pago (R$)</span>
-                <input type="number" min={0} step="0.01" placeholder="12,90" value={paidPrice} onChange={(e) => setPaidPrice(e.target.value)} />
-              </label>
-              <label className="sheet-field">
-                <span className="sheet-label">URL da imagem</span>
-                <input placeholder="https://..." value={imgUrl} onChange={(e) => setImgUrl(e.target.value)} />
-              </label>
-            </div>
-          )}
-        </div>
-
-        <div className="sheet-footer">
-          <button className="btn" type="button" onClick={handleAdd}>Adicionar</button>
-        </div>
-      </div>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
