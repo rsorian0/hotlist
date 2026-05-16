@@ -53,21 +53,21 @@ export default function SeriesGroup({
     )
   })
 
-  if (isDefault) return <div className="bg-white dark:bg-zinc-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 mb-2">{rows}</div>
+  if (isDefault) return <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-neutral-800 mb-2">{rows}</div>
 
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 mb-2">
+    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-zinc-100 dark:border-neutral-800 mb-2">
       <button
         type="button"
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-zinc-50 dark:hover:bg-neutral-800 transition-colors"
         onClick={() => setOpen((v) => !v)}
       >
         <ChevronDown
           size={16}
-          className={['text-zinc-400 dark:text-zinc-500 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
+          className={['text-zinc-400 dark:text-neutral-500 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
         />
-        <span className="flex-1 text-[13px] font-semibold text-zinc-800 dark:text-zinc-200 truncate">{serie.nome}</span>
-        <span className="text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="flex-1 text-[13px] font-semibold text-zinc-800 dark:text-neutral-200 truncate">{serie.nome}</span>
+        <span className="text-xs text-zinc-400 dark:text-neutral-500">
           {ownedCount}/{visible.length}
         </span>
       </button>

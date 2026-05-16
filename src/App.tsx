@@ -67,7 +67,7 @@ export default function App() {
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <div className="flex min-h-dvh bg-zinc-50 dark:bg-zinc-950 overflow-x-hidden">
+    <div className="flex min-h-dvh bg-zinc-50 dark:bg-neutral-950 overflow-x-hidden">
       <Sidebar
         active={activeTab}
         onChange={setActiveTab}

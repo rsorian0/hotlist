@@ -51,14 +51,14 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
             <div
               key={it.key}
               className={[
-                'relative bg-white dark:bg-zinc-900 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95',
+                'relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer transition-all active:scale-95',
                 it.owned
                   ? 'ring-2 ring-emerald-400 dark:ring-emerald-500'
-                  : 'border border-zinc-100 dark:border-zinc-800',
+                  : 'border border-zinc-100 dark:border-neutral-800',
               ].join(' ')}
               onClick={() => onItemClick(it.key)}
             >
-              <div className="relative aspect-square bg-zinc-50 dark:bg-zinc-800">
+              <div className="relative aspect-square bg-zinc-50 dark:bg-neutral-800">
                 <img
                   src={it.img || CAR_PLACEHOLDER}
                   alt={it.modelo}
@@ -75,8 +75,8 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
                 )}
               </div>
               <div className="px-2 py-1.5">
-                <div className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 truncate leading-tight">{it.modelo}</div>
-                <div className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                <div className="text-[11px] font-medium text-zinc-700 dark:text-neutral-300 truncate leading-tight">{it.modelo}</div>
+                <div className="text-[10px] text-zinc-400 dark:text-neutral-500 truncate">
                   {it.serie !== 'Geral' ? it.serie : (it.n || '')}
                 </div>
               </div>
