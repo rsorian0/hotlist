@@ -43,7 +43,8 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
   if (items.length === 0) return <EmptyState filtered onAddClick={onAddClick} />
 
   return (
-    <div className="grid grid-cols-3 sm:grid-cols-4 gap-px bg-zinc-100 border-t border-zinc-100">
+    <div className="pt-3 px-3">
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-px bg-zinc-100 rounded-xl overflow-hidden">
       {items.map((it) => {
         const meta = lineMeta(it.line)
         return (
@@ -80,6 +81,7 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
           </div>
         )
       })}
+    </div>
     </div>
   )
 }

@@ -49,5 +49,5 @@ export default function SeriesList({
   const allHidden = groups.every((g) => g === null)
   if (allHidden) return <EmptyState filtered onAddClick={onAddClick} />
 
-  return <section id="list">{groups}</section>
+  return <section id="list" className="pt-3">{groups}</section>
 }

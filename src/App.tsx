@@ -7,6 +7,7 @@ import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { effectiveLine } from './utils/line'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
+import BottomNav from './components/BottomNav'
 import SeriesList from './components/SeriesList'
 import GridView from './components/GridView'
 import Stats from './components/Stats'
@@ -32,22 +33,10 @@ export default function App() {
   const { canInstall, install } = useInstallPrompt()
 
   const [filter, setFilter] = useState('')
-  const [lineFilter, setLineFilter] = useState<Line | null>(null)
   const [activeTab, setActiveTab] = useState<ActiveTab>('list')
   const [addSheetOpen, setAddSheetOpen] = useState(false)
   const [currentSerieIndex, setCurrentSerieIndex] = useState<number>(() => (series.length > 0 ? 0 : -1))
   const [detailKey, setDetailKey] = useState<string | null>(null)
-
-  const activeLines = useMemo<Line[]>(() => {
-    const set = new Set<Line>()
-    for (const s of series) {
-      for (const it of s.items) {
-        const l = effectiveLine(it)
-        if (l) set.add(l)
-      }
-    }
-    return Array.from(set)
-  }, [series])
 
   const detail = useMemo(() => {
     if (!detailKey) return { item: null, serieNome: null }
@@ -70,14 +59,13 @@ export default function App() {
     setCurrentSerieIndex((prev) => (series.length > 1 ? Math.max(0, prev - 1) : -1))
   }
 
-  const showChips = activeTab === 'list' || activeTab === 'grid'
-  const showFab   = activeTab === 'list' || activeTab === 'grid'
+  const showFab = activeTab === 'list' || activeTab === 'grid'
 
   if (loading) return null
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <div className="flex min-h-dvh bg-white">
+    <div className="flex min-h-dvh bg-zinc-50">
       <Sidebar
         active={activeTab}
         onChange={setActiveTab}
@@ -87,61 +75,58 @@ export default function App() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-      <Header
-        filter={filter}
-        onFilterChange={setFilter}
-        lineFilter={lineFilter}
-        onLineFilterChange={setLineFilter}
-        activeLines={showChips ? activeLines : []}
-        user={user}
-        onSignIn={signIn}
-        onSignOut={signOut}
-        canInstall={canInstall}
-        onInstall={install}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
+        <Header
+          filter={filter}
+          onFilterChange={setFilter}
+          user={user}
+          onSignOut={signOut}
+          canInstall={canInstall}
+          onInstall={install}
+        />
 
-      <main className="max-w-3xl mx-auto pb-24">
-        {activeTab === 'list' && (
-          <SeriesList
-            series={series}
-            checks={checks}
-            filter={filter}
-            lineFilter={lineFilter}
-            onOpenModal={openModal}
-            onAddClick={() => setAddSheetOpen(true)}
-            onItemClick={setDetailKey}
-          />
+        <main className="flex-1 pb-20 md:pb-6">
+          {activeTab === 'list' && (
+            <SeriesList
+              series={series}
+              checks={checks}
+              filter={filter}
+              lineFilter={null}
+              onOpenModal={openModal}
+              onAddClick={() => setAddSheetOpen(true)}
+              onItemClick={setDetailKey}
+            />
+          )}
+
+          {activeTab === 'grid' && (
+            <GridView
+              series={series}
+              checks={checks}
+              filter={filter}
+              lineFilter={null}
+              onItemClick={setDetailKey}
+              onAddClick={() => setAddSheetOpen(true)}
+            />
+          )}
+
+          {activeTab === 'stats' && (
+            <Stats series={series} checks={checks} />
+          )}
+        </main>
+
+        <BottomNav active={activeTab} onChange={setActiveTab} />
+
+        {showFab && (
+          <button
+            type="button"
+            aria-label="Adicionar peça"
+            onClick={() => setAddSheetOpen(true)}
+            className="fixed right-4 z-30 flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900 text-white shadow-lg hover:bg-zinc-700 active:scale-95 transition-all"
+            style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
+          >
+            <Plus size={24} />
+          </button>
         )}
-
-        {activeTab === 'grid' && (
-          <GridView
-            series={series}
-            checks={checks}
-            filter={filter}
-            lineFilter={lineFilter}
-            onItemClick={setDetailKey}
-            onAddClick={() => setAddSheetOpen(true)}
-          />
-        )}
-
-        {activeTab === 'stats' && (
-          <Stats series={series} checks={checks} />
-        )}
-      </main>
-
-      {showFab && (
-        <button
-          type="button"
-          aria-label="Adicionar peça"
-          onClick={() => setAddSheetOpen(true)}
-          className="fixed bottom-6 right-4 z-30 flex items-center justify-center w-14 h-14 rounded-full bg-zinc-900 text-white shadow-lg hover:bg-zinc-700 active:scale-95 transition-all"
-          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
-        >
-          <Plus size={24} />
-        </button>
-      )}
+      </div>
 
       <Editor
         open={activeTab === 'manage'}
@@ -186,7 +171,6 @@ export default function App() {
         onClose={() => setAddSheetOpen(false)}
         onAdd={addItemQuick}
       />
-      </div>{/* end app-content */}
     </div>
   )
 }
