@@ -243,8 +243,8 @@ export default function ItemDetail({
                       onChange={(e) => update({ packaging: (e.target.value || undefined) as Packaging | undefined })}
                     >
                       <option value="">—</option>
-                      <option value="carded">Cartelada</option>
-                      <option value="loose">Solto</option>
+                      <option value="carded">Carded</option>
+                      <option value="loose">Loose</option>
                     </select>
                   </div>
                 </div>
