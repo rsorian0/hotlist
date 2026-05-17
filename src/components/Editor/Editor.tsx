@@ -17,14 +17,13 @@ type Props = {
   onAddSerie: (nome: string) => number
   onDeleteSerie: (i: number) => void
   onImport: (data: ImportData, mode: 'merge' | 'replace') => void
-  toast: (msg: string) => void
 }
 
 type Tab = 'tab-colecoes' | 'tab-backup'
 
 export default function Editor({
   open, series, checks, currentIndex, onIndexChange, onClose,
-  onAddSerie, onDeleteSerie, onImport, toast,
+  onAddSerie, onDeleteSerie, onImport,
 }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(() => load<Tab>(LS_TAB, 'tab-colecoes'))
 
@@ -93,14 +92,12 @@ export default function Editor({
               onIndexChange={onIndexChange}
               onAddSerie={onAddSerie}
               onDeleteSerie={onDeleteSerie}
-              toast={toast}
             />
           ) : (
             <BackupTab
               series={series}
               checks={checks}
               onImport={onImport}
-              toast={toast}
             />
           )}
         </div>

@@ -3,6 +3,7 @@ import type { SerieItem, Line, Ownership } from '../types'
 import { LINES, lineMeta } from '../utils/line'
 import { isUrl } from '../utils/url'
 import { searchCatalog, getCatalogEntry, type CatalogEntry } from '../lib/catalog'
+import { useToast } from '../contexts/ToastContext'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,6 +21,7 @@ const ALL_LINES: Line[] = ['mainline', 'th', 'sth', 'silver-series', 'premium', 
 const DEFAULT_SERIE = 'Geral'
 
 export default function AddItemSheet({ open, onClose, onAdd }: Props) {
+  const toast = useToast()
   const [line, setLine] = useState<Line | ''>('')
   const [modelo, setModelo] = useState('')
   const [ref, setRef] = useState('')
@@ -75,8 +77,8 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
   const handleClose = () => { reset(); onClose() }
 
   const handleAdd = () => {
-    if (!modelo.trim()) { alert('Informe o nome do modelo.'); return }
-    if (imgUrl && !isUrl(imgUrl)) { alert('URL da imagem inválida.'); return }
+    if (!modelo.trim()) { toast('Informe o nome do modelo.', 'error'); return }
+    if (imgUrl && !isUrl(imgUrl)) { toast('URL da imagem inválida.', 'error'); return }
 
     const item: SerieItem = {
       modelo: modelo.trim(),
@@ -93,6 +95,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
     }
 
     onAdd(DEFAULT_SERIE, item, ownership)
+    toast('Peça adicionada', 'success')
     reset()
     onClose()
   }

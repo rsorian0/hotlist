@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { Serie } from '../../types'
+import { useToast } from '../../contexts/ToastContext'
+import { useConfirm } from '../../contexts/ConfirmContext'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -9,27 +11,34 @@ type Props = {
   onIndexChange: (i: number) => void
   onAddSerie: (nome: string) => number
   onDeleteSerie: (i: number) => void
-  toast: (msg: string) => void
 }
 
 export default function CollectionsTab({
-  series, currentIndex, onIndexChange, onAddSerie, onDeleteSerie, toast,
+  series, currentIndex, onIndexChange, onAddSerie, onDeleteSerie,
 }: Props) {
   const [newNome, setNewNome] = useState('')
+  const toast = useToast()
+  const confirm = useConfirm()
 
   const handleAddSerie = () => {
     const nome = newNome.trim()
-    if (!nome) { alert('Dê um nome à coleção.'); return }
-    if (series.find((s) => s.nome === nome)) { alert('Já existe uma coleção com esse nome.'); return }
+    if (!nome) { toast('Dê um nome à coleção.', 'error'); return }
+    if (series.find((s) => s.nome === nome)) { toast('Já existe uma coleção com esse nome.', 'error'); return }
     onAddSerie(nome)
     setNewNome('')
-    toast('Coleção criada')
+    toast('Coleção criada', 'success')
   }
 
-  const handleDeleteSerie = () => {
-    if (currentIndex < 0 || !series[currentIndex]) { alert('Escolha a coleção para excluir.'); return }
+  const handleDeleteSerie = async () => {
+    if (currentIndex < 0 || !series[currentIndex]) { toast('Escolha a coleção para excluir.', 'error'); return }
     const nome = series[currentIndex].nome
-    if (!confirm(`Excluir a coleção "${nome}"?`)) return
+    const ok = await confirm({
+      title: 'Excluir coleção',
+      message: `Excluir "${nome}" e todos os seus itens? Esta ação não pode ser desfeita.`,
+      confirmLabel: 'Excluir',
+      destructive: true,
+    })
+    if (!ok) return
     onDeleteSerie(currentIndex)
     toast('Coleção excluída')
   }
@@ -46,7 +55,6 @@ export default function CollectionsTab({
             value={newNome}
             onChange={(e) => setNewNome(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleAddSerie()}
-            className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
           />
           <Button type="button" className="w-full" onClick={handleAddSerie}>
             Criar coleção
@@ -68,12 +76,7 @@ export default function CollectionsTab({
               <option key={s.nome} value={i}>{s.nome}</option>
             ))}
           </select>
-          <Button
-            type="button"
-            variant="destructive"
-            className="w-full"
-            onClick={handleDeleteSerie}
-          >
+          <Button type="button" variant="destructive" className="w-full" onClick={handleDeleteSerie}>
             Excluir coleção selecionada
           </Button>
         </div>

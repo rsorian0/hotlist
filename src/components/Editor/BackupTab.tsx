@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import type { Serie, ImportData, OwnershipMap } from '../../types'
 import { exportJSON, validateImport } from '../../utils/io'
+import { useToast } from '../../contexts/ToastContext'
+import { useConfirm } from '../../contexts/ConfirmContext'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
@@ -8,18 +10,19 @@ type Props = {
   series: Serie[]
   checks: OwnershipMap
   onImport: (data: ImportData, mode: 'merge' | 'replace') => void
-  toast: (msg: string) => void
 }
 
-export default function BackupTab({ series, checks, onImport, toast }: Props) {
+export default function BackupTab({ series, checks, onImport }: Props) {
   const [buffer, setBuffer] = useState<ImportData | null>(null)
   const [summary, setSummary] = useState('')
   const [mergeMode, setMergeMode] = useState<'merge' | 'replace'>('merge')
   const fileRef = useRef<HTMLInputElement>(null)
+  const toast = useToast()
+  const confirm = useConfirm()
 
   const handleExport = () => {
     exportJSON(series, checks)
-    toast('Backup exportado (.json)')
+    toast('Backup exportado (.json)', 'success')
   }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,16 +45,22 @@ export default function BackupTab({ series, checks, onImport, toast }: Props) {
     }
   }
 
-  const handleApply = () => {
+  const handleApply = async () => {
     if (!buffer) return
     if (mergeMode === 'replace') {
-      if (!confirm('Isso vai substituir TODAS as coleções, itens e marcados pelos do arquivo. Continuar?')) return
+      const ok = await confirm({
+        title: 'Substituir tudo',
+        message: 'Isso vai substituir TODAS as coleções, itens e marcados pelos do arquivo. Esta ação não pode ser desfeita.',
+        confirmLabel: 'Substituir',
+        destructive: true,
+      })
+      if (!ok) return
     }
     onImport(buffer, mergeMode)
     setBuffer(null)
     setSummary('')
     if (fileRef.current) fileRef.current.value = ''
-    toast(mergeMode === 'replace' ? 'Importado (substituído)' : 'Importado (mesclado)')
+    toast(mergeMode === 'replace' ? 'Importado (substituído)' : 'Importado (mesclado)', 'success')
   }
 
   const handleClear = () => {
@@ -139,7 +148,7 @@ export default function BackupTab({ series, checks, onImport, toast }: Props) {
           <Button type="button" className="flex-1" disabled={!buffer} onClick={handleApply}>
             Aplicar importação
           </Button>
-          <Button type="button" variant="outline" onClick={handleClear} className="dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
+          <Button type="button" variant="outline" onClick={handleClear}>
             Limpar
           </Button>
         </div>

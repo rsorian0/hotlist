@@ -3,6 +3,8 @@ import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import { getCatalogPrice, fetchMLPrice, isStale, contributeMarketPrice } from '../lib/catalog'
+import { useToast } from '../contexts/ToastContext'
+import { useConfirm } from '../contexts/ConfirmContext'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,6 +42,8 @@ const sectionLabelClass = 'text-xs font-medium text-neutral-500 dark:text-neutra
 export default function ItemDetail({
   open, itemKey, item, serieNome, series, ownership, onClose, onChange, onItemMetaChange, onDelete, onMove,
 }: Props) {
+  const toast = useToast()
+  const confirm = useConfirm()
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
   const [catalogPrice, setCatalogPrice] = useState<CatalogPrice | null>(null)
@@ -84,10 +88,16 @@ export default function ItemDetail({
     return Number.isFinite(n) ? n : undefined
   }
 
-  const handleDelete = () => {
-    if (!confirm(`Remover "${item.modelo || itemKey}" da coleção?`)) return
+  const handleDelete = async () => {
+    const ok = await confirm({
+      title: 'Remover item',
+      message: `Remover "${item.modelo || itemKey}" da coleção? Esta ação não pode ser desfeita.`,
+      confirmLabel: 'Remover',
+      destructive: true,
+    })
+    if (!ok) return
     onDelete(itemKey)
-    onClose()
+    toast('Item removido')
   }
 
   const formatDate = (iso?: string) => {

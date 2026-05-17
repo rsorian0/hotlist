@@ -2,9 +2,10 @@ import { useState, useMemo } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
-import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { useTheme } from './hooks/useTheme'
+import { ToastProvider } from './contexts/ToastContext'
+import { ConfirmProvider } from './contexts/ConfirmContext'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
@@ -12,7 +13,6 @@ import SeriesList from './components/SeriesList'
 import GridView from './components/GridView'
 import Stats from './components/Stats'
 import Modal from './components/Modal'
-import Toast from './components/Toast'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
 import AddItemSheet from './components/AddItemSheet'
@@ -28,7 +28,6 @@ export default function App() {
     updateItemMetaByKey, removeItemByKey, moveItemToSerie, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
-  const { message: toastMsg, toast } = useToast()
   const { canInstall, install } = useInstallPrompt()
   const { theme, toggle: toggleTheme } = useTheme()
 
@@ -70,117 +69,118 @@ export default function App() {
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <div className="flex min-h-dvh bg-neutral-100 dark:bg-neutral-950 overflow-x-hidden">
-      <Sidebar
-        active={activeTab}
-        onChange={setActiveTab}
-        user={user}
-        onSignIn={signIn}
-        onSignOut={signOut}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-      />
+    <ToastProvider>
+      <ConfirmProvider>
+        <div className="flex min-h-dvh bg-neutral-100 dark:bg-neutral-950 overflow-x-hidden">
+          <Sidebar
+            active={activeTab}
+            onChange={setActiveTab}
+            user={user}
+            onSignIn={signIn}
+            onSignOut={signOut}
+            theme={theme}
+            onToggleTheme={toggleTheme}
+          />
 
-      <div className="flex flex-col flex-1 min-w-0">
-        <Header
-          filter={filter}
-          onFilterChange={setFilter}
-          user={user}
-          onSignOut={signOut}
-          canInstall={canInstall}
-          onInstall={install}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
-
-        <main className="flex-1 pb-20 md:pb-6">
-          {activeTab === 'list' && (
-            <SeriesList
-              series={series}
-              checks={checks}
+          <div className="flex flex-col flex-1 min-w-0">
+            <Header
               filter={filter}
-              lineFilter={null}
-              syncing={syncing}
-              onOpenModal={openModal}
-              onAddClick={() => setAddSheetOpen(true)}
-              onItemClick={setDetailKey}
+              onFilterChange={setFilter}
+              user={user}
+              onSignOut={signOut}
+              canInstall={canInstall}
+              onInstall={install}
+              theme={theme}
+              onToggleTheme={toggleTheme}
             />
-          )}
 
-          {activeTab === 'grid' && (
-            <GridView
-              series={series}
-              checks={checks}
-              filter={filter}
-              lineFilter={null}
-              syncing={syncing}
-              onItemClick={setDetailKey}
-              onAddClick={() => setAddSheetOpen(true)}
-            />
-          )}
+            <main className="flex-1 pb-20 md:pb-6">
+              {activeTab === 'list' && (
+                <SeriesList
+                  series={series}
+                  checks={checks}
+                  filter={filter}
+                  lineFilter={null}
+                  syncing={syncing}
+                  onOpenModal={openModal}
+                  onAddClick={() => setAddSheetOpen(true)}
+                  onItemClick={setDetailKey}
+                />
+              )}
 
-          {activeTab === 'stats' && (
-            <Stats series={series} checks={checks} />
-          )}
-        </main>
+              {activeTab === 'grid' && (
+                <GridView
+                  series={series}
+                  checks={checks}
+                  filter={filter}
+                  lineFilter={null}
+                  syncing={syncing}
+                  onItemClick={setDetailKey}
+                  onAddClick={() => setAddSheetOpen(true)}
+                />
+              )}
 
-        <BottomNav active={activeTab} onChange={setActiveTab} />
+              {activeTab === 'stats' && (
+                <Stats series={series} checks={checks} />
+              )}
+            </main>
 
-        {showFab && (
-          <button
-            type="button"
-            aria-label="Adicionar peça"
-            onClick={() => setAddSheetOpen(true)}
-            className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-md hover:bg-neutral-700 dark:hover:bg-neutral-300 active:scale-95 transition-all md:w-14 md:h-14 md:bottom-6 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)]"
-          >
-            <Plus size={24} />
-          </button>
-        )}
-      </div>
+            <BottomNav active={activeTab} onChange={setActiveTab} />
 
-      <Editor
-        open={activeTab === 'manage'}
-        series={series}
-        checks={checks}
-        currentIndex={currentSerieIndex}
-        onIndexChange={setCurrentSerieIndex}
-        onClose={() => setActiveTab('list')}
-        onAddSerie={handleAddSerie}
-        onDeleteSerie={handleDeleteSerie}
-        onImport={importData}
-        toast={toast}
-      />
+            {showFab && (
+              <button
+                type="button"
+                aria-label="Adicionar peça"
+                onClick={() => setAddSheetOpen(true)}
+                className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-md hover:bg-neutral-700 dark:hover:bg-neutral-300 active:scale-95 transition-all md:w-14 md:h-14 md:bottom-6 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)]"
+              >
+                <Plus size={24} />
+              </button>
+            )}
+          </div>
 
-      <ItemDetail
-        open={!!detailKey}
-        itemKey={detailKey}
-        item={detail.item}
-        serieNome={detail.serieNome}
-        series={series}
-        ownership={detailKey ? checks[detailKey] : undefined}
-        onClose={() => setDetailKey(null)}
-        onChange={setOwnership}
-        onItemMetaChange={updateItemMetaByKey}
-        onDelete={removeItemByKey}
-        onMove={(key, target) => { moveItemToSerie(key, target); setDetailKey(null) }}
-      />
+          <Editor
+            open={activeTab === 'manage'}
+            series={series}
+            checks={checks}
+            currentIndex={currentSerieIndex}
+            onIndexChange={setCurrentSerieIndex}
+            onClose={() => setActiveTab('list')}
+            onAddSerie={handleAddSerie}
+            onDeleteSerie={handleDeleteSerie}
+            onImport={importData}
+          />
 
-      <Modal
-        open={modalOpen}
-        feed={modalFeed}
-        index={modalIndex}
-        onClose={closeModal}
-        onNext={next}
-        onPrev={prev}
-      />
+          <ItemDetail
+            open={!!detailKey}
+            itemKey={detailKey}
+            item={detail.item}
+            serieNome={detail.serieNome}
+            series={series}
+            ownership={detailKey ? checks[detailKey] : undefined}
+            onClose={() => setDetailKey(null)}
+            onChange={setOwnership}
+            onItemMetaChange={updateItemMetaByKey}
+            onDelete={(key) => { removeItemByKey(key); setDetailKey(null) }}
+            onMove={(key, target) => { moveItemToSerie(key, target); setDetailKey(null) }}
+          />
 
-      <Toast message={toastMsg} />
+          <Modal
+            open={modalOpen}
+            feed={modalFeed}
+            index={modalIndex}
+            onClose={closeModal}
+            onNext={next}
+            onPrev={prev}
+          />
 
-      <AddItemSheet
-        open={addSheetOpen}
-        onClose={() => setAddSheetOpen(false)}
-        onAdd={addItemQuick}
-      />
-    </div>
+          <AddItemSheet
+            open={addSheetOpen}
+            onClose={() => setAddSheetOpen(false)}
+            onAdd={addItemQuick}
+          />
+        </div>
+      </ConfirmProvider>
+    </ToastProvider>
   )
 }
