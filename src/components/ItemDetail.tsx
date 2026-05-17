@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
-import { getCatalogPrice, contributeMarketPrice } from '../lib/catalog'
+import { getCatalogPrice, fetchMLPrice, isStale, contributeMarketPrice } from '../lib/catalog'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,13 +43,30 @@ export default function ItemDetail({
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
   const [catalogPrice, setCatalogPrice] = useState<CatalogPrice | null>(null)
+  const [fetchingPrice, setFetchingPrice] = useState(false)
 
   useEffect(() => {
     setDraft(ownership || { owned: false })
     setCatalogPrice(null)
-    if (item?.n) {
-      getCatalogPrice(item.n).then((p) => setCatalogPrice(p)).catch(() => {})
-    }
+    if (!item?.n) return
+
+    getCatalogPrice(item.n).then(async (p) => {
+      if (p) {
+        setCatalogPrice(p)
+        // Re-fetch in background if stale (non-blocking)
+        if (isStale(p.priceUpdatedAt)) {
+          fetchMLPrice(item.n as string, item.modelo || '').then((fresh) => {
+            if (fresh) setCatalogPrice(fresh)
+          }).catch(() => {})
+        }
+      } else {
+        // No price yet — fetch from ML automatically
+        setFetchingPrice(true)
+        fetchMLPrice(item.n as string, item.modelo || '').then((fresh) => {
+          if (fresh) setCatalogPrice(fresh)
+        }).catch(() => {}).finally(() => setFetchingPrice(false))
+      }
+    }).catch(() => {})
   }, [ownership, itemKey, item?.n])
 
   if (!open || !itemKey || !item) return null
@@ -301,6 +318,16 @@ export default function ItemDetail({
                     />
                   </div>
                 </div>
+
+                {fetchingPrice && !catalogPrice && (
+                  <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3 flex items-center gap-2">
+                    <svg className="animate-spin h-3.5 w-3.5 text-neutral-400 shrink-0" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                    <span className="text-[11px] text-neutral-400 dark:text-neutral-500">Buscando preço no Mercado Livre…</span>
+                  </div>
+                )}
 
                 {catalogPrice && (
                   <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3">
