@@ -4,7 +4,6 @@ import { smartSortItems } from '../utils/sort'
 import { effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import EmptyState from './EmptyState'
-import { Check } from 'lucide-react'
 
 type Props = {
   series: Serie[]
@@ -76,12 +75,7 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
                   </span>
                 )}
 
-                {/* Owned checkmark — bottom right */}
-                {it.owned && (
-                  <div className="absolute bottom-1 right-1 w-[18px] h-[18px] rounded-full bg-emerald-500 flex items-center justify-center shadow-sm ring-1 ring-white/30">
-                    <Check size={10} className="text-white" strokeWidth={3} />
-                  </div>
-                )}
+
               </div>
 
               {/* Info */}

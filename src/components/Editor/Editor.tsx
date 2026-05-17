@@ -63,7 +63,7 @@ export default function Editor({
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-colecoes'
-                ? 'border-neutral-900 dark:border-neutral-100 text-zinc-900 dark:text-neutral-100'
+                ? 'border-neutral-900 dark:border-neutral-500 text-zinc-900 dark:text-neutral-100'
                 : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-colecoes')}
@@ -75,7 +75,7 @@ export default function Editor({
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-backup'
-                ? 'border-neutral-900 dark:border-neutral-100 text-zinc-900 dark:text-neutral-100'
+                ? 'border-neutral-900 dark:border-neutral-500 text-zinc-900 dark:text-neutral-100'
                 : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-backup')}
