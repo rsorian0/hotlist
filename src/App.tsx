@@ -5,7 +5,6 @@ import { useModal } from './hooks/useModal'
 import { useToast } from './hooks/useToast'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { useTheme } from './hooks/useTheme'
-import { effectiveLine } from './utils/line'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
@@ -18,7 +17,6 @@ import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
 import AddItemSheet from './components/AddItemSheet'
 import LoginScreen from './components/LoginScreen'
-import type { Line } from './types'
 import { Plus } from 'lucide-react'
 
 type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
@@ -79,6 +77,8 @@ export default function App() {
         user={user}
         onSignIn={signIn}
         onSignOut={signOut}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
@@ -131,8 +131,7 @@ export default function App() {
             type="button"
             aria-label="Adicionar peça"
             onClick={() => setAddSheetOpen(true)}
-            className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-md hover:bg-neutral-700 dark:hover:bg-neutral-300 active:scale-95 transition-all md:w-14 md:h-14"
-            style={{ bottom: 'calc(3.75rem + env(safe-area-inset-bottom) + 0.75rem)' }}
+            className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-md hover:bg-neutral-700 dark:hover:bg-neutral-300 active:scale-95 transition-all md:w-14 md:h-14 md:bottom-6 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)]"
           >
             <Plus size={24} />
           </button>
