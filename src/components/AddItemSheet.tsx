@@ -113,18 +113,18 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
         <SheetContent
           side="bottom"
           hideClose
-          className="p-0 rounded-t-2xl max-h-[92dvh] flex flex-col bg-white"
+          className="p-0 rounded-t-2xl max-h-[92dvh] flex flex-col bg-white dark:bg-neutral-900"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {/* Handle */}
           <div className="flex justify-center pt-3 pb-1 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-zinc-300" />
+            <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-neutral-600" />
           </div>
 
           {/* Header */}
-          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-zinc-100 shrink-0">
-            <SheetTitle className="text-base font-semibold text-zinc-900">Adicionar peça</SheetTitle>
-            <Button variant="ghost" size="icon" type="button" onClick={handleClose} className="text-zinc-500 hover:text-zinc-900">
+          <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-neutral-100 dark:border-neutral-800 shrink-0">
+            <SheetTitle className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Adicionar peça</SheetTitle>
+            <Button variant="ghost" size="icon" type="button" onClick={handleClose} className="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100">
               <X className="h-4 w-4" />
             </Button>
           </SheetHeader>
@@ -134,7 +134,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
 
             {/* Categoria */}
             <div className="space-y-1.5">
-              <span className="text-xs font-medium text-zinc-500 uppercase tracking-wide">Categoria</span>
+              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">Categoria</span>
               <div className="flex flex-wrap gap-2">
                 {displayLines.map((l) => (
                   <button
@@ -144,7 +144,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                       'px-3 py-1 text-xs font-semibold rounded-full border transition-colors',
                       line === l.value
                         ? 'text-white border-transparent'
-                        : 'text-zinc-600 bg-zinc-100 border-zinc-200 hover:bg-zinc-200',
+                        : 'text-neutral-600 bg-neutral-100 border-neutral-200 hover:bg-neutral-200 dark:text-neutral-300 dark:bg-neutral-800 dark:border-neutral-700 dark:hover:bg-neutral-700',
                     ].join(' ')}
                     style={line === l.value ? { background: l.badgeBg || l.color, borderColor: l.color } : {}}
                     onClick={() => setLine(line === l.value ? '' : l.value)}
@@ -157,7 +157,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
 
             {/* Modelo + autocomplete */}
             <div className="space-y-1.5 relative">
-              <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+              <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                 Modelo *
               </label>
               <Input
@@ -169,21 +169,21 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                 autoComplete="off"
               />
               {suggestions.length > 0 && (
-                <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg overflow-hidden">
+                <ul className="absolute z-50 left-0 right-0 top-full mt-1 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg overflow-hidden">
                   {suggestions.map((s) => {
                     const m = s.line ? lineMeta(s.line) : null
                     return (
                       <li
                         key={s.n}
-                        className="flex items-center gap-2 px-3 py-2 hover:bg-zinc-50 cursor-pointer"
+                        className="flex items-center gap-2 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer"
                         onMouseDown={() => applyEntry(s)}
                       >
                         {s.img && (
-                          <img src={s.img} alt="" className="w-8 h-8 object-contain rounded bg-zinc-100 shrink-0" />
+                          <img src={s.img} alt="" className="w-8 h-8 object-contain rounded bg-neutral-100 dark:bg-neutral-700 shrink-0" />
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-zinc-900 truncate">{s.modelo}</div>
-                          <div className="flex items-center gap-1 text-xs text-zinc-400">
+                          <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{s.modelo}</div>
+                          <div className="flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500">
                             {s.n}
                             {m && (
                               <span
@@ -205,7 +205,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             {/* Cód. referência + Cód. de barras */}
             <div className="flex gap-3">
               <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Cód. referência
                 </label>
                 <Input
@@ -216,7 +216,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                 />
               </div>
               <div className="flex-1 space-y-1.5">
-                <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                   Cód. de barras
                 </label>
                 <div className="flex gap-1">
@@ -242,18 +242,18 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
 
             {/* Hint do catálogo pelo cód. referência */}
             {catalogHint && (
-              <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg">
                 {catalogHint.img && (
-                  <img src={catalogHint.img} alt="" className="w-10 h-10 object-contain rounded bg-white shrink-0" />
+                  <img src={catalogHint.img} alt="" className="w-10 h-10 object-contain rounded bg-white dark:bg-neutral-700 shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-zinc-900 truncate">{catalogHint.modelo}</div>
-                  <div className="text-xs text-zinc-500">Encontrado no catálogo</div>
+                  <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">{catalogHint.modelo}</div>
+                  <div className="text-xs text-neutral-500 dark:text-neutral-400">Encontrado no catálogo</div>
                 </div>
                 <Button type="button" size="sm" onClick={() => applyEntry(catalogHint)}>
                   Usar
                 </Button>
-                <Button type="button" variant="ghost" size="icon" onClick={() => setCatalogHint(null)} className="text-zinc-400">
+                <Button type="button" variant="ghost" size="icon" onClick={() => setCatalogHint(null)} className="text-neutral-400 dark:text-neutral-500">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -262,7 +262,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             {/* Expandable extras */}
             <button
               type="button"
-              className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-700 transition-colors"
+              className="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
               onClick={() => setExpanded((v) => !v)}
             >
               <ChevronDown
@@ -275,7 +275,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
             {expanded && (
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                     Preço pago (R$)
                   </label>
                   <Input
@@ -288,7 +288,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                  <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
                     URL da imagem
                   </label>
                   <Input
@@ -302,7 +302,7 @@ export default function AddItemSheet({ open, onClose, onAdd }: Props) {
           </div>
 
           {/* Footer */}
-          <div className="shrink-0 px-5 py-4 border-t border-zinc-100">
+          <div className="shrink-0 px-5 py-4 border-t border-neutral-100 dark:border-neutral-800">
             <Button type="button" className="w-full" onClick={handleAdd}>
               Adicionar
             </Button>

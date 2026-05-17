@@ -6,23 +6,23 @@ type Props = {
 
 export default function LoginScreen({ onSignIn }: Props) {
   return (
-    <div className="fixed inset-0 bg-white flex items-center justify-center px-6">
+    <div className="fixed inset-0 bg-white dark:bg-neutral-950 flex items-center justify-center px-6">
       <div className="flex flex-col items-center gap-6 w-full max-w-sm text-center">
 
         <img
           src="/logo-black.svg"
           alt="Hotlist Diecast Club"
-          className="w-64"
+          className="w-64 dark:invert"
         />
 
-        <p className="text-sm text-zinc-500 -mt-2">
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 -mt-2">
           Sua coleção de Hot Wheels organizada
         </p>
 
         <Button
           type="button"
           variant="outline"
-          className="w-full h-11 gap-3 text-sm font-semibold border-zinc-200 hover:bg-zinc-50"
+          className="w-full h-11 gap-3 text-sm font-semibold border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-800 dark:text-neutral-100"
           onClick={onSignIn}
         >
           <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
@@ -34,7 +34,7 @@ export default function LoginScreen({ onSignIn }: Props) {
           Entrar com Google
         </Button>
 
-        <p className="text-xs text-zinc-400 max-w-xs leading-relaxed">
+        <p className="text-xs text-neutral-400 dark:text-neutral-500 max-w-xs leading-relaxed">
           Seus dados ficam salvos na nuvem e sincronizados entre dispositivos.
         </p>
       </div>

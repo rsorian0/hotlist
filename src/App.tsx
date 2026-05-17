@@ -131,7 +131,7 @@ export default function App() {
             type="button"
             aria-label="Adicionar peça"
             onClick={() => setAddSheetOpen(true)}
-            className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-zinc-900 text-white shadow-md hover:bg-zinc-700 active:scale-95 transition-all md:w-14 md:h-14"
+            className="fixed right-4 z-30 flex items-center justify-center w-12 h-12 rounded-full bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 shadow-md hover:bg-neutral-700 dark:hover:bg-neutral-300 active:scale-95 transition-all md:w-14 md:h-14"
             style={{ bottom: 'calc(3.75rem + env(safe-area-inset-bottom) + 0.75rem)' }}
           >
             <Plus size={24} />

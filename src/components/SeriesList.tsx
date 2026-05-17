@@ -1,5 +1,6 @@
 import type { Serie, ModalFeedItem, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
+import { effectiveLine } from '../utils/line'
 import SeriesGroup from './SeriesGroup'
 import EmptyState from './EmptyState'
 import { SkeletonGroup } from './Skeleton'
@@ -37,12 +38,25 @@ export default function SeriesList({
     return <EmptyState filtered={false} onAddClick={onAddClick} />
   }
 
+  const f = filter.toLowerCase().trim()
+
   let offset = 0
   const seriesWithOffsets = series.map((s) => {
     const o = offset
     offset += smartSortItems(s.items || []).length
     return { serie: s, offset: o }
   })
+
+  // Pre-check: any serie has visible items after filter?
+  const anyVisible = seriesWithOffsets.some(({ serie }) => {
+    const sorted = smartSortItems(serie.items || [])
+    return sorted.some((it) => {
+      if (lineFilter && effectiveLine(it) !== lineFilter) return false
+      return `${it.modelo || ''} ${it.n || ''} ${serie.nome}`.toLowerCase().includes(f)
+    })
+  })
+
+  if (!anyVisible) return <EmptyState filtered onAddClick={onAddClick} />
 
   const groups = seriesWithOffsets.map(({ serie, offset: feedOffset }) => (
     <SeriesGroup
@@ -57,9 +71,6 @@ export default function SeriesList({
       onItemClick={onItemClick}
     />
   ))
-
-  const allHidden = groups.every((g) => g === null)
-  if (allHidden) return <EmptyState filtered onAddClick={onAddClick} />
 
   return <section id="list" className="px-3 pt-3 pb-2">{groups}</section>
 }
