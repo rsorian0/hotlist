@@ -4,8 +4,6 @@ import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
 import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { useTheme } from './hooks/useTheme'
-import { ToastProvider } from './contexts/ToastContext'
-import { ConfirmProvider } from './contexts/ConfirmContext'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
@@ -69,9 +67,7 @@ export default function App() {
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
-    <ToastProvider>
-      <ConfirmProvider>
-        <div className="flex min-h-dvh bg-neutral-100 dark:bg-neutral-950 overflow-x-hidden">
+    <div className="flex min-h-dvh bg-neutral-100 dark:bg-neutral-950 overflow-x-hidden">
           <Sidebar
             active={activeTab}
             onChange={setActiveTab}
@@ -179,8 +175,6 @@ export default function App() {
             onClose={() => setAddSheetOpen(false)}
             onAdd={addItemQuick}
           />
-        </div>
-      </ConfirmProvider>
-    </ToastProvider>
+      </div>
   )
 }

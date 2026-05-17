@@ -9,12 +9,15 @@ import {
   signOut,
 } from 'firebase/auth'
 import { auth } from '../lib/firebase'
+import { useToast } from '../contexts/ToastContext'
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const toast = useToast()
 
   useEffect(() => {
+    // Captura resultado de redirect (fallback iOS PWA ou sessão anterior)
     getRedirectResult(auth).catch(() => {})
     return onAuthStateChanged(auth, (u) => {
       setUser(u)
@@ -24,21 +27,26 @@ export function useAuth() {
 
   const signIn = async () => {
     const provider = new GoogleAuthProvider()
-    const isStandalone =
-      window.matchMedia?.('(display-mode: standalone)')?.matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true
     try {
-      if (isStandalone) { await signInWithRedirect(auth, provider); return }
       await signInWithPopup(auth, provider)
     } catch (e: unknown) {
       const err = e as { code?: string; message?: string }
+      // Usuário fechou o popup — sem ação
+      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') return
+      // Popup bloqueado ou não suportado (ex.: iOS PWA) → fallback redirect
       if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/operation-not-supported-in-this-environment') {
-        await signInWithRedirect(auth, provider)
-      } else if (err?.code === 'auth/unauthorized-domain') {
-        alert('Domínio não autorizado no Firebase. Adicione em Authentication → Settings → Authorized domains.')
-      } else {
-        alert('Falha ao entrar: ' + (err?.message || String(e)))
+        try {
+          await signInWithRedirect(auth, provider)
+        } catch {
+          toast('Não foi possível abrir a janela de login.', 'error')
+        }
+        return
       }
+      if (err?.code === 'auth/unauthorized-domain') {
+        toast('Domínio não autorizado. Adicione em Firebase → Authentication → Authorized domains.', 'error')
+        return
+      }
+      toast('Falha ao entrar. Tente novamente.', 'error')
     }
   }
 
