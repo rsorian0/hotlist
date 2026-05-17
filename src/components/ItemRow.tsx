@@ -1,7 +1,7 @@
 import type { SerieItem, ModalFeedItem, Ownership } from '../types'
 import { effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Props = {
   item: SerieItem
@@ -17,6 +17,9 @@ export default function ItemRow({
   item, ownership, galleryIndex, onOpenModal, onItemClick, feed,
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
+  const [imgLoaded, setImgLoaded] = useState(false)
+
+  useEffect(() => { setImgLoaded(false) }, [item.img])
 
   useEffect(() => {
     const img = imgRef.current
@@ -56,13 +59,17 @@ export default function ItemRow({
         className="relative shrink-0 w-12 h-12 rounded-md overflow-hidden bg-neutral-100 dark:bg-neutral-800 cursor-pointer"
         onClick={(e) => { e.stopPropagation(); onOpenModal(galleryIndex, feed) }}
       >
+        {!imgLoaded && (
+          <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded-md" />
+        )}
         <img
           ref={imgRef}
-          className="w-full h-full object-contain"
+          className={['w-full h-full object-contain transition-opacity duration-300', imgLoaded ? 'opacity-100' : 'opacity-0'].join(' ')}
           alt={item.modelo || ''}
           src={item.img ? undefined : CAR_PLACEHOLDER}
           data-src={item.img || undefined}
           loading="lazy"
+          onLoad={() => setImgLoaded(true)}
         />
         {showBadge && (
           <span

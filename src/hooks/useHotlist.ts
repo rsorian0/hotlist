@@ -14,6 +14,7 @@ export function useHotlist(user: User | null) {
   const [checks, setChecks] = useState<OwnershipMap>(() =>
     migrateOwnershipMap(load<Record<string, boolean | Ownership>>(LS_CHECKS, {})),
   )
+  const [syncing, setSyncing] = useState(true)
 
   const syncTimer = useRef<number | null>(null)
   const lastPushed = useRef('')
@@ -56,6 +57,7 @@ export function useHotlist(user: User | null) {
     let unsub: (() => void) | null = null
 
     getDoc(ref).then((snap) => {
+      setSyncing(false)
       if (snap.exists()) {
         const remote = (snap.data() as { state?: { series?: Serie[]; checks?: Record<string, boolean | Ownership> } }).state || { series: [], checks: {} }
         const merged = {
@@ -96,6 +98,9 @@ export function useHotlist(user: User | null) {
 
     return () => { unsub?.() }
   }, [user, persistSeries, persistChecks])
+
+  // If no user, syncing is done immediately
+  useEffect(() => { if (!user) setSyncing(false) }, [user])
 
 
   // ── CRUD ──
@@ -236,6 +241,7 @@ export function useHotlist(user: User | null) {
   return {
     series,
     checks,
+    syncing,
     addSerie,
     addItemQuick,
     deleteSerie,

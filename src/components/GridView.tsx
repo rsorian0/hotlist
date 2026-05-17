@@ -1,20 +1,43 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Serie, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
 import { effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
 import EmptyState from './EmptyState'
+import { SkeletonGrid } from './Skeleton'
 
 type Props = {
   series: Serie[]
   checks: OwnershipMap
   filter: string
   lineFilter: Line | null
+  syncing?: boolean
   onItemClick: (key: string) => void
   onAddClick: () => void
 }
 
-export default function GridView({ series, checks, filter, lineFilter, onItemClick, onAddClick }: Props) {
+function GridImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+  return (
+    <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+      {!loaded && (
+        <div className="absolute inset-0 bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setLoaded(true)}
+        className={[
+          'w-full h-full object-contain transition-opacity duration-300',
+          loaded ? 'opacity-100' : 'opacity-0',
+        ].join(' ')}
+      />
+    </div>
+  )
+}
+
+export default function GridView({ series, checks, filter, lineFilter, syncing, onItemClick, onAddClick }: Props) {
   const items = useMemo(() => {
     const f = filter.toLowerCase().trim()
     const result: Array<{
@@ -39,7 +62,10 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
     return result
   }, [series, checks, filter, lineFilter])
 
-  if (series.length === 0) return <EmptyState filtered={false} onAddClick={onAddClick} />
+  if (series.length === 0) {
+    if (syncing) return <SkeletonGrid count={12} />
+    return <EmptyState filtered={false} onAddClick={onAddClick} />
+  }
   if (items.length === 0) return <EmptyState filtered onAddClick={onAddClick} />
 
   return (
@@ -50,35 +76,26 @@ export default function GridView({ series, checks, filter, lineFilter, onItemCli
           return (
             <div
               key={it.key}
-              className="relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-none transition-all duration-150 hover:shadow-md dark:hover:bg-neutral-800 active:scale-95"
+              className={[
+                'relative bg-white dark:bg-neutral-900 rounded-xl overflow-hidden cursor-pointer border border-neutral-100 dark:border-neutral-800 shadow-sm dark:shadow-none transition-all duration-150 hover:shadow-md dark:hover:bg-neutral-800 active:scale-95',
+              ].join(' ')}
               onClick={() => onItemClick(it.key)}
             >
-              {/* Image */}
-              <div className="relative aspect-square bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
-                <img
-                  src={it.img || CAR_PLACEHOLDER}
-                  alt={it.modelo}
-                  loading="lazy"
-                  className={[
-                    'w-full h-full object-contain transition-all duration-200',
-                    it.owned ? '' : 'opacity-40 grayscale',
-                  ].join(' ')}
-                />
-
-                {/* Line badge — bottom left */}
+              <div className="relative">
+                <GridImage src={it.img || CAR_PLACEHOLDER} alt={it.modelo} />
+                {/* Owned overlay: dim non-owned */}
+                {!it.owned && (
+                  <div className="absolute inset-0 bg-white/40 dark:bg-neutral-900/50 backdrop-grayscale" />
+                )}
                 {meta && it.line !== 'mainline' && (
                   <span
-                    className="absolute bottom-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none"
+                    className="absolute bottom-1 left-1 px-1 py-px text-[9px] font-bold text-white rounded leading-none z-10"
                     style={{ background: meta.badgeBg || meta.color }}
                   >
                     {meta.short}
                   </span>
                 )}
-
-
               </div>
-
-              {/* Info */}
               <div className="px-2 py-1.5">
                 <div className={[
                   'text-[11px] font-medium truncate leading-tight',

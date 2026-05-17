@@ -26,7 +26,7 @@ type ActiveTab = 'list' | 'grid' | 'stats' | 'manage'
 export default function App() {
   const { user, loading, signIn, signOut } = useAuth()
   const {
-    series, checks, addSerie, addItemQuick, deleteSerie,
+    series, checks, syncing, addSerie, addItemQuick, deleteSerie,
     updateItemMetaByKey, removeItemByKey, moveItemToSerie, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
@@ -63,7 +63,12 @@ export default function App() {
 
   const showFab = activeTab === 'list' || activeTab === 'grid'
 
-  if (loading) return null
+  if (loading) return (
+    <div className="fixed inset-0 flex flex-col items-center justify-center gap-4 bg-white dark:bg-neutral-950">
+      <img src="/logo-black.svg" alt="Hotlist" className="h-7 w-auto dark:invert" />
+      <div className="w-5 h-5 rounded-full border-2 border-neutral-200 dark:border-neutral-700 border-t-neutral-900 dark:border-t-neutral-100 animate-spin" />
+    </div>
+  )
   if (!user) return <LoginScreen onSignIn={signIn} />
 
   return (
@@ -95,6 +100,7 @@ export default function App() {
               checks={checks}
               filter={filter}
               lineFilter={null}
+              syncing={syncing}
               onOpenModal={openModal}
               onAddClick={() => setAddSheetOpen(true)}
               onItemClick={setDetailKey}
@@ -107,6 +113,7 @@ export default function App() {
               checks={checks}
               filter={filter}
               lineFilter={null}
+              syncing={syncing}
               onItemClick={setDetailKey}
               onAddClick={() => setAddSheetOpen(true)}
             />

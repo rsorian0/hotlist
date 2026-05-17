@@ -2,6 +2,7 @@ import type { Serie, ModalFeedItem, OwnershipMap, Line } from '../types'
 import { smartSortItems } from '../utils/sort'
 import SeriesGroup from './SeriesGroup'
 import EmptyState from './EmptyState'
+import { SkeletonGroup } from './Skeleton'
 import { useMemo } from 'react'
 
 type Props = {
@@ -9,13 +10,14 @@ type Props = {
   checks: OwnershipMap
   filter: string
   lineFilter: Line | null
+  syncing?: boolean
   onOpenModal: (index: number, feed: ModalFeedItem[]) => void
   onAddClick: () => void
   onItemClick: (key: string) => void
 }
 
 export default function SeriesList({
-  series, checks, filter, lineFilter, onOpenModal, onAddClick, onItemClick,
+  series, checks, filter, lineFilter, syncing, onOpenModal, onAddClick, onItemClick,
 }: Props) {
   const fullFeed = useMemo<ModalFeedItem[]>(() => {
     return series.flatMap((s) =>
@@ -23,14 +25,24 @@ export default function SeriesList({
     )
   }, [series])
 
+  if (series.length === 0) {
+    if (syncing) {
+      return (
+        <section className="px-3 pt-3 pb-2">
+          <SkeletonGroup rows={6} />
+          <SkeletonGroup rows={4} />
+        </section>
+      )
+    }
+    return <EmptyState filtered={false} onAddClick={onAddClick} />
+  }
+
   let offset = 0
   const seriesWithOffsets = series.map((s) => {
     const o = offset
     offset += smartSortItems(s.items || []).length
     return { serie: s, offset: o }
   })
-
-  if (series.length === 0) return <EmptyState filtered={false} onAddClick={onAddClick} />
 
   const groups = seriesWithOffsets.map(({ serie, offset: feedOffset }) => (
     <SeriesGroup
