@@ -6,7 +6,7 @@
 /* Hanken Grotesk Italic — usada no logotipo "DIECAST CLUB" */
 @import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@1,400&display=swap');
 
-/* ─── SHADCN THEME (Zinc / Light + Dark) ─────────────────────────────────── */
+/* ─── SHADCN THEME (Neutral / Light + Dark) ──────────────────────────────── */
 @layer base {
   :root {
     --background: 0 0% 96%;

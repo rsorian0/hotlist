@@ -1,8 +1,9 @@
+import type { LucideIcon } from 'lucide-react'
 import { List, LayoutGrid, BarChart2, Settings } from 'lucide-react'
 
 type Tab = 'list' | 'grid' | 'stats' | 'manage'
 
-const TABS: { id: Tab; label: string; Icon: React.FC<{ size?: number }> }[] = [
+const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
   { id: 'list',   label: 'Lista',     Icon: List },
   { id: 'grid',   label: 'Grade',     Icon: LayoutGrid },
   { id: 'stats',  label: 'Stats',     Icon: BarChart2 },
@@ -28,8 +29,8 @@ export default function BottomNav({ active, onChange }: Props) {
           className={[
             'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors',
             active === id
-              ? 'text-zinc-900 dark:text-neutral-100'
-              : 'text-zinc-400 dark:text-neutral-600 hover:text-zinc-600 dark:hover:text-neutral-400',
+              ? 'text-neutral-900 dark:text-neutral-100'
+              : 'text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400',
           ].join(' ')}
         >
           <Icon size={18} />

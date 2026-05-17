@@ -15,6 +15,7 @@ type Props = {
 
 export default function ItemRow({
   item, ownership, galleryIndex, onOpenModal, onItemClick, feed,
+  // serieNome kept in Props for future use / parent identification
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgLoaded, setImgLoaded] = useState(false)
@@ -82,8 +83,8 @@ export default function ItemRow({
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] text-zinc-400 dark:text-neutral-500 leading-none mb-0.5">{item.n || ''}</div>
-        <div className={['text-[13px] font-medium truncate leading-tight', owned ? 'text-zinc-900 dark:text-neutral-100' : 'text-zinc-500 dark:text-neutral-400'].join(' ')}>
+        <div className="text-[10px] text-neutral-400 dark:text-neutral-500 leading-none mb-0.5">{item.n || ''}</div>
+        <div className={['text-[13px] font-medium truncate leading-tight', owned ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-500 dark:text-neutral-400'].join(' ')}>
           {item.modelo || ''}
           {qty && (
             <span className="ml-1.5 px-1.5 py-0.5 text-[10px] font-semibold bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-full">

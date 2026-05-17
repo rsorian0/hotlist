@@ -64,10 +64,10 @@ export default function SeriesGroup({
       >
         <ChevronDown
           size={16}
-          className={['text-zinc-400 dark:text-neutral-500 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
+          className={['text-neutral-400 dark:text-neutral-500 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
         />
-        <span className="flex-1 text-[13px] font-semibold text-zinc-800 dark:text-neutral-200 truncate">{serie.nome}</span>
-        <span className="text-xs text-zinc-400 dark:text-neutral-500">
+        <span className="flex-1 text-[13px] font-semibold text-neutral-800 dark:text-neutral-200 truncate">{serie.nome}</span>
+        <span className="text-xs text-neutral-400 dark:text-neutral-500">
           {ownedCount}/{visible.length}
         </span>
       </button>

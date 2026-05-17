@@ -43,14 +43,14 @@ export default function Editor({
       >
         {/* Header */}
         <SheetHeader className="flex flex-row items-center justify-between px-5 py-3 border-b border-neutral-200 dark:border-neutral-800 shrink-0">
-          <SheetTitle className="text-base font-semibold text-zinc-900 dark:text-neutral-100">Gerenciar</SheetTitle>
+          <SheetTitle className="text-base font-semibold text-neutral-900 dark:text-neutral-100">Gerenciar</SheetTitle>
           <Button
             variant="ghost"
             size="icon"
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="text-zinc-500 dark:text-neutral-400 hover:text-zinc-900 dark:hover:text-neutral-100"
+            className="text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -63,8 +63,8 @@ export default function Editor({
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-colecoes'
-                ? 'border-neutral-900 dark:border-neutral-500 text-zinc-900 dark:text-neutral-100'
-                : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
+                ? 'border-neutral-900 dark:border-neutral-500 text-neutral-900 dark:text-neutral-100'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-colecoes')}
           >
@@ -75,8 +75,8 @@ export default function Editor({
             className={[
               'flex-1 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px',
               activeTab === 'tab-backup'
-                ? 'border-neutral-900 dark:border-neutral-500 text-zinc-900 dark:text-neutral-100'
-                : 'border-transparent text-zinc-500 dark:text-neutral-400 hover:text-zinc-700 dark:hover:text-neutral-200',
+                ? 'border-neutral-900 dark:border-neutral-500 text-neutral-900 dark:text-neutral-100'
+                : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200',
             ].join(' ')}
             onClick={() => switchTab('tab-backup')}
           >

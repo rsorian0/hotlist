@@ -118,9 +118,10 @@ export async function contributeToCatalog(item: SerieItem): Promise<void> {
 export async function searchCatalog(q: string): Promise<CatalogEntry[]> {
   if (q.length < 2) return []
   const upper = q.charAt(0).toUpperCase() + q.slice(1)
+  // '' is a high Unicode char used as a Firestore range query suffix
   const col = collection(db, 'catalog')
   const snap = await getDocs(
-    query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)),
+    query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)),
   )
   return snap.docs.map((d) => d.data() as CatalogEntry)
 }

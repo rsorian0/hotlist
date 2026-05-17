@@ -50,20 +50,21 @@ export default function ItemDetail({
     setCatalogPrice(null)
     if (!item?.n) return
 
-    getCatalogPrice(item.n).then(async (p) => {
-      if (p) {
-        setCatalogPrice(p)
+    const nStr = String(item.n)
+    getCatalogPrice(nStr).then(async (p) => {
+      if (p && p.marketPrice != null) {
+        setCatalogPrice(p as CatalogPrice)
         // Re-fetch in background if stale (non-blocking)
         if (isStale(p.priceUpdatedAt)) {
-          fetchMLPrice(item.n as string, item.modelo || '').then((fresh) => {
-            if (fresh) setCatalogPrice(fresh)
+          fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
+            if (fresh && fresh.marketPrice != null) setCatalogPrice(fresh as CatalogPrice)
           }).catch(() => {})
         }
       } else {
         // No price yet — fetch from ML automatically
         setFetchingPrice(true)
-        fetchMLPrice(item.n as string, item.modelo || '').then((fresh) => {
-          if (fresh) setCatalogPrice(fresh)
+        fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
+          if (fresh && fresh.marketPrice != null) setCatalogPrice(fresh as CatalogPrice)
         }).catch(() => {}).finally(() => setFetchingPrice(false))
       }
     }).catch(() => {})
@@ -311,7 +312,7 @@ export default function ItemDetail({
                       onChange={(e) => update({ marketPrice: num(e.target.value) })}
                       onBlur={() => {
                         if (item?.n && item?.modelo && draft.marketPrice && draft.marketPrice > 0) {
-                          contributeMarketPrice(item.n, item.modelo, draft.marketPrice).catch(() => {})
+                          contributeMarketPrice(String(item.n), item.modelo, draft.marketPrice).catch(() => {})
                         }
                       }}
                       className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
