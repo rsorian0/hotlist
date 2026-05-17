@@ -504,6 +504,31 @@ Para cada domínio onde o app é acessado, adicionar em **Firebase Console → A
 
 ---
 
+## Sistema de preços Mercado Livre
+
+Implementado em `src/lib/catalog.ts`.
+
+### Fluxo ao abrir `ItemDetail`
+1. `getCatalogPrice(n)` → busca preço em `catalog/{n}` no Firestore
+2. Se preço existe e **não está stale** (< 7 dias): exibe imediatamente
+3. Se preço existe e **está stale**: exibe imediatamente + dispara re-fetch em background
+4. Se **não existe preço**: chama `fetchMLPrice` de imediato (mostra spinner)
+
+### `fetchMLPrice(n, modelo)`
+```
+GET https://api.mercadolibre.com/sites/MLB/search?q=hot+wheels+{n}&limit=20
+```
+- Filtra resultados fora da faixa R$ 8–600
+- Se < 2 resultados, faz fallback buscando por `modelo`
+- Calcula mediana, mín, máx dos preços filtrados
+- Salva em `catalog/{n}` no Firestore (`priceSource: 'Mercado Livre'`)
+- TTL: 7 dias (`PRICE_TTL_DAYS = 7`)
+
+### Contribuição de preço pela comunidade
+Quando o usuário preenche "Valor de mercado" e sai do campo, `contributeMarketPrice` salva em `catalog/{n}` com `priceSource: 'community'`.
+
+---
+
 ## Regras de segurança Firestore recomendadas
 
 ```javascript
