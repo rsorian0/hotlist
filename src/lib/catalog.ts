@@ -28,14 +28,19 @@ export type PriceResult = Pick<CatalogEntry,
 >
 
 export type FetchPriceResult =
-  | { status: 'found'; data: PriceResult }
+  | { status: 'found'; data: PriceResult; img?: string }
   | { status: 'not_found' }
   | { status: 'error' }
 
+export type CatalogPriceResult =
+  | { status: 'found'; data: PriceResult; img?: string }
+  | { status: 'not_found_recent' }
+  | { status: 'missing' }
+
 const ML_SEARCH = 'https://api.mercadolibre.com/sites/MLB/search'
 const PRICE_TTL_DAYS = 7
-const PRICE_MIN = 5     // R$ — allows cheap loose cars
-const PRICE_MAX = 2000  // R$ — allows RLC/premium/treasure hunts
+const PRICE_MIN = 5
+const PRICE_MAX = 2000
 
 function median(nums: number[]): number {
   const s = [...nums].sort((a, b) => a - b)
@@ -49,48 +54,52 @@ export function isStale(updatedAt?: string): boolean {
   return age > PRICE_TTL_DAYS
 }
 
-async function mlSearch(q: string): Promise<number[]> {
+type MLHit = { price: number; thumbnail?: string }
+
+async function mlSearch(q: string): Promise<MLHit[]> {
   try {
     const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
     if (!res.ok) return []
     const json = await res.json()
-    return (json.results as Array<{ price: number; title: string }> || [])
+    return (json.results as Array<{ price: number; title: string; thumbnail?: string }> || [])
       .filter((r) => {
         const t = (r.title || '').toLowerCase()
-        return t.includes('hot wheels') || t.includes('hotwheels') || t.includes(' hw ')
-          || t.startsWith('hw ') || t.endsWith(' hw')
+        return t.includes('hot wheels') || t.includes('hotwheels')
+          || t.includes(' hw ') || t.startsWith('hw ') || t.endsWith(' hw')
       })
-      .map((r) => Number(r.price))
-      .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
+      .map((r) => ({ price: Number(r.price), thumbnail: r.thumbnail }))
+      .filter((r) => r.price >= PRICE_MIN && r.price <= PRICE_MAX)
   } catch {
     return []
   }
 }
 
-function dedup(prices: number[]): number[] {
-  return [...new Set(prices)]
+function dedup(hits: MLHit[]): MLHit[] {
+  const seen = new Set<number>()
+  return hits.filter((h) => {
+    if (seen.has(h.price)) return false
+    seen.add(h.price)
+    return true
+  })
 }
 
 export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPriceResult> {
   if (!n) return { status: 'error' }
 
-  let prices: number[] = []
+  let hits: MLHit[] = []
   let apiError = false
 
   try {
-    // Run all searches in parallel and merge results
-    const queries: Promise<number[]>[] = [
-      mlSearch(`hot wheels ${modelo}`),
-    ]
+    const queries: Promise<MLHit[]>[] = [mlSearch(`hot wheels ${modelo}`)]
     if (n) queries.push(mlSearch(`hot wheels ${n}`))
 
     const results = await Promise.all(queries)
-    prices = dedup(results.flat())
+    hits = dedup(results.flat())
 
     // Last resort: modelo name alone (some sellers omit "hot wheels")
-    if (prices.length < 3 && modelo) {
+    if (hits.length < 3 && modelo) {
       const bare = await mlSearch(modelo)
-      prices = dedup([...prices, ...bare])
+      hits = dedup([...hits, ...bare])
     }
   } catch {
     apiError = true
@@ -100,8 +109,7 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
 
   if (apiError) return { status: 'error' }
 
-  if (prices.length === 0) {
-    // Cache "not found" so we don't retry on every open
+  if (hits.length === 0) {
     try {
       await setDoc(doc(db, 'catalog', String(n)), {
         n: String(n), modelo,
@@ -112,33 +120,32 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
     return { status: 'not_found' }
   }
 
-  const marketPrice    = Math.round(median(prices) * 100) / 100
-  const priceMin       = Math.round(Math.min(...prices) * 100) / 100
-  const priceMax       = Math.round(Math.max(...prices) * 100) / 100
-  const priceCount     = prices.length
-  const priceUpdatedAt = checkedAt
-  const priceSource    = 'Mercado Livre'
+  const prices      = hits.map((h) => h.price)
+  const marketPrice = Math.round(median(prices) * 100) / 100
+  const priceMin    = Math.round(Math.min(...prices) * 100) / 100
+  const priceMax    = Math.round(Math.max(...prices) * 100) / 100
+  const priceCount  = prices.length
+  const priceSource = 'Mercado Livre'
+  // Pick thumbnail from first hit that has one
+  const img = hits.find((h) => h.thumbnail)?.thumbnail
 
   try {
     await setDoc(doc(db, 'catalog', String(n)), {
       n: String(n), modelo,
       marketPrice, priceMin, priceMax, priceCount,
-      priceUpdatedAt, priceCheckedAt: checkedAt,
+      priceUpdatedAt: checkedAt, priceCheckedAt: checkedAt,
       priceNoResults: false,
       priceSource,
+      ...(img ? { img } : {}),
     }, { merge: true })
   } catch { /* non-critical */ }
 
   return {
     status: 'found',
-    data: { marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt, priceCheckedAt: checkedAt, priceSource },
+    data: { marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt: checkedAt, priceCheckedAt: checkedAt, priceSource },
+    img,
   }
 }
-
-export type CatalogPriceResult =
-  | { status: 'found'; data: PriceResult }
-  | { status: 'not_found_recent' }   // checked recently, nothing on ML
-  | { status: 'missing' }            // never checked or stale check
 
 export async function getCatalogPrice(n: string): Promise<CatalogPriceResult> {
   if (!n) return { status: 'missing' }
@@ -159,10 +166,10 @@ export async function getCatalogPrice(n: string): Promise<CatalogPriceResult> {
           priceCheckedAt: data.priceCheckedAt,
           priceSource:    data.priceSource,
         },
+        img: data.img,
       }
     }
 
-    // Was checked recently with no results — skip ML call
     if (data.priceNoResults && !isStale(data.priceCheckedAt)) {
       return { status: 'not_found_recent' }
     }
@@ -191,18 +198,16 @@ export async function searchCatalog(q: string): Promise<CatalogEntry[]> {
   if (trimmed.length < 2) return []
   const col = collection(db, 'catalog')
 
-  // Build two prefix variants: lowercase and Capitalized-first
   const lower = trimmed.toLowerCase()
   const upper = lower.charAt(0).toUpperCase() + lower.slice(1)
 
   const queries = [
-    getDocs(query(col, orderBy('modelo'), startAt(lower), endAt(lower + ''), limit(6))),
+    getDocs(query(col, orderBy('modelo'), startAt(lower), endAt(lower + ''), limit(6))),
     ...(upper !== lower
-      ? [getDocs(query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)))]
+      ? [getDocs(query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)))]
       : []),
   ]
 
-  // Also try exact match on reference code `n`
   const byCode = getDoc(doc(col, trimmed)).then((s) =>
     s.exists() ? [s.data() as CatalogEntry] : [],
   ).catch(() => [] as CatalogEntry[])
@@ -212,11 +217,9 @@ export async function searchCatalog(q: string): Promise<CatalogEntry[]> {
   const seen = new Set<string>()
   const entries: CatalogEntry[] = []
 
-  // Code match first
   for (const e of codeResults) {
     if (!seen.has(e.n)) { seen.add(e.n); entries.push(e) }
   }
-  // Then modelo prefix matches
   for (const snap of snapshots) {
     for (const d of snap.docs) {
       const e = d.data() as CatalogEntry

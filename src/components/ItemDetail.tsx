@@ -30,7 +30,7 @@ type Props = {
 type PriceState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'found'; data: PriceResult; stale?: boolean }
+  | { status: 'found'; data: PriceResult; img?: string; stale?: boolean }
   | { status: 'not_found' }
   | { status: 'error' }
 
@@ -68,12 +68,12 @@ export default function ItemDetail({
 
       if (result.status === 'found') {
         const stale = isStale(result.data.priceUpdatedAt)
-        setPrice({ status: 'found', data: result.data, stale })
+        setPrice({ status: 'found', data: result.data, img: result.img, stale })
         // Background refresh if stale
         if (stale) {
           fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
             if (ctrl.signal.aborted) return
-            if (fresh.status === 'found') setPrice({ status: 'found', data: fresh.data })
+            if (fresh.status === 'found') setPrice({ status: 'found', data: fresh.data, img: fresh.img })
           }).catch(() => {})
         }
         return
@@ -89,7 +89,7 @@ export default function ItemDetail({
       const fresh = await fetchMLPrice(nStr, item.modelo || '')
       if (ctrl.signal.aborted) return
       if (fresh.status === 'found') {
-        setPrice({ status: 'found', data: fresh.data })
+        setPrice({ status: 'found', data: fresh.data, img: fresh.img })
       } else if (fresh.status === 'not_found') {
         setPrice({ status: 'not_found' })
       } else {
@@ -112,7 +112,7 @@ export default function ItemDetail({
     fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
       if (ctrl.signal.aborted) return
       if (fresh.status === 'found') {
-        setPrice({ status: 'found', data: fresh.data })
+        setPrice({ status: 'found', data: fresh.data, img: fresh.img })
       } else if (fresh.status === 'not_found') {
         setPrice({ status: 'not_found' })
       } else {
@@ -313,6 +313,29 @@ export default function ItemDetail({
                     </a>
                   </Button>
                 </div>
+
+                {/* Suggested photo from ML catalog */}
+                {!item.img && price.status === 'found' && price.img && (
+                  <div className="flex items-center gap-3 mt-2 p-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800">
+                    <img
+                      src={price.img}
+                      alt={item.modelo || ''}
+                      className="h-14 w-14 rounded-lg object-contain bg-white dark:bg-neutral-700 shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-1">Foto sugerida pelo Mercado Livre</div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs"
+                        onClick={() => onItemMetaChange(itemKey, { img: price.img })}
+                      >
+                        Usar esta foto
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Detalhes */}
