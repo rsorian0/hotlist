@@ -1,14 +1,15 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
+import type { PriceResult } from '../lib/catalog'
 import { getCatalogPrice, fetchMLPrice, isStale, contributeMarketPrice } from '../lib/catalog'
 import { useToast } from '../contexts/ToastContext'
 import { useConfirm } from '../contexts/ConfirmContext'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScanLine, Search, Trash2, X } from 'lucide-react'
+import { RefreshCw, ScanLine, Search, Trash2, X } from 'lucide-react'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -26,14 +27,12 @@ type Props = {
   onMove: (key: string, targetSerie: string) => void
 }
 
-type CatalogPrice = {
-  marketPrice: number
-  priceMin?: number
-  priceMax?: number
-  priceCount?: number
-  priceUpdatedAt?: string
-  priceSource?: string
-}
+type PriceState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'found'; data: PriceResult; stale?: boolean }
+  | { status: 'not_found' }
+  | { status: 'error' }
 
 const selectClass = 'w-full h-9 rounded-md border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-neutral-500'
 const labelClass = 'text-xs text-neutral-500 dark:text-neutral-400'
@@ -46,33 +45,83 @@ export default function ItemDetail({
   const confirm = useConfirm()
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
-  const [catalogPrice, setCatalogPrice] = useState<CatalogPrice | null>(null)
-  const [fetchingPrice, setFetchingPrice] = useState(false)
+  const [price, setPrice] = useState<PriceState>({ status: 'idle' })
+  const abortRef = useRef<AbortController | null>(null)
 
+  // Reset draft only when ownership changes externally
   useEffect(() => {
     setDraft(ownership || { owned: false })
-    setCatalogPrice(null)
+  }, [ownership])
+
+  // Fetch price when item changes
+  useEffect(() => {
+    abortRef.current?.abort()
+    setPrice({ status: 'idle' })
     if (!item?.n) return
 
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
     const nStr = String(item.n)
-    getCatalogPrice(nStr).then(async (p) => {
-      if (p && p.marketPrice != null) {
-        setCatalogPrice(p as CatalogPrice)
-        // Re-fetch in background if stale (non-blocking)
-        if (isStale(p.priceUpdatedAt)) {
+
+    getCatalogPrice(nStr).then(async (result) => {
+      if (ctrl.signal.aborted) return
+
+      if (result.status === 'found') {
+        const stale = isStale(result.data.priceUpdatedAt)
+        setPrice({ status: 'found', data: result.data, stale })
+        // Background refresh if stale
+        if (stale) {
           fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
-            if (fresh && fresh.marketPrice != null) setCatalogPrice(fresh as CatalogPrice)
+            if (ctrl.signal.aborted) return
+            if (fresh.status === 'found') setPrice({ status: 'found', data: fresh.data })
           }).catch(() => {})
         }
-      } else {
-        // No price yet — fetch from ML automatically
-        setFetchingPrice(true)
-        fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
-          if (fresh && fresh.marketPrice != null) setCatalogPrice(fresh as CatalogPrice)
-        }).catch(() => {}).finally(() => setFetchingPrice(false))
+        return
       }
-    }).catch(() => {})
-  }, [ownership, itemKey, item?.n])
+
+      if (result.status === 'not_found_recent') {
+        setPrice({ status: 'not_found' })
+        return
+      }
+
+      // Missing — fetch from ML
+      setPrice({ status: 'loading' })
+      const fresh = await fetchMLPrice(nStr, item.modelo || '')
+      if (ctrl.signal.aborted) return
+      if (fresh.status === 'found') {
+        setPrice({ status: 'found', data: fresh.data })
+      } else if (fresh.status === 'not_found') {
+        setPrice({ status: 'not_found' })
+      } else {
+        setPrice({ status: 'error' })
+      }
+    }).catch(() => {
+      if (!ctrl.signal.aborted) setPrice({ status: 'error' })
+    })
+
+    return () => ctrl.abort()
+  }, [itemKey, item?.n]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const retryPrice = useCallback(() => {
+    if (!item?.n) return
+    abortRef.current?.abort()
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    const nStr = String(item.n)
+    setPrice({ status: 'loading' })
+    fetchMLPrice(nStr, item.modelo || '').then((fresh) => {
+      if (ctrl.signal.aborted) return
+      if (fresh.status === 'found') {
+        setPrice({ status: 'found', data: fresh.data })
+      } else if (fresh.status === 'not_found') {
+        setPrice({ status: 'not_found' })
+      } else {
+        setPrice({ status: 'error' })
+      }
+    }).catch(() => {
+      if (!ctrl.signal.aborted) setPrice({ status: 'error' })
+    })
+  }, [item?.n, item?.modelo]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!open || !itemKey || !item) return null
 
@@ -112,6 +161,9 @@ export default function ItemDetail({
 
   const meta = lineMeta(effectiveLine(item))
   const searchQuery = encodeURIComponent(['hot wheels', item.n, item.modelo].filter(Boolean).join(' '))
+  const catalogPlaceholder = price.status === 'found'
+    ? `R$ ${price.data.marketPrice!.toFixed(2)}`
+    : '—'
 
   return (
     <>
@@ -207,7 +259,6 @@ export default function ItemDetail({
                       placeholder="ex.: FYF84"
                       value={String(item.n || '')}
                       onChange={(e) => onItemMetaChange(itemKey, { n: e.target.value.trim() || undefined })}
-                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
@@ -218,7 +269,7 @@ export default function ItemDetail({
                         placeholder="—"
                         value={item.barcode || ''}
                         onChange={(e) => onItemMetaChange(itemKey, { barcode: e.target.value.trim() || undefined })}
-                        className="flex-1 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+                        className="flex-1"
                       />
                       <Button
                         type="button"
@@ -226,7 +277,7 @@ export default function ItemDetail({
                         size="icon"
                         title="Escanear"
                         onClick={() => setScannerOpen(true)}
-                        className="shrink-0 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                        className="shrink-0"
                       >
                         <ScanLine className="h-4 w-4" />
                       </Button>
@@ -244,13 +295,13 @@ export default function ItemDetail({
                     placeholder="https://…"
                     value={item.img || ''}
                     onChange={(e) => onItemMetaChange(itemKey, { img: e.target.value.trim() || undefined })}
-                    className="flex-1 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
+                    className="flex-1"
                   />
                   <Button
                     variant="outline"
                     size="icon"
                     asChild
-                    className="shrink-0 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                    className="shrink-0"
                   >
                     <a
                       href={`https://www.google.com/search?tbm=isch&q=${searchQuery}`}
@@ -308,7 +359,6 @@ export default function ItemDetail({
                       step="0.01"
                       value={draft.paidPrice ?? ''}
                       onChange={(e) => update({ paidPrice: num(e.target.value) })}
-                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100"
                     />
                   </div>
                   <div className="flex-1 space-y-1">
@@ -317,7 +367,7 @@ export default function ItemDetail({
                       type="number"
                       min={0}
                       step="0.01"
-                      placeholder={catalogPrice ? `R$ ${catalogPrice.marketPrice.toFixed(2)}` : '—'}
+                      placeholder={catalogPlaceholder}
                       value={draft.marketPrice ?? ''}
                       onChange={(e) => update({ marketPrice: num(e.target.value) })}
                       onBlur={() => {
@@ -325,12 +375,12 @@ export default function ItemDetail({
                           contributeMarketPrice(String(item.n), item.modelo, draft.marketPrice).catch(() => {})
                         }
                       }}
-                      className="dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500"
                     />
                   </div>
                 </div>
 
-                {fetchingPrice && !catalogPrice && (
+                {/* Price state UI */}
+                {price.status === 'loading' && (
                   <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3 flex items-center gap-2">
                     <svg className="animate-spin h-3.5 w-3.5 text-neutral-400 shrink-0" viewBox="0 0 24 24" fill="none">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -340,28 +390,68 @@ export default function ItemDetail({
                   </div>
                 )}
 
-                {catalogPrice && (
+                {price.status === 'found' && (
                   <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3">
-                    <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mb-2">
-                      {catalogPrice.priceSource === 'community'
-                        ? `Comunidade · ${formatDate(catalogPrice.priceUpdatedAt)}`
-                        : `Mercado Livre · mediana · ${formatDate(catalogPrice.priceUpdatedAt)}`}
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                        {price.data.priceSource === 'community'
+                          ? `Comunidade · ${formatDate(price.data.priceUpdatedAt)}`
+                          : `Mercado Livre · mediana · ${formatDate(price.data.priceUpdatedAt)}`}
+                        {price.stale && ' · desatualizado'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={retryPrice}
+                        title="Atualizar preço"
+                        className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                      </button>
                     </div>
                     <div className="flex divide-x divide-neutral-200 dark:divide-neutral-700">
                       <div className="flex-1 flex flex-col items-center px-2">
                         <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais barato</span>
-                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {catalogPrice.priceMin?.toFixed(2) ?? '—'}</span>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {price.data.priceMin?.toFixed(2) ?? '—'}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
                         <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mediana</span>
-                        <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">R$ {catalogPrice.marketPrice.toFixed(2)}</span>
+                        <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">R$ {price.data.marketPrice!.toFixed(2)}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
                         <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais caro</span>
-                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {catalogPrice.priceMax?.toFixed(2) ?? '—'}</span>
+                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {price.data.priceMax?.toFixed(2) ?? '—'}</span>
                       </div>
                     </div>
-                    <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center mt-2">{catalogPrice.priceCount} anúncios analisados</div>
+                    {price.data.priceCount != null && (
+                      <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center mt-2">{price.data.priceCount} anúncios analisados</div>
+                    )}
+                  </div>
+                )}
+
+                {price.status === 'not_found' && (
+                  <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-neutral-400 dark:text-neutral-500">Nenhum anúncio encontrado no Mercado Livre.</span>
+                    <button
+                      type="button"
+                      onClick={retryPrice}
+                      title="Tentar novamente"
+                      className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors shrink-0"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+
+                {price.status === 'error' && (
+                  <div className="mt-2 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/40 p-3 flex items-center justify-between gap-2">
+                    <span className="text-[11px] text-red-500 dark:text-red-400">Erro ao buscar preço.</span>
+                    <button
+                      type="button"
+                      onClick={retryPrice}
+                      className="text-xs text-red-500 dark:text-red-400 hover:underline shrink-0"
+                    >
+                      Tentar novamente
+                    </button>
                   </div>
                 )}
               </div>

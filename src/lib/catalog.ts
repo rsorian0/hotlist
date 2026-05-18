@@ -17,18 +17,25 @@ export type CatalogEntry = {
   priceMax?: number
   priceCount?: number
   priceUpdatedAt?: string
+  priceCheckedAt?: string  // last time ML was queried (even if no results)
+  priceNoResults?: boolean // true = ML was queried and returned 0 results
   priceSource?: string
 }
 
-type PriceResult = Pick<CatalogEntry,
-  'marketPrice' | 'priceMin' | 'priceMax' | 'priceCount' | 'priceUpdatedAt' | 'priceSource'
+export type PriceResult = Pick<CatalogEntry,
+  'marketPrice' | 'priceMin' | 'priceMax' | 'priceCount' |
+  'priceUpdatedAt' | 'priceCheckedAt' | 'priceSource'
 >
+
+export type FetchPriceResult =
+  | { status: 'found'; data: PriceResult }
+  | { status: 'not_found' }
+  | { status: 'error' }
 
 const ML_SEARCH = 'https://api.mercadolibre.com/sites/MLB/search'
 const PRICE_TTL_DAYS = 7
-// Reasonable price range for a single Hot Wheels car (R$)
-const PRICE_MIN = 8
-const PRICE_MAX = 600
+const PRICE_MIN = 5     // R$ — allows cheap loose cars
+const PRICE_MAX = 2000  // R$ — allows RLC/premium/treasure hunts
 
 function median(nums: number[]): number {
   const s = [...nums].sort((a, b) => a - b)
@@ -36,7 +43,7 @@ function median(nums: number[]): number {
   return s.length % 2 !== 0 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 
-function isStale(updatedAt?: string): boolean {
+export function isStale(updatedAt?: string): boolean {
   if (!updatedAt) return true
   const age = (Date.now() - new Date(updatedAt).getTime()) / 86_400_000
   return age > PRICE_TTL_DAYS
@@ -44,10 +51,15 @@ function isStale(updatedAt?: string): boolean {
 
 async function mlSearch(q: string): Promise<number[]> {
   try {
-    const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=20`)
+    const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
     if (!res.ok) return []
     const json = await res.json()
-    return (json.results as Array<{ price: number }> || [])
+    return (json.results as Array<{ price: number; title: string }> || [])
+      .filter((r) => {
+        // Discard results that are clearly not Hot Wheels cars
+        const t = (r.title || '').toLowerCase()
+        return t.includes('hot wheels') || t.includes('hotwheels')
+      })
       .map((r) => Number(r.price))
       .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
   } catch {
@@ -55,52 +67,100 @@ async function mlSearch(q: string): Promise<number[]> {
   }
 }
 
-export async function fetchMLPrice(n: string, modelo: string): Promise<PriceResult | null> {
-  if (!n) return null
+export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPriceResult> {
+  if (!n) return { status: 'error' }
 
-  // Try by reference code first, fall back to model name
-  let prices = await mlSearch(`hot wheels ${n}`)
-  if (prices.length < 2 && modelo) {
-    const fallback = await mlSearch(`hot wheels ${modelo}`)
-    if (fallback.length > prices.length) prices = fallback
+  let prices: number[] = []
+  let apiError = false
+
+  try {
+    prices = await mlSearch(`hot wheels ${n}`)
+
+    // Fallback to model name when reference code yields < 2 results
+    if (prices.length < 2 && modelo) {
+      const byModelo = await mlSearch(`hot wheels ${modelo}`)
+      if (byModelo.length > prices.length) prices = byModelo
+    }
+  } catch {
+    apiError = true
   }
 
-  if (prices.length === 0) return null
+  const checkedAt = new Date().toISOString()
 
-  const marketPrice = Math.round(median(prices) * 100) / 100
-  const priceMin    = Math.round(Math.min(...prices) * 100) / 100
-  const priceMax    = Math.round(Math.max(...prices) * 100) / 100
-  const priceCount  = prices.length
-  const priceUpdatedAt = new Date().toISOString()
-  const priceSource = 'Mercado Livre'
+  if (apiError) return { status: 'error' }
+
+  if (prices.length === 0) {
+    // Cache "not found" so we don't retry on every open
+    try {
+      await setDoc(doc(db, 'catalog', String(n)), {
+        n: String(n), modelo,
+        priceCheckedAt: checkedAt,
+        priceNoResults: true,
+      }, { merge: true })
+    } catch { /* non-critical */ }
+    return { status: 'not_found' }
+  }
+
+  const marketPrice    = Math.round(median(prices) * 100) / 100
+  const priceMin       = Math.round(Math.min(...prices) * 100) / 100
+  const priceMax       = Math.round(Math.max(...prices) * 100) / 100
+  const priceCount     = prices.length
+  const priceUpdatedAt = checkedAt
+  const priceSource    = 'Mercado Livre'
 
   try {
     await setDoc(doc(db, 'catalog', String(n)), {
       n: String(n), modelo,
-      marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt, priceSource,
+      marketPrice, priceMin, priceMax, priceCount,
+      priceUpdatedAt, priceCheckedAt: checkedAt,
+      priceNoResults: false,
+      priceSource,
     }, { merge: true })
-  } catch { /* save failure is non-critical */ }
+  } catch { /* non-critical */ }
 
-  return { marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt, priceSource }
-}
-
-export async function getCatalogPrice(n: string): Promise<PriceResult | null> {
-  if (!n) return null
-  const snap = await getDoc(doc(db, 'catalog', n))
-  if (!snap.exists()) return null
-  const data = snap.data() as CatalogEntry
-  if (!data.marketPrice) return null
   return {
-    marketPrice:    data.marketPrice,
-    priceMin:       data.priceMin,
-    priceMax:       data.priceMax,
-    priceCount:     data.priceCount,
-    priceUpdatedAt: data.priceUpdatedAt,
-    priceSource:    data.priceSource,
+    status: 'found',
+    data: { marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt, priceCheckedAt: checkedAt, priceSource },
   }
 }
 
-export { isStale }
+export type CatalogPriceResult =
+  | { status: 'found'; data: PriceResult }
+  | { status: 'not_found_recent' }   // checked recently, nothing on ML
+  | { status: 'missing' }            // never checked or stale check
+
+export async function getCatalogPrice(n: string): Promise<CatalogPriceResult> {
+  if (!n) return { status: 'missing' }
+  try {
+    const snap = await getDoc(doc(db, 'catalog', n))
+    if (!snap.exists()) return { status: 'missing' }
+    const data = snap.data() as CatalogEntry
+
+    if (data.marketPrice) {
+      return {
+        status: 'found',
+        data: {
+          marketPrice:    data.marketPrice,
+          priceMin:       data.priceMin,
+          priceMax:       data.priceMax,
+          priceCount:     data.priceCount,
+          priceUpdatedAt: data.priceUpdatedAt,
+          priceCheckedAt: data.priceCheckedAt,
+          priceSource:    data.priceSource,
+        },
+      }
+    }
+
+    // Was checked recently with no results — skip ML call
+    if (data.priceNoResults && !isStale(data.priceCheckedAt)) {
+      return { status: 'not_found_recent' }
+    }
+
+    return { status: 'missing' }
+  } catch {
+    return { status: 'missing' }
+  }
+}
 
 export async function contributeToCatalog(item: SerieItem): Promise<void> {
   if (!item.n || !item.modelo) return
@@ -116,14 +176,43 @@ export async function contributeToCatalog(item: SerieItem): Promise<void> {
 }
 
 export async function searchCatalog(q: string): Promise<CatalogEntry[]> {
-  if (q.length < 2) return []
-  const upper = q.charAt(0).toUpperCase() + q.slice(1)
-  // '' is a high Unicode char used as a Firestore range query suffix
+  const trimmed = q.trim()
+  if (trimmed.length < 2) return []
   const col = collection(db, 'catalog')
-  const snap = await getDocs(
-    query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)),
-  )
-  return snap.docs.map((d) => d.data() as CatalogEntry)
+
+  // Build two prefix variants: lowercase and Capitalized-first
+  const lower = trimmed.toLowerCase()
+  const upper = lower.charAt(0).toUpperCase() + lower.slice(1)
+
+  const queries = [
+    getDocs(query(col, orderBy('modelo'), startAt(lower), endAt(lower + ''), limit(6))),
+    ...(upper !== lower
+      ? [getDocs(query(col, orderBy('modelo'), startAt(upper), endAt(upper + ''), limit(6)))]
+      : []),
+  ]
+
+  // Also try exact match on reference code `n`
+  const byCode = getDoc(doc(col, trimmed)).then((s) =>
+    s.exists() ? [s.data() as CatalogEntry] : [],
+  ).catch(() => [] as CatalogEntry[])
+
+  const [codeResults, ...snapshots] = await Promise.all([byCode, ...queries])
+
+  const seen = new Set<string>()
+  const entries: CatalogEntry[] = []
+
+  // Code match first
+  for (const e of codeResults) {
+    if (!seen.has(e.n)) { seen.add(e.n); entries.push(e) }
+  }
+  // Then modelo prefix matches
+  for (const snap of snapshots) {
+    for (const d of snap.docs) {
+      const e = d.data() as CatalogEntry
+      if (!seen.has(d.id)) { seen.add(d.id); entries.push(e) }
+    }
+  }
+  return entries.slice(0, 8)
 }
 
 export async function getCatalogEntry(n: string): Promise<CatalogEntry | null> {
@@ -138,12 +227,13 @@ export async function contributeMarketPrice(
   price: number,
 ): Promise<void> {
   if (!n || price <= 0) return
-  const ref = doc(db, 'catalog', String(n))
-  await setDoc(ref, {
-    n: String(n),
-    modelo,
+  const checkedAt = new Date().toISOString()
+  await setDoc(doc(db, 'catalog', String(n)), {
+    n: String(n), modelo,
     marketPrice: price,
-    priceUpdatedAt: new Date().toISOString(),
+    priceUpdatedAt: checkedAt,
+    priceCheckedAt: checkedAt,
+    priceNoResults: false,
     priceSource: 'community',
   }, { merge: true })
 }
