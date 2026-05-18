@@ -28,17 +28,17 @@ export type PriceResult = Pick<CatalogEntry,
 >
 
 export type FetchPriceResult =
-  | { status: 'found'; data: PriceResult; img?: string }
+  | { status: 'found'; data: PriceResult }
   | { status: 'not_found' }
   | { status: 'error' }
 
 export type CatalogPriceResult =
-  | { status: 'found'; data: PriceResult; img?: string }
+  | { status: 'found'; data: PriceResult }
   | { status: 'not_found_recent' }
   | { status: 'missing' }
 
 const ML_SEARCH = 'https://api.mercadolibre.com/sites/MLB/search'
-const PRICE_TTL_DAYS = 7
+const PRICE_TTL_DAYS = 3
 const PRICE_MIN = 5
 const PRICE_MAX = 2000
 
@@ -54,52 +54,45 @@ export function isStale(updatedAt?: string): boolean {
   return age > PRICE_TTL_DAYS
 }
 
-type MLHit = { price: number; thumbnail?: string }
-
-async function mlSearch(q: string): Promise<MLHit[]> {
+async function mlSearch(q: string): Promise<number[]> {
   try {
     const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
     if (!res.ok) return []
     const json = await res.json()
-    return (json.results as Array<{ price: number; title: string; thumbnail?: string }> || [])
+    return (json.results as Array<{ price: number; title: string }> || [])
       .filter((r) => {
         const t = (r.title || '').toLowerCase()
         return t.includes('hot wheels') || t.includes('hotwheels')
           || t.includes(' hw ') || t.startsWith('hw ') || t.endsWith(' hw')
       })
-      .map((r) => ({ price: Number(r.price), thumbnail: r.thumbnail }))
-      .filter((r) => r.price >= PRICE_MIN && r.price <= PRICE_MAX)
+      .map((r) => Number(r.price))
+      .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
   } catch {
     return []
   }
 }
 
-function dedup(hits: MLHit[]): MLHit[] {
-  const seen = new Set<number>()
-  return hits.filter((h) => {
-    if (seen.has(h.price)) return false
-    seen.add(h.price)
-    return true
-  })
+function dedup(prices: number[]): number[] {
+  return [...new Set(prices)]
 }
 
 export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPriceResult> {
   if (!n) return { status: 'error' }
 
-  let hits: MLHit[] = []
+  let prices: number[] = []
   let apiError = false
 
   try {
-    const queries: Promise<MLHit[]>[] = [mlSearch(`hot wheels ${modelo}`)]
+    const queries: Promise<number[]>[] = [mlSearch(`hot wheels ${modelo}`)]
     if (n) queries.push(mlSearch(`hot wheels ${n}`))
 
     const results = await Promise.all(queries)
-    hits = dedup(results.flat())
+    prices = dedup(results.flat())
 
     // Last resort: modelo name alone (some sellers omit "hot wheels")
-    if (hits.length < 3 && modelo) {
+    if (prices.length < 3 && modelo) {
       const bare = await mlSearch(modelo)
-      hits = dedup([...hits, ...bare])
+      prices = dedup([...prices, ...bare])
     }
   } catch {
     apiError = true
@@ -109,7 +102,7 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
 
   if (apiError) return { status: 'error' }
 
-  if (hits.length === 0) {
+  if (prices.length === 0) {
     try {
       await setDoc(doc(db, 'catalog', String(n)), {
         n: String(n), modelo,
@@ -120,14 +113,11 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
     return { status: 'not_found' }
   }
 
-  const prices      = hits.map((h) => h.price)
   const marketPrice = Math.round(median(prices) * 100) / 100
   const priceMin    = Math.round(Math.min(...prices) * 100) / 100
   const priceMax    = Math.round(Math.max(...prices) * 100) / 100
   const priceCount  = prices.length
   const priceSource = 'Mercado Livre'
-  // Pick thumbnail from first hit that has one
-  const img = hits.find((h) => h.thumbnail)?.thumbnail
 
   try {
     await setDoc(doc(db, 'catalog', String(n)), {
@@ -136,14 +126,12 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
       priceUpdatedAt: checkedAt, priceCheckedAt: checkedAt,
       priceNoResults: false,
       priceSource,
-      ...(img ? { img } : {}),
     }, { merge: true })
   } catch { /* non-critical */ }
 
   return {
     status: 'found',
     data: { marketPrice, priceMin, priceMax, priceCount, priceUpdatedAt: checkedAt, priceCheckedAt: checkedAt, priceSource },
-    img,
   }
 }
 
@@ -166,7 +154,6 @@ export async function getCatalogPrice(n: string): Promise<CatalogPriceResult> {
           priceCheckedAt: data.priceCheckedAt,
           priceSource:    data.priceSource,
         },
-        img: data.img,
       }
     }
 
