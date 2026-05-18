@@ -15,7 +15,6 @@ type Props = {
 
 export default function ItemRow({
   item, ownership, galleryIndex, onOpenModal, onItemClick, feed,
-  // serieNome kept in Props for future use / parent identification
 }: Props) {
   const imgRef = useRef<HTMLImageElement>(null)
   const [imgLoaded, setImgLoaded] = useState(false)

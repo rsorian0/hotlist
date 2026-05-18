@@ -1,3 +1,4 @@
+import type { FC } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 import type { ToastVariant } from '../contexts/ToastContext'
 
@@ -5,11 +6,11 @@ type Props = { message: string; variant?: ToastVariant }
 
 const styles: Record<ToastVariant, string> = {
   default: 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900',
-  success: 'bg-green-600 text-white',
-  error:   'bg-red-600 text-white',
+  success: 'bg-green-600 dark:bg-green-700 text-white',
+  error:   'bg-red-600 dark:bg-red-700 text-white',
 }
 
-const icons: Record<ToastVariant, React.FC<{ className?: string }> | null> = {
+const icons: Record<ToastVariant, FC<{ className?: string }> | null> = {
   default: null,
   success: CheckCircle2,
   error:   XCircle,
