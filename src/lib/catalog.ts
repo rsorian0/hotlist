@@ -56,22 +56,22 @@ export function isStale(updatedAt?: string): boolean {
   return age > PRICE_TTL_DAYS
 }
 
+// Throws on HTTP error so callers can distinguish API failure from empty results
 async function mlSearch(q: string): Promise<number[]> {
-  try {
-    const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
-    if (!res.ok) return []
-    const json = await res.json()
-    return (json.results as Array<{ price: number; title: string }> || [])
-      .filter((r) => {
-        const t = (r.title || '').toLowerCase()
-        return t.includes('hot wheels') || t.includes('hotwheels')
-          || t.includes(' hw ') || t.startsWith('hw ') || t.endsWith(' hw')
-      })
-      .map((r) => Number(r.price))
-      .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
-  } catch {
-    return []
-  }
+  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
+  if (!res.ok) throw new Error(`ML ${res.status}`)
+  const json = await res.json()
+  const all = (json.results as Array<{ price: number; title: string }> || [])
+    .map((r) => Number(r.price))
+    .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
+
+  // Prefer results whose title mentions Hot Wheels; fall back to all results
+  const hw = all.filter((_, i) => {
+    const t = ((json.results[i] as { title?: string }).title || '').toLowerCase()
+    return t.includes('hot wheels') || t.includes('hotwheels')
+      || t.includes(' hw ') || t.startsWith('hw ') || t.endsWith(' hw')
+  })
+  return hw.length > 0 ? hw : all
 }
 
 function dedup(prices: number[]): number[] {
@@ -85,11 +85,14 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
   let apiError = false
 
   try {
-    const queries: Promise<number[]>[] = [mlSearch(`hot wheels ${modelo}`)]
-    if (n) queries.push(mlSearch(`hot wheels ${n}`))
+    // Sequential to avoid rate-limiting (each call is already one HTTP request)
+    const byModelo = await mlSearch(`hot wheels ${modelo}`)
+    prices = byModelo
 
-    const results = await Promise.all(queries)
-    prices = dedup(results.flat())
+    if (n) {
+      const byN = await mlSearch(`hot wheels ${n}`)
+      prices = dedup([...prices, ...byN])
+    }
 
     // Last resort: modelo name alone (some sellers omit "hot wheels")
     if (prices.length < 3 && modelo) {

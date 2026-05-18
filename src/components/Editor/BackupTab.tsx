@@ -113,8 +113,8 @@ export default function BackupTab({ series, checks, onImport }: Props) {
         errors++
       }
       setRefresh({ status: 'running', done: i + 1, total: items.length, found, notFound, errors })
-      // Small delay to avoid hammering the ML API
-      if (i < items.length - 1 && !abortRef.current) await new Promise((r) => setTimeout(r, 400))
+      // Delay between items to avoid ML rate-limiting
+      if (i < items.length - 1 && !abortRef.current) await new Promise((r) => setTimeout(r, 800))
     }
 
     setRefresh({ status: 'done', total: items.length, found, notFound, errors })
