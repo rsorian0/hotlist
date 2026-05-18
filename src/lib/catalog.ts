@@ -38,7 +38,7 @@ export type CatalogPriceResult =
   | { status: 'missing' }
 
 const ML_SEARCH = 'https://api.mercadolibre.com/sites/MLB/search'
-const PRICE_TTL_DAYS = 3
+const PRICE_TTL_DAYS = 7
 const PRICE_MIN = 5
 const PRICE_MAX = 2000
 
