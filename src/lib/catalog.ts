@@ -107,10 +107,18 @@ export function isStale(updatedAt?: string): boolean {
 // Throws on HTTP error so callers can distinguish API failure from empty results
 async function mlSearch(q: string): Promise<number[]> {
   const token = await getMLToken().catch(() => '')
-  const headers: Record<string, string> = { 'Accept': 'application/json' }
-  if (token) headers['Authorization'] = `Bearer ${token}`
+  const url = `${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`
 
-  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`, { headers })
+  let res = await fetch(url, {
+    headers: { 'Accept': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+  })
+
+  // Token rejected — invalidate cache and retry without auth
+  if (res.status === 403 && token) {
+    try { localStorage.removeItem(LS_ML_TOKEN) } catch { /* ignore */ }
+    res = await fetch(url, { headers: { 'Accept': 'application/json' } })
+  }
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
   const results = json.results as Array<{ price: number; title: string }> || []
