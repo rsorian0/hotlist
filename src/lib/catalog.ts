@@ -56,15 +56,19 @@ async function mlSearch(q: string): Promise<number[]> {
     const json = await res.json()
     return (json.results as Array<{ price: number; title: string }> || [])
       .filter((r) => {
-        // Discard results that are clearly not Hot Wheels cars
         const t = (r.title || '').toLowerCase()
-        return t.includes('hot wheels') || t.includes('hotwheels')
+        return t.includes('hot wheels') || t.includes('hotwheels') || t.includes(' hw ')
+          || t.startsWith('hw ') || t.endsWith(' hw')
       })
       .map((r) => Number(r.price))
       .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
   } catch {
     return []
   }
+}
+
+function dedup(prices: number[]): number[] {
+  return [...new Set(prices)]
 }
 
 export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPriceResult> {
@@ -74,12 +78,19 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
   let apiError = false
 
   try {
-    prices = await mlSearch(`hot wheels ${n}`)
+    // Run all searches in parallel and merge results
+    const queries: Promise<number[]>[] = [
+      mlSearch(`hot wheels ${modelo}`),
+    ]
+    if (n) queries.push(mlSearch(`hot wheels ${n}`))
 
-    // Fallback to model name when reference code yields < 2 results
-    if (prices.length < 2 && modelo) {
-      const byModelo = await mlSearch(`hot wheels ${modelo}`)
-      if (byModelo.length > prices.length) prices = byModelo
+    const results = await Promise.all(queries)
+    prices = dedup(results.flat())
+
+    // Last resort: modelo name alone (some sellers omit "hot wheels")
+    if (prices.length < 3 && modelo) {
+      const bare = await mlSearch(modelo)
+      prices = dedup([...prices, ...bare])
     }
   } catch {
     apiError = true
