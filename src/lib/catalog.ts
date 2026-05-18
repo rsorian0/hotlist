@@ -1,6 +1,6 @@
 import {
   collection, doc, getDoc, getDocs,
-  increment, orderBy, query, setDoc,
+  increment, orderBy, query, runTransaction, setDoc,
   serverTimestamp, startAt, endAt, limit,
 } from 'firebase/firestore'
 import { db } from './firebase'
@@ -20,6 +20,8 @@ export type CatalogEntry = {
   priceCheckedAt?: string  // last time ML was queried (even if no results)
   priceNoResults?: boolean // true = ML was queried and returned 0 results
   priceSource?: string
+  communityPriceSum?: number   // sum of all community contributions
+  communityPriceCount?: number // number of community contributions
 }
 
 export type PriceResult = Pick<CatalogEntry,
@@ -228,13 +230,23 @@ export async function contributeMarketPrice(
   price: number,
 ): Promise<void> {
   if (!n || price <= 0) return
-  const checkedAt = new Date().toISOString()
-  await setDoc(doc(db, 'catalog', String(n)), {
-    n: String(n), modelo,
-    marketPrice: price,
-    priceUpdatedAt: checkedAt,
-    priceCheckedAt: checkedAt,
-    priceNoResults: false,
-    priceSource: 'community',
-  }, { merge: true })
+  const ref = doc(db, 'catalog', String(n))
+  const updatedAt = new Date().toISOString()
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref)
+    const data = snap.exists() ? (snap.data() as CatalogEntry) : {}
+    const newSum   = (data.communityPriceSum   || 0) + price
+    const newCount = (data.communityPriceCount || 0) + 1
+    const avg = Math.round((newSum / newCount) * 100) / 100
+    tx.set(ref, {
+      n: String(n), modelo,
+      marketPrice: avg,
+      communityPriceSum:   newSum,
+      communityPriceCount: newCount,
+      priceUpdatedAt: updatedAt,
+      priceCheckedAt: updatedAt,
+      priceNoResults: false,
+      priceSource: 'community',
+    }, { merge: true })
+  })
 }

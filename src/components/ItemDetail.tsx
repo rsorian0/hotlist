@@ -9,7 +9,7 @@ import { useConfirm } from '../contexts/ConfirmContext'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { RefreshCw, ScanLine, Search, Trash2, X } from 'lucide-react'
+import { RefreshCw, ScanLine, Search, Trash2, TrendingUp, Users, X } from 'lucide-react'
 
 const BarcodeScannerModal = lazy(() => import('./BarcodeScannerModal'))
 
@@ -391,40 +391,63 @@ export default function ItemDetail({
                   </div>
                 )}
 
-                {price.status === 'found' && (
-                  <div className="mt-2 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 p-3">
+                {price.status === 'found' && price.data.priceSource === 'community' && (
+                  <div className="mt-2 rounded-xl border border-violet-200 dark:border-violet-900 bg-violet-50 dark:bg-violet-950/40 p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                        {price.data.priceSource === 'community'
-                          ? `Comunidade · ${formatDate(price.data.priceUpdatedAt)}`
-                          : `Mercado Livre · mediana · ${formatDate(price.data.priceUpdatedAt)}`}
-                        {price.stale && ' · desatualizado'}
-                      </span>
+                      <div className="flex items-center gap-1.5 text-[11px] text-violet-600 dark:text-violet-400">
+                        <Users className="h-3 w-3" />
+                        <span>Comunidade · média · {formatDate(price.data.priceUpdatedAt)}</span>
+                      </div>
                       <button
                         type="button"
                         onClick={retryPrice}
-                        title="Atualizar preço"
-                        className="text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                        title="Buscar no Mercado Livre"
+                        className="text-violet-400 hover:text-violet-600 dark:hover:text-violet-200 transition-colors"
                       >
                         <RefreshCw className="h-3 w-3" />
                       </button>
                     </div>
-                    <div className="flex divide-x divide-neutral-200 dark:divide-neutral-700">
+                    <div className="text-center">
+                      <span className="text-lg font-bold text-violet-700 dark:text-violet-300">R$ {price.data.marketPrice!.toFixed(2)}</span>
+                      {price.data.priceCount != null && price.data.priceCount > 1 && (
+                        <div className="text-[10px] text-violet-500 dark:text-violet-400 mt-0.5">média de {price.data.priceCount} contribuições</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {price.status === 'found' && price.data.priceSource !== 'community' && (
+                  <div className="mt-2 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/40 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-1.5 text-[11px] text-blue-600 dark:text-blue-400">
+                        <TrendingUp className="h-3 w-3" />
+                        <span>Mercado Livre · mediana · {formatDate(price.data.priceUpdatedAt)}{price.stale && ' · desatualizado'}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={retryPrice}
+                        title="Atualizar preço"
+                        className="text-blue-400 hover:text-blue-600 dark:hover:text-blue-200 transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                      </button>
+                    </div>
+                    <div className="flex divide-x divide-blue-200 dark:divide-blue-900">
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais barato</span>
-                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {price.data.priceMin?.toFixed(2) ?? '—'}</span>
+                        <span className="text-[10px] text-blue-400 dark:text-blue-500 mb-0.5">Mais barato</span>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">R$ {price.data.priceMin?.toFixed(2) ?? '—'}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mediana</span>
-                        <span className="text-sm font-bold text-neutral-900 dark:text-neutral-100">R$ {price.data.marketPrice!.toFixed(2)}</span>
+                        <span className="text-[10px] text-blue-400 dark:text-blue-500 mb-0.5">Mediana</span>
+                        <span className="text-sm font-bold text-blue-900 dark:text-blue-100">R$ {price.data.marketPrice!.toFixed(2)}</span>
                       </div>
                       <div className="flex-1 flex flex-col items-center px-2">
-                        <span className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-0.5">Mais caro</span>
-                        <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">R$ {price.data.priceMax?.toFixed(2) ?? '—'}</span>
+                        <span className="text-[10px] text-blue-400 dark:text-blue-500 mb-0.5">Mais caro</span>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">R$ {price.data.priceMax?.toFixed(2) ?? '—'}</span>
                       </div>
                     </div>
                     {price.data.priceCount != null && (
-                      <div className="text-[10px] text-neutral-400 dark:text-neutral-500 text-center mt-2">{price.data.priceCount} anúncios analisados</div>
+                      <div className="text-[10px] text-blue-400 dark:text-blue-500 text-center mt-2">{price.data.priceCount} anúncios analisados</div>
                     )}
                   </div>
                 )}
