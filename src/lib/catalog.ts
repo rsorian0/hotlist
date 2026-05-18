@@ -40,9 +40,57 @@ export type CatalogPriceResult =
   | { status: 'missing' }
 
 const ML_SEARCH = 'https://api.mercadolibre.com/sites/MLB/search'
+const ML_OAUTH  = 'https://api.mercadolibre.com/oauth/token'
 const PRICE_TTL_DAYS = 7
 const PRICE_MIN = 5
 const PRICE_MAX = 2000
+
+const ML_APP_ID     = import.meta.env.VITE_ML_APP_ID     || ''
+const ML_APP_SECRET = import.meta.env.VITE_ML_CLIENT_SECRET || ''
+
+type TokenCache = { token: string; expiresAt: number }
+const LS_ML_TOKEN = 'ml_token_v1'
+
+let tokenInFlight: Promise<string> | null = null
+
+async function getMLToken(): Promise<string> {
+  if (!ML_APP_ID || !ML_APP_SECRET) return ''
+
+  const cached = (() => {
+    try {
+      const raw = localStorage.getItem(LS_ML_TOKEN)
+      if (!raw) return null
+      const c = JSON.parse(raw) as TokenCache
+      // Refresh 5 min before expiry
+      return c.expiresAt - Date.now() > 300_000 ? c.token : null
+    } catch { return null }
+  })()
+  if (cached) return cached
+
+  if (tokenInFlight) return tokenInFlight
+
+  tokenInFlight = (async () => {
+    const res = await fetch(ML_OAUTH, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
+      body: new URLSearchParams({
+        grant_type:    'client_credentials',
+        client_id:     ML_APP_ID,
+        client_secret: ML_APP_SECRET,
+      }),
+    })
+    if (!res.ok) throw new Error(`ML OAuth HTTP ${res.status}`)
+    const json = await res.json() as { access_token: string; expires_in: number }
+    const cache: TokenCache = {
+      token:     json.access_token,
+      expiresAt: Date.now() + json.expires_in * 1000,
+    }
+    try { localStorage.setItem(LS_ML_TOKEN, JSON.stringify(cache)) } catch { /* quota */ }
+    return json.access_token
+  })().finally(() => { tokenInFlight = null })
+
+  return tokenInFlight
+}
 
 function median(nums: number[]): number {
   const s = [...nums].sort((a, b) => a - b)
@@ -58,9 +106,11 @@ export function isStale(updatedAt?: string): boolean {
 
 // Throws on HTTP error so callers can distinguish API failure from empty results
 async function mlSearch(q: string): Promise<number[]> {
-  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`, {
-    headers: { 'Accept': 'application/json' },
-  })
+  const token = await getMLToken().catch(() => '')
+  const headers: Record<string, string> = { 'Accept': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+
+  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`, { headers })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
   const results = json.results as Array<{ price: number; title: string }> || []
