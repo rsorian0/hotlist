@@ -16,7 +16,7 @@ type Props = {
 type RefreshState =
   | { status: 'idle' }
   | { status: 'running'; done: number; total: number; found: number; notFound: number; errors: number }
-  | { status: 'done'; total: number; found: number; notFound: number; errors: number }
+  | { status: 'done'; total: number; found: number; notFound: number; errors: number; firstError?: string }
 
 export default function BackupTab({ series, checks, onImport }: Props) {
   const [buffer, setBuffer] = useState<ImportData | null>(null)
@@ -97,7 +97,7 @@ export default function BackupTab({ series, checks, onImport }: Props) {
     }
 
     abortRef.current = false
-    let found = 0; let notFound = 0; let errors = 0
+    let found = 0; let notFound = 0; let errors = 0; let firstError: string | undefined
 
     setRefresh({ status: 'running', done: 0, total: items.length, found, notFound, errors })
 
@@ -108,7 +108,7 @@ export default function BackupTab({ series, checks, onImport }: Props) {
         const result = await fetchMLPrice(n, modelo)
         if (result.status === 'found') found++
         else if (result.status === 'not_found') notFound++
-        else errors++
+        else { errors++; if (!firstError) firstError = result.reason }
       } catch {
         errors++
       }
@@ -117,7 +117,7 @@ export default function BackupTab({ series, checks, onImport }: Props) {
       if (i < items.length - 1 && !abortRef.current) await new Promise((r) => setTimeout(r, 800))
     }
 
-    setRefresh({ status: 'done', total: items.length, found, notFound, errors })
+    setRefresh({ status: 'done', total: items.length, found, notFound, errors, firstError })
     toast(`Preços atualizados: ${found} encontrados, ${notFound} sem anúncios, ${errors} erros`, found > 0 ? 'success' : 'default')
   }
 
@@ -172,9 +172,12 @@ export default function BackupTab({ series, checks, onImport }: Props) {
               'text-xs rounded-lg px-3 py-2 border',
               refresh.found > 0
                 ? 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900'
-                : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700',
+                : refresh.errors > 0
+                  ? 'bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900'
+                  : 'bg-neutral-50 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700',
             ].join(' ')}>
               Concluído • {refresh.found} encontrados • {refresh.notFound} sem anúncios{refresh.errors > 0 ? ` • ${refresh.errors} erros` : ''}
+              {refresh.firstError && <div className="mt-1 opacity-70">Erro: {refresh.firstError}</div>}
             </div>
             <Button type="button" variant="outline" className="w-full" onClick={handleResetRefresh}>
               Atualizar novamente

@@ -32,7 +32,7 @@ export type PriceResult = Pick<CatalogEntry,
 export type FetchPriceResult =
   | { status: 'found'; data: PriceResult }
   | { status: 'not_found' }
-  | { status: 'error' }
+  | { status: 'error'; reason?: string }
 
 export type CatalogPriceResult =
   | { status: 'found'; data: PriceResult }
@@ -58,16 +58,19 @@ export function isStale(updatedAt?: string): boolean {
 
 // Throws on HTTP error so callers can distinguish API failure from empty results
 async function mlSearch(q: string): Promise<number[]> {
-  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`)
-  if (!res.ok) throw new Error(`ML ${res.status}`)
+  const res = await fetch(`${ML_SEARCH}?q=${encodeURIComponent(q)}&limit=30`, {
+    headers: { 'Accept': 'application/json' },
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
   const json = await res.json()
-  const all = (json.results as Array<{ price: number; title: string }> || [])
+  const results = json.results as Array<{ price: number; title: string }> || []
+  const all = results
     .map((r) => Number(r.price))
     .filter((p) => p >= PRICE_MIN && p <= PRICE_MAX)
 
   // Prefer results whose title mentions Hot Wheels; fall back to all results
   const hw = all.filter((_, i) => {
-    const t = ((json.results[i] as { title?: string }).title || '').toLowerCase()
+    const t = (results[i].title || '').toLowerCase()
     return t.includes('hot wheels') || t.includes('hotwheels')
       || t.includes(' hw ') || t.startsWith('hw ') || t.endsWith(' hw')
   })
@@ -82,7 +85,7 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
   if (!n) return { status: 'error' }
 
   let prices: number[] = []
-  let apiError = false
+  let apiErrorReason: string | undefined
 
   try {
     // Sequential to avoid rate-limiting (each call is already one HTTP request)
@@ -99,13 +102,13 @@ export async function fetchMLPrice(n: string, modelo: string): Promise<FetchPric
       const bare = await mlSearch(modelo)
       prices = dedup([...prices, ...bare])
     }
-  } catch {
-    apiError = true
+  } catch (e) {
+    apiErrorReason = e instanceof Error ? e.message : 'unknown'
   }
 
   const checkedAt = new Date().toISOString()
 
-  if (apiError) return { status: 'error' }
+  if (apiErrorReason !== undefined) return { status: 'error', reason: apiErrorReason }
 
   if (prices.length === 0) {
     try {
