@@ -19,12 +19,10 @@ type Props = {
 }
 
 const LINE_CHIPS: { id: Line | null; label: string }[] = [
-  { id: null,           label: 'Tudo' },
-  { id: 'th',          label: 'TH' },
-  { id: 'sth',         label: 'STH' },
-  { id: 'premium',     label: 'Premium' },
-  { id: 'rlc',         label: 'RLC' },
-  { id: 'silver-series', label: 'Silver' },
+  { id: null,             label: 'Tudo' },
+  { id: 'th',            label: 'TH' },
+  { id: 'premium',       label: 'Premium' },
+  { id: 'rlc',           label: 'RLC' },
 ]
 
 export default function ListScreen({ series, checks, filter, setFilter, syncing, onItemClick, onToggle, onAddClick }: Props) {
@@ -66,16 +64,16 @@ export default function ListScreen({ series, checks, filter, setFilter, syncing,
         <IconButton onClick={onAddClick} aria-label="Adicionar peça"><Plus size={20} /></IconButton>
       </div>
 
-      {/* Line filter chips */}
-      <div style={{ display: 'flex', gap: 'var(--s2)', marginBottom: 'var(--s3)', flexWrap: 'wrap' }}>
+      {/* Chips de linha — scroll horizontal sem quebra */}
+      <div style={{ display: 'flex', gap: 'var(--s2)', overflowX: 'auto', marginBottom: 'var(--s4)', paddingBottom: 2 }}>
         {LINE_CHIPS.map((c) => (
-          <Chip key={String(c.id)} active={lineFilter === c.id} onClick={() => setLineFilter(c.id)}>
+          <Chip key={String(c.id)} active={lineFilter === c.id} onClick={() => setLineFilter(c.id)} style={{ flexShrink: 0 }}>
             {c.label}
           </Chip>
         ))}
       </div>
 
-      {/* Groups */}
+      {/* Grupos */}
       {series.length === 0 ? (
         <DsEmptyState icon="PackageOpen" title="Coleção vazia" subtitle="Nenhuma peça ainda."
           action={<button type="button" onClick={onAddClick} style={{ fontSize: 13, color: 'var(--accent)', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>Adicionar peça</button>}
@@ -83,19 +81,17 @@ export default function ListScreen({ series, checks, filter, setFilter, syncing,
       ) : !anyVisible ? (
         <DsEmptyState icon="SearchX" title="Nenhum resultado" subtitle="Tente outro modelo ou linha." />
       ) : (
-        series.map((s) => {
-          const filtered = {
-            ...s,
-            items: lineFilter
-              ? s.items.filter((it) => effectiveLine(it) === lineFilter)
-              : s.items,
-          }
+        series.map((s, idx) => {
+          const filtered = lineFilter
+            ? { ...s, items: s.items.filter((it) => effectiveLine(it) === lineFilter) }
+            : s
           return (
             <DsSeriesGroup
               key={s.nome}
               serie={filtered}
               checks={checks}
               filter={filter}
+              defaultOpen={idx === 0 || !!filter.trim()}
               onItemClick={onItemClick}
               onToggle={onToggle}
             />

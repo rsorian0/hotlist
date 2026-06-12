@@ -1,54 +1,64 @@
 import { useState } from 'react'
 import type { Serie, OwnershipMap } from '../types'
-import { Chip, CollectionClubCard } from '../components/ds'
+import { Chip, CollectionClubCard, DsEmptyState } from '../components/ds'
 
 type Props = {
   series: Serie[]
   checks: OwnershipMap
   onSerieClick: (serie: Serie) => void
+  onAddClick?: () => void
 }
 
-export default function CollectionScreen({ series, checks, onSerieClick }: Props) {
-  const [activeChip, setActiveChip] = useState('Todos')
+const FILTERS = ['Todas', 'Hot Wheels', 'Matchbox', 'Majorette', 'Tomica']
+
+export default function CollectionScreen({ series, checks, onSerieClick, onAddClick }: Props) {
+  const [filter, setFilter] = useState('Todas')
 
   const collections = series.map((s) => {
     const owned = s.items.filter((i) => checks[`${s.nome}__${i.n ?? ''}`]?.owned).length
+    const pct = s.items.length > 0 ? Math.round((owned / s.items.length) * 100) : 0
     return {
       serie: s,
       nome: s.nome,
       total: s.items.length,
       owned,
-      pct: s.items.length > 0 ? Math.round((owned / s.items.length) * 100) : 0,
+      pct,
       clubCount: Math.floor(Math.random() * 1000 + 100),
     }
   })
 
-  const chips = ['Todos', 'Hot Wheels']
+  // filter by fabricante — since Serie has no maker field, match by keyword in name
+  const filtered = filter === 'Todas'
+    ? collections
+    : collections.filter((c) => c.nome.toLowerCase().includes(filter.toLowerCase()))
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: 'var(--s4) var(--s4) var(--s10)' }}>
-      <div style={{ marginBottom: 'var(--s4)' }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>Coleção</h1>
-        <p style={{ fontSize: 13, color: 'var(--subtle)' }}>{collections.length} {collections.length === 1 ? 'série' : 'séries'}</p>
+
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, letterSpacing: 'var(--ls-tight)', color: 'var(--text)' }}>Coleção</h1>
       </div>
 
-      <div style={{ display: 'flex', gap: 'var(--s2)', marginBottom: 'var(--s4)', flexWrap: 'wrap' }}>
-        {chips.map((c) => (
-          <Chip key={c} active={activeChip === c} onClick={() => setActiveChip(c)}>{c}</Chip>
+      {/* Filtros de fabricante — scroll horizontal */}
+      <div style={{ display: 'flex', gap: 'var(--s2)', overflowX: 'auto', marginBottom: 'var(--s4)', paddingBottom: 2 }}>
+        {FILTERS.map((f) => (
+          <Chip key={f} active={filter === f} onClick={() => setFilter(f)} style={{ flexShrink: 0 }}>{f}</Chip>
         ))}
       </div>
 
-      {collections.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 'var(--s10) 0', color: 'var(--subtle)', fontSize: 14 }}>
-          Nenhuma coleção ainda.
-        </div>
+      {filtered.length === 0 ? (
+        <DsEmptyState
+          icon="Library"
+          title="Nenhuma coleção"
+          subtitle={filter === 'Todas' ? 'Adicione o primeiro item para começar.' : `Nenhuma coleção de ${filter}.`}
+        />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--s3)' }}>
-          {collections.map((c) => (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s3)' }}>
+          {filtered.map((c) => (
             <CollectionClubCard
               key={c.nome}
               name={c.nome}
-              fabricante="Hot Wheels"
               owned={c.owned}
               total={c.total}
               pct={c.pct}

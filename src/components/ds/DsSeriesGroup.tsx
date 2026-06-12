@@ -60,7 +60,7 @@ export function DsSeriesGroup({ serie, checks, filter = '', defaultOpen = true, 
         onClick={() => setOpen((v) => !v)}
         style={{
           width: '100%', display: 'flex', alignItems: 'center', gap: 'var(--s2)',
-          padding: 'var(--s2) var(--s3)', cursor: 'pointer',
+          padding: '12px var(--s3)', minHeight: 'var(--touch)', cursor: 'pointer',
           background: 'transparent', border: 0, fontFamily: 'var(--font-sans)',
           transition: 'background var(--dur-base) var(--ease)',
         }}

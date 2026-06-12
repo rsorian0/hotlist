@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { Serie, OwnershipMap, Line } from '../types'
 import { effectiveLine, lineMeta } from '../utils/line'
-import { StatCard, Icon } from '../components/ds'
+import { StatCard, Icon, Chip, ProgressCard } from '../components/ds'
 
 type Props = { series: Serie[]; checks: OwnershipMap }
+
+const PERIODS = ['Esta semana', 'Este mês', 'Este ano', 'Total']
 
 const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
 
@@ -46,6 +48,7 @@ const secLabel: React.CSSProperties = {
 }
 
 export default function StatsScreen({ series, checks }: Props) {
+  const [period, setPeriod] = useState('Total')
   const data = useMemo(() => {
     const owned: OwnedItem[] = []
     for (const s of series) {
@@ -130,6 +133,36 @@ export default function StatsScreen({ series, checks }: Props) {
   return (
     <div style={{ maxWidth: 560, margin: '0 auto', padding: 'var(--s4) var(--s4) var(--s10)', display: 'flex', flexDirection: 'column', gap: 'var(--s5)' }}>
 
+      {/* Header + período */}
+      <div>
+        <h1 style={{ margin: '0 0 var(--s3)', fontSize: 20, fontWeight: 700, letterSpacing: 'var(--ls-tight)', color: 'var(--text)' }}>Stats</h1>
+        <div style={{ display: 'flex', gap: 'var(--s2)', overflowX: 'auto', paddingBottom: 2 }}>
+          {PERIODS.map((p) => (
+            <Chip key={p} active={period === p} onClick={() => setPeriod(p)} style={{ flexShrink: 0 }}>{p}</Chip>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumo — 4 cards DS 2x2 com ícones */}
+      <section>
+        <div style={secLabel}>Resumo</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s2)' }}>
+          <StatCard icon="Layers" value={String(data.totalAll)} label="Itens na coleção" />
+          <StatCard icon="CheckSquare" value={String(data.ownedCount)} label="Possuídos" />
+          <StatCard
+            icon="Flame"
+            iconTone="rare"
+            value={String(data.lineDist.find((d) => d.key === 'th')?.count ?? 0)}
+            label="Treasure Hunts"
+          />
+          <StatCard
+            icon="TrendingUp"
+            value={data.totalAll > 0 ? `${Math.round(data.overallPct * 100)}%` : '0%'}
+            label="Completude geral"
+          />
+        </div>
+      </section>
+
       {/* Hero ring */}
       <div style={{ ...S, display: 'flex', alignItems: 'center', gap: 'var(--s5)' }}>
         <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -157,12 +190,52 @@ export default function StatsScreen({ series, checks }: Props) {
         </div>
       </div>
 
-      {/* Summary StatCards */}
+      {/* Summary StatCards financeiros */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--s3)' }}>
-        <StatCard value={BRL.format(data.totalEstimated)} label="valor estimado" />
-        <StatCard value={BRL.format(data.totalInvested)} label="total investido" />
-        {data.avgMarket != null && <StatCard value={BRL.format(data.avgMarket)} label="preço médio" />}
-        {data.totalCount > data.ownedCount && <StatCard value={String(data.totalCount - data.ownedCount)} label="duplicatas" />}
+        <StatCard icon="DollarSign" value={BRL.format(data.totalEstimated)} label="valor estimado" />
+        <StatCard icon="Receipt" value={BRL.format(data.totalInvested)} label="total investido" />
+        {data.avgMarket != null && <StatCard icon="Tag" value={BRL.format(data.avgMarket)} label="preço médio" />}
+        {data.totalCount > data.ownedCount && <StatCard icon="Copy" value={String(data.totalCount - data.ownedCount)} label="duplicatas" />}
+      </div>
+
+      {/* Layout 2 colunas: Por coleção | No clube */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--s5)' }}>
+        {/* Por coleção */}
+        {data.seriesStats.length > 0 && (
+          <section>
+            <div style={secLabel}>Por coleção</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
+              {data.seriesStats.slice(0, 5).map((s) => (
+                <ProgressCard
+                  key={s.nome}
+                  icon="Package"
+                  name={s.nome}
+                  missing={s.total - s.owned}
+                  pct={Math.round(s.pct)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+        {/* No clube */}
+        <section>
+          <div style={secLabel}>No clube</div>
+          <div style={{ ...S, padding: 0, overflow: 'hidden' }}>
+            {[
+              { icon: 'Users', value: '1.247 colecionadores', label: 'no clube usam o Hotlist' },
+              { icon: 'Trophy', value: 'Top 12%', label: 'em número de Treasure Hunts' },
+              { icon: 'Star', value: 'Colecionador ativo', label: 'adicionou item nos últimos 7 dias', last: true },
+            ].map((r, i) => (
+              <div key={r.icon} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)', padding: '13px var(--s4)', borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
+                <span style={{ color: 'var(--subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Icon name={r.icon} size={20} /></span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{r.value}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>{r.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </div>
 
       {/* Valorização */}
@@ -302,26 +375,6 @@ export default function StatsScreen({ series, checks }: Props) {
           </div>
         </section>
       )}
-
-      {/* No clube */}
-      <section>
-        <div style={secLabel}>No clube</div>
-        <div style={{ ...S, padding: 0, overflow: 'hidden' }}>
-          {[
-            { icon: 'Users', value: '1.247 colecionadores', label: 'no clube usam o Hotlist' },
-            { icon: 'Library', value: '3.891 coleções', label: 'cadastradas no clube' },
-            { icon: 'TrendingUp', value: '12.540 modelos', label: 'rastreados pela comunidade' },
-          ].map((r, i) => (
-            <div key={r.icon} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)', padding: '13px var(--s4)', borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
-              <span style={{ color: 'var(--subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Icon name={r.icon} size={20} /></span>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{r.value}</div>
-                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{r.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Embalagem */}
       {(data.carded > 0 || data.loose > 0) && (

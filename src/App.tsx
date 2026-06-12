@@ -131,6 +131,7 @@ export default function App() {
               checks={checks}
               onAddClick={() => setAddSheetOpen(true)}
               onItemClick={setDetailKey}
+              onToggle={(key, owned) => setOwnership(key, { owned })}
               onSerieClick={(nome) => {
                 const s = series.find((s) => s.nome === nome)
                 if (s) setSelectedSerie(s)
