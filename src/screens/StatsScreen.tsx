@@ -84,7 +84,7 @@ export default function StatsScreen({ series, checks }: Props) {
       </section>
 
       {/* Layout 2 colunas: Por coleção | No clube */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--s5)' }}>
+      <div className="r-stats-two" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s5)' }}>
 
         {/* Por coleção */}
         {data.seriesStats.length > 0 && (

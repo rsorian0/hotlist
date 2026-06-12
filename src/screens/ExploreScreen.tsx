@@ -110,7 +110,7 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
           {/* Por linha — grid 2 colunas */}
           <section>
             <div style={secLabel}>Por linha</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s2)' }}>
+            <div className="r-grid-categories" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s2)' }}>
               {CATEGORY_LINES.map((l) => (
                 <CategoryCard
                   key={l.value}
@@ -126,7 +126,7 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
           {/* Por fabricante */}
           <section>
             <div style={secLabel}>Por fabricante</div>
-            <div style={{ display: 'flex', gap: 'var(--s2)', flexWrap: 'wrap', paddingBottom: 'var(--s2)' }}>
+            <div className="r-brand-pills" style={{ display: 'flex', gap: 'var(--s2)', overflowX: 'auto', paddingBottom: 'var(--s2)' }}>
               {FABRICANTES.map((f) => (
                 <Chip key={f} style={{ height: 40 }}>{f}</Chip>
               ))}

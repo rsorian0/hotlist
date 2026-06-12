@@ -111,7 +111,7 @@ export default function App() {
           onToggleTheme={toggleTheme}
         />
 
-        <main style={{ flex: 1, paddingBottom: 'calc(3.75rem + env(safe-area-inset-bottom) + 1.5rem)' }} className="md:pb-6">
+        <main className="flex-1 pb-[calc(3.75rem+env(safe-area-inset-bottom)+1.5rem)] md:pb-6" style={{ flex: 1 }}>
 
           {/* CollectionDetail sobrepõe o conteúdo da tab collection */}
           {selectedSerie && (
