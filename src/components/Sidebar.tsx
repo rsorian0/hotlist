@@ -40,26 +40,32 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, o
 
       {/* Nav */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: 'var(--s3) var(--s2)' }}>
-        {TABS.map(({ id, label, icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onChange(id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 'var(--s3)',
-              minHeight: 44, padding: '10px var(--s3)',
-              borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer', textAlign: 'left', width: '100%',
-              background: active === id ? 'var(--surface-2)' : 'transparent',
-              color: active === id ? 'var(--text)' : 'var(--subtle)',
-              fontFamily: 'var(--font-sans)', fontSize: 14,
-              fontWeight: active === id ? 700 : 'var(--fw-medium)',
-              transition: 'background var(--dur-base) var(--ease), color var(--dur-base) var(--ease)',
-            }}
-          >
-            <Icon name={icon} size={18} />
-            {label}
-          </button>
-        ))}
+        {TABS.map(({ id, label, icon }) => {
+          const isActive = active === id
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onChange(id)}
+              data-active={isActive ? 'true' : undefined}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 'var(--s3)',
+                minHeight: 44, padding: '10px var(--s3)',
+                borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer', textAlign: 'left', width: '100%',
+                background: isActive ? 'var(--surface-2)' : 'transparent',
+                color: isActive ? 'var(--text)' : 'var(--subtle)',
+                fontFamily: 'var(--font-sans)', fontSize: 14,
+                fontWeight: isActive ? 700 : 500,
+                transition: 'background var(--dur-base) var(--ease), color var(--dur-base) var(--ease)',
+              }}
+              onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'var(--surface-2)' }}
+              onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent' }}
+            >
+              <Icon name={icon} size={18} />
+              {label}
+            </button>
+          )
+        })}
       </nav>
 
       {/* Footer */}

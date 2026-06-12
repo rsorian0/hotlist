@@ -151,7 +151,7 @@ export default function HomeScreen({ user, series, checks, onAddClick, onItemCli
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.modelo || '—'}</div>
-                  <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 2 }}>{it.line ? it.line.toUpperCase() : (it.n ? String(it.n) : '—')}</div>
+                  <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 2 }}>{it.line ? it.line.replace(/-/g, ' ').toUpperCase() : (it.n ? String(it.n) : '—')}</div>
                 </div>
                 <div style={{
                   width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
