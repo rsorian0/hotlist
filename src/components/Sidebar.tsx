@@ -1,8 +1,8 @@
 import type { User } from 'firebase/auth'
-import { LogIn, LogOut, Sun, Moon } from 'lucide-react'
+import { LogIn, LogOut, Sun, Moon, Settings } from 'lucide-react'
 import { Logo, Icon } from './ds'
 
-type Tab = 'list' | 'grid' | 'stats' | 'manage'
+type Tab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
 
 type Props = {
   active: Tab
@@ -10,18 +10,20 @@ type Props = {
   user: User | null
   onSignIn: () => void
   onSignOut: () => void
+  onManage: () => void
   theme?: 'light' | 'dark'
   onToggleTheme?: () => void
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'list',   label: 'Lista',     icon: 'List' },
-  { id: 'grid',   label: 'Grade',     icon: 'LayoutGrid' },
-  { id: 'stats',  label: 'Stats',     icon: 'BarChart2' },
-  { id: 'manage', label: 'Gerenciar', icon: 'Settings' },
+  { id: 'home',       label: 'Início',   icon: 'Home' },
+  { id: 'collection', label: 'Coleção',  icon: 'Library' },
+  { id: 'list',       label: 'Lista',    icon: 'ListChecks' },
+  { id: 'explore',    label: 'Explorar', icon: 'Compass' },
+  { id: 'stats',      label: 'Stats',    icon: 'BarChart2' },
 ]
 
-export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, theme, onToggleTheme }: Props) {
+export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, onManage, theme, onToggleTheme }: Props) {
   return (
     <aside
       className="hidden md:flex flex-col"
@@ -61,6 +63,23 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, t
 
       {/* Footer */}
       <div style={{ borderTop: '1px solid var(--border)', padding: 'var(--s3) var(--s2) var(--s4)' }}>
+        {/* Gerenciar */}
+        <button
+          type="button"
+          onClick={onManage}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 'var(--s3)',
+            minHeight: 40, padding: '8px var(--s3)', width: '100%',
+            borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer',
+            background: 'transparent', color: 'var(--subtle)',
+            fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 'var(--fw-medium)',
+            transition: 'color var(--dur-base) var(--ease)',
+          }}
+        >
+          <Settings size={16} />
+          Gerenciar
+        </button>
+
         {onToggleTheme && (
           <button
             type="button"
@@ -79,6 +98,7 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, t
             {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
           </button>
         )}
+
         {!user ? (
           <button
             type="button"

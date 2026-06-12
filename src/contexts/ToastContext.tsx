@@ -22,8 +22,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={toast}>
       {children}
       <div
-        className="fixed z-[100] left-1/2 -translate-x-1/2 flex flex-col-reverse items-center gap-2 pointer-events-none"
-        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
+        style={{
+          position: 'fixed', zIndex: 200,
+          left: '50%', transform: 'translateX(-50%)',
+          bottom: 'calc(58px + var(--s4) + env(safe-area-inset-bottom))',
+          display: 'flex', flexDirection: 'column-reverse', alignItems: 'center', gap: 'var(--s2)',
+          pointerEvents: 'none',
+        }}
       >
         {items.map((item) => (
           <Toast key={item.id} message={item.message} variant={item.variant} />

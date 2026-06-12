@@ -1,12 +1,13 @@
 import { DsBottomNav } from './ds'
 
-type Tab = 'list' | 'grid' | 'stats' | 'manage'
+type Tab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
 
 const TABS = [
-  { id: 'list',   label: 'Lista',     icon: 'List' },
-  { id: 'grid',   label: 'Grade',     icon: 'LayoutGrid' },
-  { id: 'stats',  label: 'Stats',     icon: 'BarChart2' },
-  { id: 'manage', label: 'Gerenciar', icon: 'Settings' },
+  { id: 'home',       label: 'Início',   icon: 'Home' },
+  { id: 'collection', label: 'Coleção',  icon: 'Library' },
+  { id: 'list',       label: 'Lista',    icon: 'ListChecks' },
+  { id: 'explore',    label: 'Explorar', icon: 'Compass' },
+  { id: 'stats',      label: 'Stats',    icon: 'BarChart2' },
 ]
 
 type Props = { active: Tab; onChange: (tab: Tab) => void }
