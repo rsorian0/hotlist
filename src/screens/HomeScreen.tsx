@@ -74,16 +74,18 @@ export default function HomeScreen({ user, series, checks, onAddClick, onItemCli
         <IconButton onClick={onAddClick} aria-label="Adicionar peça"><Plus size={20} /></IconButton>
       </div>
 
-      {/* Busca */}
-      <DsInput
-        type="search"
-        placeholder="Buscar modelo…"
-        leading={<Search size={15} />}
-        wrapperStyle={{ height: 40, marginBottom: 'var(--s4)' }}
-        readOnly
-        onClick={onAddClick}
-        style={{ cursor: 'pointer' }}
-      />
+      {/* Busca — oculta no desktop (Header já tem busca) */}
+      <div className="md:hidden">
+        <DsInput
+          type="search"
+          placeholder="Buscar modelo…"
+          leading={<Search size={15} />}
+          wrapperStyle={{ height: 40, marginBottom: 'var(--s4)' }}
+          readOnly
+          onClick={onAddClick}
+          style={{ cursor: 'pointer' }}
+        />
+      </div>
 
       {/* Progresso */}
       {topSeries.length > 0 && (

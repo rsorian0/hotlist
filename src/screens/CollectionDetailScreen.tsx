@@ -44,8 +44,8 @@ export default function CollectionDetailScreen({ serie, checks, onItemClick, onT
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', paddingBottom: 'var(--s10)' }}>
-      {/* Hero */}
-      <div style={{ position: 'relative', height: 200, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--border)' }}>
+      {/* Hero — visível apenas no mobile */}
+      <div className="md:hidden" style={{ position: 'relative', height: 200, background: 'var(--surface-2)', display: 'grid', placeItems: 'center', color: 'var(--border)' }}>
         <Icon name="Car" size={88} strokeWidth={1.25} />
         {/* gradient fade to bg */}
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 80, background: 'linear-gradient(to bottom, transparent, var(--bg))' }} />
@@ -61,6 +61,17 @@ export default function CollectionDetailScreen({ serie, checks, onItemClick, onT
             <Icon name="MoreVertical" size={20} />
           </button>
         </div>
+      </div>
+
+      {/* Compact header — desktop only */}
+      <div className="hidden md:flex" style={{ alignItems: 'center', gap: 'var(--s3)', padding: 'var(--s4) var(--s4) 0' }}>
+        <button type="button" onClick={onBack} aria-label="Voltar" style={{ display: 'grid', placeItems: 'center', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', color: 'var(--text)', flexShrink: 0 }}>
+          <Icon name="ChevronLeft" size={18} />
+        </button>
+        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, letterSpacing: 'var(--ls-tight)', color: 'var(--text)', flex: 1 }}>{serie.nome}</h1>
+        <button type="button" aria-label="Mais opções" style={{ display: 'grid', placeItems: 'center', background: 'transparent', border: 'none', color: 'var(--subtle)', cursor: 'pointer', padding: 4 }}>
+          <Icon name="MoreVertical" size={20} />
+        </button>
       </div>
 
       {/* Info + progress */}
