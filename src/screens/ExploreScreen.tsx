@@ -75,7 +75,7 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--s2)' }}>
           {CATEGORY_LINES.map((l) => {
-            const isRare = l.value === 'th' || l.value === 'sth'
+            const isTH = l.value === 'th'
             return (
               <button
                 key={l.value}
@@ -84,7 +84,8 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
                 style={{
                   display: 'flex', alignItems: 'center', gap: 'var(--s3)',
                   padding: 'var(--s3) var(--s3)',
-                  background: 'var(--surface)', border: `1px solid ${isRare ? 'var(--rare)' : 'var(--border)'}`,
+                  background: 'var(--surface)',
+                  border: isTH ? '1px solid rgba(200,45,107,.35)' : '1px solid var(--border)',
                   borderRadius: 'var(--r-lg)', cursor: 'pointer', textAlign: 'left',
                   fontFamily: 'var(--font-sans)',
                   transition: 'background var(--dur-base) var(--ease)',
@@ -94,9 +95,9 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
               >
                 <span style={{
                   width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                  background: l.color,
+                  background: isTH ? 'var(--rare)' : 'var(--subtle)',
                 }} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: isRare ? 'var(--rare)' : 'var(--text)' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
                   {l.label}
                 </span>
               </button>

@@ -158,7 +158,7 @@ export default function StatsScreen({ series, checks }: Props) {
       </div>
 
       {/* Summary StatCards */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s3)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--s3)' }}>
         <StatCard value={BRL.format(data.totalEstimated)} label="valor estimado" />
         <StatCard value={BRL.format(data.totalInvested)} label="total investido" />
         {data.avgMarket != null && <StatCard value={BRL.format(data.avgMarket)} label="preço médio" />}
