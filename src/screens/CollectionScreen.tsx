@@ -54,7 +54,7 @@ export default function CollectionScreen({ series, checks, onSerieClick, onAddCl
           subtitle={filter === 'Todas' ? 'Adicione o primeiro item para começar.' : `Nenhuma coleção de ${filter}.`}
         />
       ) : (
-        <div className="r-grid-collections" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s3)' }}>
+        <div className="r-grid-collections" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--s3)' }}>
           {filtered.map((c) => (
             <CollectionClubCard
               key={c.nome}

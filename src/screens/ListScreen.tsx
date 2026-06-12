@@ -5,6 +5,7 @@ import { smartSortItems } from '../utils/sort'
 import { effectiveLine } from '../utils/line'
 import { DsInput, IconButton, Chip, DsEmptyState, DsSeriesGroup } from '../components/ds'
 import { SkeletonGroup } from '../components/Skeleton'
+import { useDesktop } from '../hooks/useDesktop'
 
 type Props = {
   series: Serie[]
@@ -27,6 +28,7 @@ const LINE_CHIPS: { id: Line | null; label: string }[] = [
 
 export default function ListScreen({ series, checks, filter, setFilter, syncing, onItemClick, onToggle, onAddClick }: Props) {
   const [lineFilter, setLineFilter] = useState<Line | null>(null)
+  const isDesktop = useDesktop()
 
   const anyVisible = useMemo(() => {
     const f = filter.toLowerCase().trim()
@@ -49,6 +51,7 @@ export default function ListScreen({ series, checks, filter, setFilter, syncing,
 
   return (
     <div style={{ maxWidth: 640, margin: '0 auto', padding: 'var(--s3) var(--s3) var(--s10)' }}>
+      {isDesktop && <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px', color: 'var(--text)', marginBottom: 'var(--s4)' }}>Lista</h1>}
       {/* Search + add */}
       <div style={{ display: 'flex', gap: 'var(--s2)', marginBottom: 'var(--s3)' }}>
         <div style={{ flex: 1 }}>
