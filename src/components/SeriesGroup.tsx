@@ -53,21 +53,40 @@ export default function SeriesGroup({
     )
   })
 
-  if (isDefault) return <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">{rows}</div>
+  if (isDefault) {
+    return (
+      <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 'var(--s2)' }}>
+        {rows}
+      </div>
+    )
+  }
 
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 mb-2">
+    <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 'var(--s2)' }}>
       <button
         type="button"
-        className="w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
         onClick={() => setOpen((v) => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 'var(--s2)',
+          padding: 'var(--s2) var(--s3)', textAlign: 'left', cursor: 'pointer',
+          background: 'transparent', border: 0, fontFamily: 'var(--font-sans)',
+          transition: 'background var(--dur-base) var(--ease)',
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-2)' }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
       >
         <ChevronDown
           size={16}
-          className={['text-neutral-400 dark:text-neutral-500 transition-transform duration-200', open ? '' : '-rotate-90'].join(' ')}
+          style={{
+            color: 'var(--subtle)',
+            transition: 'transform 200ms ease',
+            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+          }}
         />
-        <span className="flex-1 text-[13px] font-semibold text-neutral-800 dark:text-neutral-200 truncate">{serie.nome}</span>
-        <span className="text-xs text-neutral-400 dark:text-neutral-500">
+        <span style={{ flex: 1, fontSize: 13, fontWeight: 'var(--fw-semibold)', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {serie.nome}
+        </span>
+        <span style={{ fontSize: 12, color: 'var(--subtle)' }}>
           {ownedCount}/{visible.length}
         </span>
       </button>
