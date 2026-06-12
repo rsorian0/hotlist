@@ -1,12 +1,12 @@
 import { DsBottomNav } from './ds'
 
-type Tab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
+type Tab = 'home' | 'collection' | 'list' | 'explore' | 'grade' | 'stats'
 
 const TABS = [
   { id: 'home',       label: 'Início',   icon: 'House' },
   { id: 'collection', label: 'Coleção',  icon: 'Library' },
   { id: 'list',       label: 'Lista',    icon: 'ListChecks' },
-  { id: 'explore',    label: 'Grade',    icon: 'LayoutGrid' },
+  { id: 'explore',    label: 'Explorar', icon: 'Compass' },
   { id: 'stats',      label: 'Stats',    icon: 'ChartBar' },
 ]
 

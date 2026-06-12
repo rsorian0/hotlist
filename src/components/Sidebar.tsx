@@ -2,7 +2,7 @@ import type { User } from 'firebase/auth'
 import { LogIn, LogOut, Sun, Moon, Settings } from 'lucide-react'
 import { Logo, Icon } from './ds'
 
-type Tab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
+type Tab = 'home' | 'collection' | 'list' | 'explore' | 'grade' | 'stats'
 
 type Props = {
   active: Tab
@@ -19,7 +19,8 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'home',       label: 'Início',   icon: 'House' },
   { id: 'collection', label: 'Coleção',  icon: 'Library' },
   { id: 'list',       label: 'Lista',    icon: 'ListChecks' },
-  { id: 'explore',    label: 'Grade',    icon: 'LayoutGrid' },
+  { id: 'explore',    label: 'Explorar', icon: 'Compass' },
+  { id: 'grade',      label: 'Grade',    icon: 'LayoutGrid' },
   { id: 'stats',      label: 'Stats',    icon: 'ChartBar' },
 ]
 
