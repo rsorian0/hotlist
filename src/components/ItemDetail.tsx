@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useDesktop } from '../hooks/useDesktop'
 import type { Ownership, Packaging, SerieItem, Line, Serie } from '../types'
 import { LINES, effectiveLine, lineMeta } from '../utils/line'
 import { CAR_PLACEHOLDER } from '../utils/placeholder'
@@ -43,6 +44,7 @@ export default function ItemDetail({
 }: Props) {
   const toast = useToast()
   const confirm = useConfirm()
+  const isDesktop = useDesktop()
   const [draft, setDraft] = useState<Ownership>(ownership || { owned: false })
   const [scannerOpen, setScannerOpen] = useState(false)
   const [price, setPrice] = useState<PriceState>({ status: 'idle' })
@@ -177,9 +179,11 @@ export default function ItemDetail({
 
       <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
         <SheetContent
-          side="right"
+          side={isDesktop ? 'right' : 'bottom'}
           hideClose
-          className="p-0 flex flex-col bg-white dark:bg-neutral-900 w-full sm:max-w-md overflow-hidden"
+          className={isDesktop
+            ? 'p-0 flex flex-col bg-white dark:bg-neutral-900 max-w-[480px] w-full h-full overflow-hidden'
+            : 'p-0 flex flex-col bg-white dark:bg-neutral-900 w-full h-[92dvh] rounded-t-2xl overflow-hidden'}
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           {/* Header */}
