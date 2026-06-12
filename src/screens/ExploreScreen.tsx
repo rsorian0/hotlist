@@ -110,7 +110,7 @@ export default function ExploreScreen({ series, checks, onLineFilter, onItemClic
           {/* Por linha — grid 2 colunas */}
           <section>
             <div style={secLabel}>Por linha</div>
-            <div className="r-grid-categories" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 'var(--s2)' }}>
+            <div className="r-grid-categories" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s2)' }}>
               {CATEGORY_LINES.map((l) => (
                 <CategoryCard
                   key={l.value}
