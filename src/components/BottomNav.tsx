@@ -1,3 +1,4 @@
+import { useDesktop } from '../hooks/useDesktop'
 import { DsBottomNav } from './ds'
 
 type Tab = 'home' | 'collection' | 'list' | 'explore' | 'grade' | 'stats'
@@ -13,12 +14,14 @@ const TABS = [
 type Props = { active: Tab; onChange: (tab: Tab) => void }
 
 export default function BottomNav({ active, onChange }: Props) {
+  const desktop = useDesktop()
+  if (desktop) return null
+
   return (
     <DsBottomNav
       tabs={TABS}
       active={active}
       onChange={(id) => onChange(id as Tab)}
-      className="md:hidden"
       style={{
         position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
         paddingBottom: 'env(safe-area-inset-bottom)',

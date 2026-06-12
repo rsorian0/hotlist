@@ -8,7 +8,6 @@ import type { Serie } from './types'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
-import GridView from './components/GridView'
 import Modal from './components/Modal'
 import Editor from './components/Editor/Editor'
 import ItemDetail from './components/ItemDetail'
@@ -22,7 +21,7 @@ import StatsScreen from './screens/StatsScreen'
 import ExploreScreen from './screens/ExploreScreen'
 import { Plus } from 'lucide-react'
 
-type ActiveTab = 'home' | 'collection' | 'list' | 'explore' | 'grade' | 'stats'
+type ActiveTab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
 
 export default function App() {
   const { user, loading, signIn, signOut } = useAuth()
@@ -76,7 +75,7 @@ export default function App() {
     setActiveTab('list')
   }
 
-  const showFab = !selectedSerie && (activeTab === 'list' || activeTab === 'collection' || activeTab === 'grade')
+  const showFab = !selectedSerie && (activeTab === 'list' || activeTab === 'collection')
 
   if (loading) return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'var(--bg)' }}>
@@ -170,19 +169,7 @@ export default function App() {
             />
           )}
 
-          {!selectedSerie && activeTab === 'grade' && (
-            <GridView
-              series={series}
-              checks={checks}
-              filter={filter}
-              lineFilter={null}
-              syncing={syncing}
-              onItemClick={setDetailKey}
-              onAddClick={() => setAddSheetOpen(true)}
-            />
-          )}
-
-          {!selectedSerie && activeTab === 'stats' && (
+{!selectedSerie && activeTab === 'stats' && (
             <StatsScreen series={series} checks={checks} />
           )}
         </main>
