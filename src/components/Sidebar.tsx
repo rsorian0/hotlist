@@ -51,7 +51,8 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, o
               borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer', textAlign: 'left', width: '100%',
               background: active === id ? 'var(--surface-2)' : 'transparent',
               color: active === id ? 'var(--text)' : 'var(--subtle)',
-              fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 'var(--fw-semibold)',
+              fontFamily: 'var(--font-sans)', fontSize: 14,
+              fontWeight: active === id ? 700 : 'var(--fw-medium)',
               transition: 'background var(--dur-base) var(--ease), color var(--dur-base) var(--ease)',
             }}
           >
