@@ -1,7 +1,7 @@
 import { useDesktop } from '../hooks/useDesktop'
 import { DsBottomNav } from './ds'
 
-type Tab = 'home' | 'collection' | 'list' | 'explore' | 'grade' | 'stats'
+type Tab = 'home' | 'collection' | 'list' | 'explore' | 'stats'
 
 const TABS = [
   { id: 'home',       label: 'Início',   icon: 'House' },

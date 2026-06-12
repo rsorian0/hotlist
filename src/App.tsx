@@ -2,10 +2,8 @@ import { useState, useMemo } from 'react'
 import { useAuth } from './hooks/useAuth'
 import { useHotlist } from './hooks/useHotlist'
 import { useModal } from './hooks/useModal'
-import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { useTheme } from './hooks/useTheme'
 import type { Serie } from './types'
-import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import BottomNav from './components/BottomNav'
 import Modal from './components/Modal'
@@ -30,7 +28,6 @@ export default function App() {
     updateItemMetaByKey, removeItemByKey, moveItemToSerie, setOwnership, importData,
   } = useHotlist(user)
   const { open: modalOpen, index: modalIndex, feed: modalFeed, openModal, closeModal, next, prev } = useModal()
-  const { canInstall, install } = useInstallPrompt()
   const { theme, toggle: toggleTheme } = useTheme()
 
   const [filter, setFilter] = useState('')
@@ -99,17 +96,6 @@ export default function App() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        <Header
-          filter={filter}
-          onFilterChange={setFilter}
-          user={user}
-          onSignOut={signOut}
-          canInstall={canInstall}
-          onInstall={install}
-          theme={theme}
-          onToggleTheme={toggleTheme}
-        />
-
         <main className="flex-1 pb-[calc(3.75rem+env(safe-area-inset-bottom)+1.5rem)] md:pb-6" style={{ flex: 1 }}>
 
           {/* CollectionDetail sobrepõe o conteúdo da tab collection */}
