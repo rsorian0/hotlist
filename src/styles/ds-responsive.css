@@ -1,0 +1,49 @@
+/* Hotlist — Diecast Club · phone frame for the "Clube Ativo" screens.
+   Shared by every screen in this folder. Matches the main app kit shell. */
+html, body { margin: 0; height: 100%; }
+body { background: #050505; display: grid; place-items: center; font-family: var(--font-sans); }
+
+.frame {
+  position: relative; width: min(430px, 100vw); height: min(900px, 100vh);
+  background: var(--bg); overflow: hidden; display: flex; flex-direction: column;
+  box-shadow: 0 0 0 1px var(--border);
+}
+@media (min-width: 460px) { .frame { border-radius: 22px; box-shadow: 0 30px 80px rgba(0,0,0,.6); } }
+
+.kit-header { position: sticky; top: 0; z-index: 20; background: var(--header-bg); backdrop-filter: var(--blur-glass); -webkit-backdrop-filter: var(--blur-glass); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.kit-main { flex: 1; overflow-y: auto; padding-bottom: 92px; }
+.kit-nav { position: absolute; left: 0; right: 0; bottom: 0; z-index: 30; }
+.kit-fab {
+  position: absolute; right: 16px; bottom: 72px; z-index: 29;
+  width: 52px; height: 52px; border-radius: var(--r-full); background: var(--accent); color: var(--accent-fg);
+  border: 0; display: grid; place-items: center; box-shadow: var(--shadow-fab);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.kit-fab:active { transform: scale(.92); }
+.noscroll::-webkit-scrollbar { display: none; }
+.noscroll { scrollbar-width: none; -ms-overflow-style: none; }
+.hrow { display: flex; gap: var(--s2); padding: 0 var(--s4) var(--s3); overflow-x: auto; }
+
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Desktop (≥ 768px): sidebar layout replaces the phone frame ───────────── */
+@media (min-width: 768px) {
+  body { display: block; place-items: initial; background: var(--bg); height: auto; min-height: 100%; }
+  /* the DesktopShell (rendered by JS) fills the viewport; the phone frame is neutralized */
+  /* tab screens no longer use .frame on desktop, but sheet screens keep it as a positioning context */
+  .kit-nav, .kit-fab, .kit-header { display: none !important; }
+
+  /* responsive grids — override the mobile inline gridTemplateColumns */
+  .r-grid-stats { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+  .r-grid-collections { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; }
+  .r-grid-categories { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; }
+  .r-quickaccess { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+  .r-stats-two { display: grid !important; grid-template-columns: 1fr 1fr; gap: var(--s5); align-items: start; }
+  .r-brand-pills { flex-wrap: wrap !important; overflow: visible !important; }
+  .r-center-600 { max-width: 600px; margin-left: 0; margin-right: 0; }
+  .r-center-680 { max-width: 680px; margin-left: 0; margin-right: 0; }
+}
+@media (min-width: 1200px) {
+  .r-grid-collections { grid-template-columns: repeat(4, 1fr) !important; }
+}

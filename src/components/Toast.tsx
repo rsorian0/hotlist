@@ -1,32 +1,35 @@
-import type { FC } from 'react'
-import { CheckCircle2, XCircle } from 'lucide-react'
 import type { ToastVariant } from '../contexts/ToastContext'
 
 type Props = { message: string; variant?: ToastVariant }
 
-const styles: Record<ToastVariant, string> = {
-  default: 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900',
-  success: 'bg-green-600 dark:bg-green-700 text-white',
-  error:   'bg-red-600 dark:bg-red-700 text-white',
-}
-
-const icons: Record<ToastVariant, FC<{ className?: string }> | null> = {
-  default: null,
-  success: CheckCircle2,
-  error:   XCircle,
-}
-
 export default function Toast({ message, variant = 'default' }: Props) {
-  const Icon = icons[variant]
+  const bgMap: Record<ToastVariant, string> = {
+    default: 'var(--surface-2)',
+    success: 'var(--accent)',
+    error:   'var(--destructive)',
+  }
+  const colorMap: Record<ToastVariant, string> = {
+    default: 'var(--text)',
+    success: 'var(--accent-fg)',
+    error:   '#fff',
+  }
+  const borderMap: Record<ToastVariant, string> = {
+    default: 'var(--border-2)',
+    success: 'var(--accent)',
+    error:   'var(--destructive)',
+  }
   return (
     <div
-      className={[
-        'flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium',
-        'animate-in slide-in-from-bottom-2 fade-in duration-200',
-        styles[variant],
-      ].join(' ')}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 'var(--s2)',
+        background: bgMap[variant],
+        border: `1px solid ${borderMap[variant]}`,
+        borderRadius: 'var(--r-full)', padding: '8px 16px',
+        fontSize: 13, fontWeight: 'var(--fw-semibold)', color: colorMap[variant],
+        boxShadow: 'var(--shadow-sheet)', whiteSpace: 'nowrap',
+        fontFamily: 'var(--font-sans)',
+      }}
     >
-      {Icon && <Icon className="h-4 w-4 shrink-0" />}
       {message}
     </div>
   )

@@ -1,10 +1,48 @@
+@import url('./ds-tokens.css');
+@import url('./ds-responsive.css');
+
+/* DS theme bridge: app uses .dark class; DS uses .light class
+   `:root` in DS = dark-first. We override to light by default and restore dark under .dark */
+:root {
+  --bg: var(--neutral-25);
+  --surface: var(--white);
+  --surface-2: var(--neutral-50);
+  --border: var(--neutral-100);
+  --border-2: var(--neutral-200);
+  --text: var(--neutral-950);
+  --muted: var(--neutral-400);
+  --subtle: var(--neutral-300);
+  --accent: var(--neutral-900);
+  --accent-fg: var(--neutral-25);
+  --accent-hover: var(--neutral-700);
+  --ring: var(--neutral-900);
+  --destructive: #da3633;
+  --scrim: rgba(0,0,0,.5);
+  --scrim-strong: rgba(0,0,0,.85);
+  --header-bg: rgba(255,255,255,.97);
+}
+.dark {
+  --bg: var(--neutral-950);
+  --surface: var(--neutral-900);
+  --surface-2: var(--neutral-800);
+  --border: var(--neutral-700);
+  --border-2: var(--neutral-600);
+  --text: var(--neutral-25);
+  --muted: var(--neutral-300);
+  --subtle: var(--neutral-400);
+  --accent: var(--neutral-25);
+  --accent-fg: var(--neutral-950);
+  --accent-hover: var(--neutral-100);
+  --ring: var(--neutral-200);
+  --destructive: #f87171;
+  --scrim: rgba(0,0,0,.6);
+  --scrim-strong: rgba(0,0,0,.92);
+  --header-bg: rgba(10,10,10,.95);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ─── FONTS ───────────────────────────────────────────────────────────────── */
-/* Hanken Grotesk Italic — usada no logotipo "DIECAST CLUB" */
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@1,400&display=swap');
 
 /* ─── SHADCN THEME (Neutral / Light + Dark) ──────────────────────────────── */
 @layer base {

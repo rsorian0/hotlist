@@ -1,42 +1,27 @@
-import type { LucideIcon } from 'lucide-react'
-import { List, LayoutGrid, BarChart2, Settings } from 'lucide-react'
+import { DsBottomNav } from './ds'
 
 type Tab = 'list' | 'grid' | 'stats' | 'manage'
 
-const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
-  { id: 'list',   label: 'Lista',     Icon: List },
-  { id: 'grid',   label: 'Grade',     Icon: LayoutGrid },
-  { id: 'stats',  label: 'Stats',     Icon: BarChart2 },
-  { id: 'manage', label: 'Gerenciar', Icon: Settings },
+const TABS = [
+  { id: 'list',   label: 'Lista',     icon: 'List' },
+  { id: 'grid',   label: 'Grade',     icon: 'LayoutGrid' },
+  { id: 'stats',  label: 'Stats',     icon: 'BarChart2' },
+  { id: 'manage', label: 'Gerenciar', icon: 'Settings' },
 ]
 
-type Props = {
-  active: Tab
-  onChange: (tab: Tab) => void
-}
+type Props = { active: Tab; onChange: (tab: Tab) => void }
 
 export default function BottomNav({ active, onChange }: Props) {
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-30 flex bg-white dark:bg-neutral-950 border-t border-neutral-200 dark:border-neutral-800 md:hidden"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-    >
-      {TABS.map(({ id, label, Icon }) => (
-        <button
-          key={id}
-          type="button"
-          onClick={() => onChange(id)}
-          className={[
-            'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors',
-            active === id
-              ? 'text-neutral-900 dark:text-neutral-100'
-              : 'text-neutral-400 dark:text-neutral-600 hover:text-neutral-600 dark:hover:text-neutral-400',
-          ].join(' ')}
-        >
-          <Icon size={18} />
-          {label}
-        </button>
-      ))}
-    </nav>
+    <DsBottomNav
+      tabs={TABS}
+      active={active}
+      onChange={(id) => onChange(id as Tab)}
+      className="md:hidden"
+      style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    />
   )
 }

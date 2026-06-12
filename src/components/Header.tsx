@@ -1,11 +1,12 @@
 import type { User } from 'firebase/auth'
-import { Input } from '@/components/ui/input'
+import { Search, Download, Sun, Moon } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LogOut, Download, Sun, Moon } from 'lucide-react'
+import { LogOut } from 'lucide-react'
+import { Logo, DsInput } from './ds'
 
 type Props = {
   filter: string
@@ -20,18 +21,28 @@ type Props = {
 
 export default function Header({ filter, onFilterChange, user, onSignOut, canInstall, onInstall, theme, onToggleTheme }: Props) {
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800">
-      <div className="flex items-center gap-2 px-3 h-12">
-        {/* Logo — mobile only (sidebar has it on desktop) */}
-        <img src="/logo-black.svg" alt="Hotlist" className="h-5 w-auto shrink-0 md:hidden dark:invert" />
+    <header
+      style={{
+        position: 'sticky', top: 0, zIndex: 40,
+        background: 'var(--header-bg)', backdropFilter: 'var(--blur-glass)',
+        WebkitBackdropFilter: 'var(--blur-glass)',
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s2)', padding: '0 var(--s3)', height: 'var(--header-h)' }}>
+        {/* Logo — mobile only */}
+        <div className="md:hidden" style={{ color: 'var(--text)', flexShrink: 0 }}>
+          <Logo height={22} />
+        </div>
 
-        <div className="flex-1">
-          <Input
+        <div style={{ flex: 1 }}>
+          <DsInput
             type="search"
             placeholder="Buscar modelo…"
             value={filter}
             onChange={(e) => onFilterChange(e.target.value)}
-            className="h-8 bg-neutral-100 dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700 dark:text-neutral-100 dark:placeholder:text-neutral-500 text-sm"
+            leading={<Search size={15} />}
+            wrapperStyle={{ height: 36 }}
           />
         </div>
 
@@ -40,25 +51,24 @@ export default function Header({ filter, onFilterChange, user, onSignOut, canIns
             type="button"
             onClick={onInstall}
             title="Instalar app"
-            className="p-2 rounded-md text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            style={{ display: 'grid', placeItems: 'center', width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'transparent', border: 'none', color: 'var(--subtle)', cursor: 'pointer', flexShrink: 0 }}
           >
             <Download size={18} />
           </button>
         )}
 
-        {/* Theme toggle: mobile only — desktop has it in Sidebar */}
         {onToggleTheme && (
           <button
             type="button"
             onClick={onToggleTheme}
             title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-            className="md:hidden p-2 rounded-md text-neutral-400 dark:text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="md:hidden"
+            style={{ display: 'grid', placeItems: 'center', width: 36, height: 36, borderRadius: 'var(--r-md)', background: 'transparent', border: 'none', color: 'var(--subtle)', cursor: 'pointer', flexShrink: 0 }}
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         )}
 
-        {/* User avatar: mobile only — desktop has user info in Sidebar */}
         {user && (
           <div className="md:hidden">
             <DropdownMenu>

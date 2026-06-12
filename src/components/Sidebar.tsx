@@ -1,6 +1,6 @@
-import type { LucideIcon } from 'lucide-react'
 import type { User } from 'firebase/auth'
-import { List, LayoutGrid, BarChart2, Settings, LogIn, LogOut, Sun, Moon } from 'lucide-react'
+import { LogIn, LogOut, Sun, Moon } from 'lucide-react'
+import { Logo, Icon } from './ds'
 
 type Tab = 'list' | 'grid' | 'stats' | 'manage'
 
@@ -14,51 +14,68 @@ type Props = {
   onToggleTheme?: () => void
 }
 
-const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
-  { id: 'list',   label: 'Lista',     Icon: List },
-  { id: 'grid',   label: 'Grade',     Icon: LayoutGrid },
-  { id: 'stats',  label: 'Stats',     Icon: BarChart2 },
-  { id: 'manage', label: 'Gerenciar', Icon: Settings },
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: 'list',   label: 'Lista',     icon: 'List' },
+  { id: 'grid',   label: 'Grade',     icon: 'LayoutGrid' },
+  { id: 'stats',  label: 'Stats',     icon: 'BarChart2' },
+  { id: 'manage', label: 'Gerenciar', icon: 'Settings' },
 ]
 
 export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, theme, onToggleTheme }: Props) {
   return (
-    <aside className="hidden md:flex flex-col w-52 shrink-0 border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 sticky top-0 h-dvh">
+    <aside
+      className="hidden md:flex flex-col"
+      style={{
+        width: 'var(--sidebar-w)', flexShrink: 0, height: '100dvh',
+        position: 'sticky', top: 0,
+        background: 'var(--surface)', borderRight: '1px solid var(--border)',
+      }}
+    >
       {/* Logo */}
-      <div className="px-4 py-4 border-b border-neutral-200 dark:border-neutral-800">
-        <img src="/logo-black.svg" alt="Hotlist" className="h-6 w-auto dark:invert" />
+      <div style={{ padding: 'var(--s4)', borderBottom: '1px solid var(--border)', color: 'var(--text)' }}>
+        <Logo height={28} />
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 flex flex-col gap-0.5 px-2 py-3">
-        {TABS.map(({ id, label, Icon }) => (
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, padding: 'var(--s3) var(--s2)' }}>
+        {TABS.map(({ id, label, icon }) => (
           <button
             key={id}
             type="button"
             onClick={() => onChange(id)}
-            className={[
-              'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left w-full',
-              active === id
-                ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
-                : 'text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-neutral-700 dark:hover:text-neutral-200',
-            ].join(' ')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--s3)',
+              minHeight: 44, padding: '10px var(--s3)',
+              borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer', textAlign: 'left', width: '100%',
+              background: active === id ? 'var(--surface-2)' : 'transparent',
+              color: active === id ? 'var(--text)' : 'var(--subtle)',
+              fontFamily: 'var(--font-sans)', fontSize: 14, fontWeight: 'var(--fw-semibold)',
+              transition: 'background var(--dur-base) var(--ease), color var(--dur-base) var(--ease)',
+            }}
           >
-            <Icon size={17} />
+            <Icon name={icon} size={18} />
             {label}
           </button>
         ))}
       </nav>
 
-      {/* Footer: theme + user */}
-      <div className="px-2 pb-4 border-t border-neutral-200 dark:border-neutral-800 pt-3 space-y-0.5">
+      {/* Footer */}
+      <div style={{ borderTop: '1px solid var(--border)', padding: 'var(--s3) var(--s2) var(--s4)' }}>
         {onToggleTheme && (
           <button
             type="button"
             onClick={onToggleTheme}
             title={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors w-full"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--s3)',
+              minHeight: 40, padding: '8px var(--s3)', width: '100%',
+              borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer',
+              background: 'transparent', color: 'var(--subtle)',
+              fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 'var(--fw-medium)',
+              transition: 'color var(--dur-base) var(--ease)',
+            }}
           >
-            {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+            {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
           </button>
         )}
@@ -66,9 +83,15 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, t
           <button
             type="button"
             onClick={onSignIn}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors w-full"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--s3)',
+              minHeight: 40, padding: '8px var(--s3)', width: '100%',
+              borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer',
+              background: 'transparent', color: 'var(--subtle)',
+              fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 'var(--fw-medium)',
+            }}
           >
-            <LogIn size={17} />
+            <LogIn size={16} />
             Entrar
           </button>
         ) : (
@@ -76,25 +99,30 @@ export default function Sidebar({ active, onChange, user, onSignIn, onSignOut, t
             type="button"
             onClick={onSignOut}
             title="Sair da conta"
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg w-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors group"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 'var(--s2)',
+              padding: '8px var(--s3)', width: '100%',
+              borderRadius: 'var(--r-md)', border: 0, cursor: 'pointer',
+              background: 'transparent',
+            }}
           >
             {user.photoURL ? (
               <img
                 src={user.photoURL}
                 alt=""
                 referrerPolicy="no-referrer"
-                className="w-7 h-7 rounded-full border border-neutral-200 dark:border-neutral-700 shrink-0"
+                style={{ width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--border)', flexShrink: 0 }}
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 text-xs font-semibold flex items-center justify-center shrink-0">
+              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--accent)', color: 'var(--accent-fg)', fontSize: 12, fontWeight: 700, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
                 {user.displayName?.[0]?.toUpperCase() ?? '?'}
               </div>
             )}
-            <div className="flex-1 min-w-0 text-left">
-              <div className="text-xs font-semibold text-neutral-800 dark:text-neutral-200 truncate">{user.displayName}</div>
-              <div className="text-[11px] text-neutral-400 dark:text-neutral-500 truncate">{user.email}</div>
+            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <div style={{ fontSize: 12, fontWeight: 'var(--fw-semibold)', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.displayName}</div>
+              <div style={{ fontSize: 11, color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
             </div>
-            <LogOut size={14} className="text-neutral-300 dark:text-neutral-600 group-hover:text-neutral-500 dark:group-hover:text-neutral-400 shrink-0 transition-colors" />
+            <LogOut size={13} style={{ color: 'var(--subtle)', flexShrink: 0 }} />
           </button>
         )}
       </div>

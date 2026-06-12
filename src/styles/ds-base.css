@@ -1,0 +1,34 @@
+/* ============================================================================
+   HOTLIST — DIECAST CLUB · BASE
+   Document defaults and resets. Applies the brand typeface + dark-first
+   surface to the page so consumers get a correct canvas out of the box.
+   ============================================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--lh-normal);
+  font-weight: var(--fw-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+::selection { background: var(--text); color: var(--bg); }
+
+/* The "DIECAST CLUB" voice — italic 400, the one place italic is allowed. */
+.descriptor {
+  font-style: italic;
+  font-weight: var(--fw-regular);
+  letter-spacing: var(--ls-badge);
+}

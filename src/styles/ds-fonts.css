@@ -1,0 +1,9 @@
+/* ============================================================================
+   HOTLIST — DIECAST CLUB · WEBFONTS
+   Hanken Grotesk — the single system typeface and the face used inside the
+   "DIECAST CLUB" descriptor of the logo. Loaded as a variable font from Google
+   Fonts (the same source the production app uses). Axes: weight 100–900, plus
+   a true italic (used at 400 for the descriptor / brand voice).
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');

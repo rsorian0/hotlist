@@ -1,0 +1,78 @@
+/* ============================================================================
+   HOTLIST — DIECAST CLUB · COLOR TOKENS
+   Monochromatic by mandate. No chroma in the brand — only black, white and
+   neutral grays. ONE chromatic signal remains: --rare (magenta), reserved
+   exclusively for Treasure Hunt rarity. Ownership is signalled monochromatically
+   (a filled --accent dot / border). --destructive is kept for destructive
+   actions & errors only.
+   Dark-first: :root is the dark theme; add class `light` for the light theme.
+   ============================================================================ */
+
+:root {
+  /* ── Raw neutral ramp (the entire brand palette) ─────────────────────── */
+  --black:        #000000;
+  --white:        #ffffff;
+  --neutral-950:  #0a0a0a;
+  --neutral-900:  #141414;
+  --neutral-850:  #1a1a1a;
+  --neutral-800:  #1f1f1f;
+  --neutral-700:  #2a2a2a;
+  --neutral-600:  #383838;
+  --neutral-500:  #5c5c5c;
+  --neutral-400:  #737373;
+  --neutral-300:  #a3a3a3;
+  --neutral-200:  #d4d4d4;
+  --neutral-100:  #e5e5e5;
+  --neutral-50:   #f0f0f0;
+  --neutral-25:   #f5f5f5;
+
+  /* ── Semantic exceptions — SIGNAL ONLY, never decoration ─────────────── */
+  --rare:         #c82d6b;   /* Treasure Hunt rarity — the ONLY chromatic signal */
+  --rare-fg:      #ffffff;
+  --destructive:  #f87171;   /* destructive action / error (neutral-leaning red) */
+  --destructive-fg:#1a0606;
+
+  /* ── Semantic surface + text aliases (DARK — default) ────────────────── */
+  --bg:           var(--neutral-950);   /* app background */
+  --surface:      var(--neutral-900);   /* cards, panels, sheets */
+  --surface-2:    var(--neutral-800);   /* inputs, chips, wells */
+  --border:       var(--neutral-700);   /* hairlines */
+  --border-2:     var(--neutral-600);   /* stronger dividers, drag handles */
+  --text:         var(--neutral-25);    /* primary text */
+  --muted:        var(--neutral-300);   /* secondary text, labels */
+  --subtle:       var(--neutral-400);   /* tertiary text, placeholders */
+
+  /* ── Action / accent (inverts between themes) ────────────────────────── */
+  --accent:       var(--neutral-25);    /* primary button fill, active tab */
+  --accent-fg:    var(--neutral-950);   /* text/icon on accent fill */
+  --accent-hover: var(--neutral-100);
+  --ring:         var(--neutral-200);   /* focus ring */
+
+  /* ── Overlay + scrim ─────────────────────────────────────────────────── */
+  --scrim:        rgba(0,0,0,.6);
+  --scrim-strong: rgba(0,0,0,.92);
+  --header-bg:    rgba(10,10,10,.95);
+}
+
+/* ── LIGHT THEME ───────────────────────────────────────────────────────── */
+.light {
+  --bg:           var(--neutral-25);
+  --surface:      var(--white);
+  --surface-2:    var(--neutral-50);
+  --border:       var(--neutral-100);
+  --border-2:     var(--neutral-200);
+  --text:         var(--neutral-950);
+  --muted:        var(--neutral-400);
+  --subtle:       var(--neutral-300);
+
+  --accent:       var(--neutral-900);
+  --accent-fg:    var(--neutral-25);
+  --accent-hover: var(--neutral-700);
+  --ring:         var(--neutral-900);
+
+  --destructive:  #da3633;
+
+  --scrim:        rgba(0,0,0,.5);
+  --scrim-strong: rgba(0,0,0,.85);
+  --header-bg:    rgba(255,255,255,.97);
+}
