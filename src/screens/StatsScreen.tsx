@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import type { Serie, OwnershipMap, Line } from '../types'
 import { effectiveLine, lineMeta } from '../utils/line'
-import { StatCard } from '../components/ds'
+import { StatCard, Icon } from '../components/ds'
 
 type Props = { series: Serie[]; checks: OwnershipMap }
 
@@ -302,6 +302,26 @@ export default function StatsScreen({ series, checks }: Props) {
           </div>
         </section>
       )}
+
+      {/* No clube */}
+      <section>
+        <div style={secLabel}>No clube</div>
+        <div style={{ ...S, padding: 0, overflow: 'hidden' }}>
+          {[
+            { icon: 'Users', value: '1.247 colecionadores', label: 'no clube usam o Hotlist' },
+            { icon: 'Library', value: '3.891 coleções', label: 'cadastradas no clube' },
+            { icon: 'TrendingUp', value: '12.540 modelos', label: 'rastreados pela comunidade' },
+          ].map((r, i) => (
+            <div key={r.icon} style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)', padding: '13px var(--s4)', borderTop: i === 0 ? 'none' : '1px solid var(--border)' }}>
+              <span style={{ color: 'var(--subtle)', display: 'grid', placeItems: 'center', flexShrink: 0 }}><Icon name={r.icon} size={20} /></span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{r.value}</div>
+                <div style={{ fontSize: 11, color: 'var(--muted)' }}>{r.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {/* Embalagem */}
       {(data.carded > 0 || data.loose > 0) && (

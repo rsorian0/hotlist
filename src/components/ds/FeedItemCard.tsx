@@ -1,13 +1,20 @@
 import type { CSSProperties } from 'react'
 import { Check } from 'lucide-react'
+import { Icon } from './Icon'
+import { DsBadge } from './DsBadge'
 import { CommunityHint } from './CommunityHint'
-import { CAR_PLACEHOLDER } from '../../utils/placeholder'
+
+const LINE_LABELS: Record<string, string> = {
+  mainline: 'MAINLINE', th: 'TH', sth: 'STH', premium: 'PREMIUM',
+  rlc: 'RLC', 'silver-series': 'SILVER',
+}
 
 interface FeedItem {
   n?: string | number
   modelo?: string
   img?: string
   line?: string
+  serie?: string
 }
 
 interface FeedItemCardProps {
@@ -21,59 +28,74 @@ interface FeedItemCardProps {
 
 export function FeedItemCard({ item, owned, onToggle, onClick, clubCount = 0, style }: FeedItemCardProps) {
   const isRare = item.line === 'th' || item.line === 'sth'
+  const year = new Date().getFullYear()
+
   return (
-    <div
-      onClick={onClick}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 'var(--s3)',
-        padding: 'var(--s3)', background: 'var(--surface)',
-        border: '1px solid var(--border)', borderRadius: 'var(--r-lg)',
-        cursor: onClick ? 'pointer' : 'default',
-        transition: 'background var(--dur-base) var(--ease)',
-        ...style,
-      }}
-      onMouseEnter={(e) => { if (onClick) e.currentTarget.style.background = 'var(--surface-2)' }}
-      onMouseLeave={(e) => { if (onClick) e.currentTarget.style.background = 'var(--surface)' }}
-    >
-      <div style={{
-        width: 52, height: 52, borderRadius: 'var(--r-md)', flexShrink: 0,
-        background: 'var(--surface-2)', overflow: 'hidden',
-        border: `1px solid ${isRare ? 'var(--rare)' : 'var(--border)'}`,
-      }}>
-        <img src={item.img || CAR_PLACEHOLDER} alt={item.modelo} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {item.modelo || '—'}
+    <div style={{
+      background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 'var(--r-lg)', overflow: 'hidden', ...style,
+    }}>
+      {/* top row */}
+      <div
+        onClick={onClick}
+        style={{
+          display: 'flex', gap: 'var(--s3)', padding: 'var(--s3) var(--s4) var(--s2)',
+          cursor: onClick ? 'pointer' : 'default',
+        }}
+      >
+        <div style={{
+          position: 'relative', width: 48, height: 48, flexShrink: 0,
+          borderRadius: 'var(--r-md)', background: 'var(--surface-2)',
+          display: 'grid', placeItems: 'center', color: 'var(--border-2)',
+        }}>
+          <Icon name="Car" size={26} strokeWidth={1.6} />
+          {isRare && (
+            <span style={{
+              position: 'absolute', top: -3, right: -3, width: 7, height: 7,
+              borderRadius: '50%', background: 'var(--rare)', border: '1.5px solid var(--surface)',
+            }} />
+          )}
         </div>
-        {item.n != null && (
-          <div style={{ fontSize: 10, color: 'var(--subtle)', marginTop: 1 }}>{item.n}</div>
-        )}
-        {clubCount > 0 && (
-          <div style={{ marginTop: 3 }}>
-            <CommunityHint count={clubCount} rare={isRare} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {item.modelo || '—'}
           </div>
-        )}
+          <div style={{ fontSize: 12, color: 'var(--subtle)', margin: '1px 0 7px' }}>
+            {item.serie ? `${item.serie} · ` : ''}{item.n != null ? `#${item.n} · ` : ''}{year}
+          </div>
+          {item.line && (
+            isRare
+              ? <DsBadge variant="rare">{item.line === 'sth' ? 'STH' : 'TH'}</DsBadge>
+              : <DsBadge variant="outline">{LINE_LABELS[item.line] ?? item.line.toUpperCase()}</DsBadge>
+          )}
+        </div>
       </div>
 
-      {onToggle && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onToggle() }}
-          style={{
-            width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-            display: 'grid', placeItems: 'center', cursor: 'pointer',
-            background: owned ? 'var(--accent)' : 'transparent',
-            border: `2px solid ${owned ? 'var(--accent)' : 'var(--border-2)'}`,
-            color: owned ? 'var(--accent-fg)' : 'var(--subtle)',
-            transition: 'background var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease)',
-          }}
-          aria-label={owned ? 'Remover da coleção' : 'Adicionar à coleção'}
-        >
-          {owned && <Check size={16} strokeWidth={3} />}
-        </button>
-      )}
+      {/* footer row */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        gap: 'var(--s2)', padding: 'var(--s2) var(--s4) var(--s3)',
+        borderTop: '1px solid var(--border)',
+      }}>
+        <CommunityHint count={clubCount} rare={isRare} />
+        {onToggle && (
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onToggle() }}
+            style={{
+              width: 32, height: 32, flexShrink: 0, borderRadius: '50%',
+              display: 'grid', placeItems: 'center', cursor: 'pointer',
+              background: owned ? 'var(--accent)' : 'transparent',
+              border: `1.5px solid ${owned ? 'var(--accent)' : 'var(--border-2)'}`,
+              color: owned ? 'var(--accent-fg)' : 'var(--subtle)',
+              transition: 'background var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease)',
+            }}
+            aria-label={owned ? 'Remover da coleção' : 'Adicionar à coleção'}
+          >
+            <Check size={16} strokeWidth={2.5} />
+          </button>
+        )}
+      </div>
     </div>
   )
 }
