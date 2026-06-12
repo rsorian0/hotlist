@@ -97,7 +97,7 @@ export default function HomeScreen({ user, series, checks, onAddClick, onItemCli
             {totalItems > 0 ? `${totalOwned} de ${totalItems} itens coletados` : 'Comece a sua coleção'}
           </div>
         </div>
-        <IconButton icon={<Plus size={20} />} onClick={onAddClick} aria-label="Adicionar peça" />
+        <IconButton onClick={onAddClick} aria-label="Adicionar peça"><Plus size={20} /></IconButton>
       </div>
 
       {/* Busca */}
@@ -151,7 +151,7 @@ export default function HomeScreen({ user, series, checks, onAddClick, onItemCli
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.modelo || '—'}</div>
-                  <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 2 }}>{it.serie}</div>
+                  <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 2 }}>{it.serie !== 'Geral' ? it.serie : (it.n ? String(it.n) : '—')}</div>
                 </div>
                 <div style={{
                   width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
