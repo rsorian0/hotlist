@@ -1,10 +1,10 @@
 export function SkeletonRow() {
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 border-b border-neutral-100 dark:border-neutral-800 last:border-0">
-      <div className="w-12 h-12 rounded-md bg-neutral-200 dark:bg-neutral-700 animate-pulse shrink-0" />
-      <div className="flex-1 space-y-2">
-        <div className="h-2 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded w-12" />
-        <div className="h-3 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded w-36" />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s3)', padding: 'var(--s2) var(--s3)', borderBottom: '1px solid var(--border)' }}>
+      <div style={{ width: 56, height: 56, borderRadius: 'var(--r-md)', background: 'var(--surface-2)', animation: 'pulse 2s infinite', flexShrink: 0 }} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ height: 8, width: 48, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', animation: 'pulse 2s infinite' }} />
+        <div style={{ height: 12, width: 144, background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', animation: 'pulse 2s infinite' }} />
       </div>
     </div>
   )
@@ -12,7 +12,7 @@ export function SkeletonRow() {
 
 export function SkeletonGroup({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 mb-2">
+    <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 'var(--s2)' }}>
       {Array.from({ length: rows }).map((_, i) => <SkeletonRow key={i} />)}
     </div>
   )
@@ -20,11 +20,11 @@ export function SkeletonGroup({ rows = 5 }: { rows?: number }) {
 
 export function SkeletonGridCard() {
   return (
-    <div className="bg-white dark:bg-neutral-900 rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800">
-      <div className="aspect-square bg-neutral-200 dark:bg-neutral-700 animate-pulse" />
-      <div className="px-2 py-1.5 space-y-1.5">
-        <div className="h-2.5 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded w-4/5" />
-        <div className="h-2 bg-neutral-200 dark:bg-neutral-700 animate-pulse rounded w-3/5" />
+    <div style={{ background: 'var(--surface)', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+      <div style={{ aspectRatio: '1', background: 'var(--surface-2)', animation: 'pulse 2s infinite' }} />
+      <div style={{ padding: '7px 8px 9px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <div style={{ height: 10, width: '80%', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', animation: 'pulse 2s infinite' }} />
+        <div style={{ height: 8, width: '60%', background: 'var(--surface-2)', borderRadius: 'var(--r-sm)', animation: 'pulse 2s infinite' }} />
       </div>
     </div>
   )
@@ -32,8 +32,8 @@ export function SkeletonGridCard() {
 
 export function SkeletonGrid({ count = 12 }: { count?: number }) {
   return (
-    <div className="pt-3 px-3 pb-3">
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+    <div style={{ padding: 'var(--s3)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--s2)' }}>
         {Array.from({ length: count }).map((_, i) => <SkeletonGridCard key={i} />)}
       </div>
     </div>
