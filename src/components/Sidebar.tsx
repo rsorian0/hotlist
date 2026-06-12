@@ -19,7 +19,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'home',       label: 'Início',   icon: 'House' },
   { id: 'collection', label: 'Coleção',  icon: 'Library' },
   { id: 'list',       label: 'Lista',    icon: 'ListChecks' },
-  { id: 'explore',    label: 'Explorar', icon: 'Compass' },
+  { id: 'explore',    label: 'Grade',    icon: 'LayoutGrid' },
   { id: 'stats',      label: 'Stats',    icon: 'ChartBar' },
 ]
 
