@@ -37,7 +37,7 @@ body { background: #050505; display: grid; place-items: center; font-family: var
   /* responsive grids — override the mobile inline gridTemplateColumns */
   .r-grid-stats { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
   .r-grid-collections { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; }
-  .r-grid-categories { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; }
+  .r-grid-categories { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; }
   .r-quickaccess { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
   .r-stats-two { display: grid !important; grid-template-columns: 1fr 1fr; gap: var(--s5); align-items: start; }
   .r-brand-pills { flex-wrap: wrap !important; overflow: visible !important; }

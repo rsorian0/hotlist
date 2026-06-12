@@ -24,7 +24,7 @@ export function CollectionClubCard({ name, icon = 'Car', maker, fabricante, year
       style={{
         background: 'var(--surface)', border: '1px solid var(--border)',
         borderRadius: 'var(--r-lg)', overflow: 'hidden', cursor: 'pointer',
-        boxShadow: 'var(--shadow-sm)',
+        boxShadow: 'var(--shadow-sm)', minWidth: 0,
         transition: 'transform var(--dur-fast) var(--ease)',
         ...style,
       }}
